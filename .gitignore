@@ -45,3 +45,46 @@ yarn-error.log*
 
 # Contentlayer
 .contentlayer
+.env.local
+
+# Dependencies - never commit
+node_modules/
+frontend-mvp2/node_modules/
+scripts-mcp/node_modules/
+contracts/node_modules/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+
+# Security - ALL sensitive files  
+.env*
+*.key
+**/cache/
+**/broadcast/*/run-latest.json
+**/broadcast/*/run-*.json
+api-keys.txt
+secrets.txt
+private-keys.txt
+
+# IPFS and blockchain
+**/out/
+
+
+# Security - ALL sensitive files
+.env*
+*.key
+**/cache/
+**/broadcast/*/run-latest.json
+**/broadcast/*/run-*.json
+api-keys.txt
+secrets.txt
+private-keys.txt
+
+# IPFS and blockchain
+**/out/
+
+.env.local
