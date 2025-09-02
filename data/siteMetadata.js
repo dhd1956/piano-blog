@@ -1,8 +1,8 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Develop My Piano Style',
+  title: 'Developing My Piano Style',
   author: 'David Davies',
-  headerTitle: 'Develop My Piano Style',
+  headerTitle: 'Developing My Piano Style',
   description: 'This blog chronicles my musical journey playing piano as a serious hobby',
   language: 'en-us',
   theme: 'system', // system, dark or light
