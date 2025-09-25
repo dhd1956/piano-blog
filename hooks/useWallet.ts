@@ -145,7 +145,7 @@ export function useWallet() {
         return { success: false, error: 'Contract method not found. Please check the contract address and ABI.' }
       }
 
-      // Estimate gas with all 8 parameters for enhanced contract
+      // Estimate gas with all 8 parameters for V3 contract
       console.log('⛽ Estimating gas...')
       const gasEstimate = await estimateGas(
         contract,
@@ -576,8 +576,10 @@ export function useWallet() {
       console.log('  - venue.verified:', venue.verified || venue[4])
       console.log('🔍 Timestamp value:', venue.timestamp || venue[6], 'Type:', typeof (venue.timestamp || venue[6]))
       
-      // The deployed contract has a simpler structure: [name, city, contactInfo, hasPiano, verified, submittedBy, timestamp]
-      let hasPiano = venue.hasPiano !== undefined ? venue.hasPiano : venue[3]
+      // The deployed V3 contract structure: [name, city, contactInfo, contactType, ipfsHash, submittedBy, timestamp, hasPiano, hasJamSession, verified, venueType]
+      let hasPiano = venue.hasPiano !== undefined ? venue.hasPiano : venue[7]
+      let hasJamSession = venue.hasJamSession !== undefined ? venue.hasJamSession : venue[8]
+      let verified = venue.verified !== undefined ? venue.verified : venue[9]
       
       // Check for updated piano status in localStorage (temporary until contract supports it)
       const pianoStorageKey = `venue_piano_${venueId}`
@@ -607,44 +609,19 @@ export function useWallet() {
         console.log('🔧 [getVenueById] No localStorage override for venue', venueId)
       }
 
-      // Check for updated jam session status in localStorage
-      let hasJamSession = false // Default from contract
-      const jamSessionStorageKey = `venue_jam_session_${venueId}`
-      const storedJamSessionUpdate = localStorage.getItem(jamSessionStorageKey)
-      console.log('🔧 [getVenueById] Checking localStorage for jam session status:', {
-        venueId,
-        key: jamSessionStorageKey,
-        hasStoredData: !!storedJamSessionUpdate,
-        storedData: storedJamSessionUpdate
-      })
-      
-      if (storedJamSessionUpdate) {
-        try {
-          const jamSessionUpdate = JSON.parse(storedJamSessionUpdate)
-          hasJamSession = jamSessionUpdate.hasJamSession
-          console.log('🔧 [getVenueById] Jam session status overridden from localStorage:', { 
-            venueId, 
-            localStorageValue: hasJamSession,
-            storedUpdate: jamSessionUpdate
-          })
-        } catch (error) {
-          console.warn('⚠️ Failed to parse stored jam session status for venue', venueId, error)
-        }
-      } else {
-        console.log('🔧 [getVenueById] No localStorage jam session override for venue', venueId)
-      }
+      // V3 contract now supports hasJamSession directly, no need for localStorage override
       
       const parsedVenue = {
         id: venueId,
         name: venue.name || venue[0],
         city: venue.city || venue[1], 
         contactInfo: venue.contactInfo || venue[2],
-        contactType: 'email', // Default since deployed contract doesn't have this field
-        ipfsHash: '', // Empty since deployed contract doesn't have this field yet
+        contactType: venue.contactType || venue[3] || 'email',
+        ipfsHash: venue.ipfsHash || venue[4] || '',
         hasPiano: hasPiano,
-        hasJamSession: hasJamSession, // Use localStorage override or default false
-        verified: venue.verified !== undefined ? venue.verified : venue[4],
-        venueType: 0, // Default since deployed contract doesn't have this field
+        hasJamSession: hasJamSession,
+        verified: verified,
+        venueType: venue.venueType || venue[10] || 0,
         submittedBy: venue.submittedBy || venue[5],
         timestamp: Number(venue.timestamp || venue[6]),
         submissionDate: Number(venue.timestamp || venue[6]) > 0 
@@ -699,8 +676,11 @@ export function useWallet() {
         try {
           const venue = await contract.methods.getVenueById(i).call()
           
-          // Check for updated piano status in localStorage
-          let hasPiano = venue.hasPiano !== undefined ? venue.hasPiano : venue[3]
+          // V3 contract structure: [name, city, contactInfo, contactType, ipfsHash, submittedBy, timestamp, hasPiano, hasJamSession, verified, venueType]
+          let hasPiano = venue.hasPiano !== undefined ? venue.hasPiano : venue[7]
+          let hasJamSession = venue.hasJamSession !== undefined ? venue.hasJamSession : venue[8] 
+          let verified = venue.verified !== undefined ? venue.verified : venue[9]
+          
           const pianoStorageKey = `venue_piano_${i}`
           const storedPianoUpdate = localStorage.getItem(pianoStorageKey)
           if (storedPianoUpdate) {
@@ -712,30 +692,19 @@ export function useWallet() {
             }
           }
 
-          // Check for updated jam session status in localStorage
-          let hasJamSession = false // Default from contract
-          const jamSessionStorageKey = `venue_jam_session_${i}`
-          const storedJamSessionUpdate = localStorage.getItem(jamSessionStorageKey)
-          if (storedJamSessionUpdate) {
-            try {
-              const jamSessionUpdate = JSON.parse(storedJamSessionUpdate)
-              hasJamSession = jamSessionUpdate.hasJamSession
-            } catch (error) {
-              // Ignore parsing errors
-            }
-          }
+          // V3 contract supports hasJamSession directly
           
           venues.push({
             id: i,
             name: venue.name || venue[0],
             city: venue.city || venue[1],
             contactInfo: venue.contactInfo || venue[2],
-            contactType: venue.contactType || 'email',
-            ipfsHash: venue.ipfsHash || '',
+            contactType: venue.contactType || venue[3] || 'email',
+            ipfsHash: venue.ipfsHash || venue[4] || '',
             hasPiano: hasPiano,
             hasJamSession: hasJamSession,
-            verified: venue.verified !== undefined ? venue.verified : venue[4],
-            venueType: venue.venueType || 0,
+            verified: verified,
+            venueType: venue.venueType || venue[10] || 0,
             submittedBy: venue.submittedBy || venue[5],
             timestamp: Number(venue.timestamp || venue[6]),
             submissionDate: Number(venue.timestamp || venue[6]) > 0 

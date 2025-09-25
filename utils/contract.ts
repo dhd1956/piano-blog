@@ -17,7 +17,7 @@ export const CELO_TESTNET_RPC_LIST = [
 ]
 export const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
 
-// Enhanced VenueRegistry ABI - V3 with IPFS and curator support
+// VenueRegistry V3 ABI - Actual Deployed Contract
 export const VENUE_REGISTRY_ABI = [
   {
     "inputs": [],
@@ -117,39 +117,8 @@ export const VENUE_REGISTRY_ABI = [
     "type": "function"
   },
   {
-    "inputs": [{"name": "curator", "type": "address"}],
-    "name": "addCurator",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "curator", "type": "address"}],
-    "name": "removeCurator",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "curator", "type": "address"}],
-    "name": "isCurator",
-    "outputs": [{"name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"name": "ipfsHash", "type": "string"}],
-    "name": "setCuratorProfile",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"name": "startId", "type": "uint256"},
-      {"name": "endId", "type": "uint256"}
-    ],
-    "name": "getVenuesByRange",
+    "inputs": [],
+    "name": "getAllVenues",
     "outputs": [{"name": "", "type": "tuple[]", "components": [
       {"name": "name", "type": "string"},
       {"name": "city", "type": "string"},
@@ -165,17 +134,10 @@ export const VENUE_REGISTRY_ABI = [
     ]}],
     "stateMutability": "view",
     "type": "function"
-  },
-  {
-    "inputs": [{"name": "city", "type": "string"}],
-    "name": "getVenuesByCity",
-    "outputs": [{"name": "", "type": "uint256[]"}],
-    "stateMutability": "view",
-    "type": "function"
   }
 ]
 
-// Minimal ABI for read-only operations (gas optimization)
+// Minimal ABI for read-only operations (matches deployed contract)
 export const VENUE_REGISTRY_READ_ABI = [
   {
     "inputs": [{"name": "venueId", "type": "uint256"}],

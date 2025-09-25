@@ -4934,6 +4934,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/qrcode@npm:^1.5.5":
+  version: 1.5.5
+  resolution: "@types/qrcode@npm:1.5.5"
+  dependencies:
+    "@types/node": "*"
+  checksum: d92c1d3e77406bf13a03ec521b2ffb1ac99b2e6ea3a17cad670f2610f62e1293554c57e4074bb2fd4e9369f475f863b69e0ae8c543cb049c4a3c1b0c2d92522a
+  languageName: node
+  linkType: hard
+
 "@types/react-modal@npm:^3.13.1":
   version: 3.16.3
   resolution: "@types/react-modal@npm:3.16.3"
@@ -13891,7 +13900,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qrcode@npm:^1.5.0":
+"qrcode@npm:^1.5.0, qrcode@npm:^1.5.4":
   version: 1.5.4
   resolution: "qrcode@npm:1.5.4"
   dependencies:
@@ -16113,6 +16122,7 @@ __metadata:
     "@tailwindcss/postcss": ^4.0.5
     "@tailwindcss/typography": ^0.5.15
     "@types/mdx": ^2.0.12
+    "@types/qrcode": ^1.5.5
     "@types/react": ^19.0.8
     "@typescript-eslint/eslint-plugin": ^8.12.0
     "@typescript-eslint/parser": ^8.12.0
@@ -16139,6 +16149,7 @@ __metadata:
     postcss: ^8.4.24
     prettier: ^3.0.0
     prettier-plugin-tailwindcss: ^0.6.11
+    qrcode: ^1.5.4
     react: 19.0.0
     react-dom: 19.0.0
     reading-time: 1.5.0

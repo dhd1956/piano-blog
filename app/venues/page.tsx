@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useWallet } from '@/hooks/useWallet'
+import { QuickCAVPayment } from '@/components/payments/UnifiedCAVPayment'
 
 interface Venue {
   id: number
@@ -201,6 +202,20 @@ export default function VenueList() {
                   </div>
                 </div>
 
+                {/* CAV Payment for verified venues */}
+                {venue.verified && (
+                  <div className="px-6 py-3 border-t border-gray-200">
+                    <QuickCAVPayment
+                      recipientAddress={venue.submittedBy}
+                      recipientName={venue.name}
+                      memo={`Payment to ${venue.name} - ${venue.city}`}
+                      onPayment={(details) => {
+                        console.log('Payment initiated from venue listing:', details)
+                      }}
+                    />
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div className="border-t bg-gray-50 px-6 py-4">
                   <div className="flex items-center justify-between">
@@ -212,7 +227,7 @@ export default function VenueList() {
                     </a>
                     {venue.verified && (
                       <button className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700">
-                        Visit Venue
+                        🎹 Visit Venue
                       </button>
                     )}
                   </div>
