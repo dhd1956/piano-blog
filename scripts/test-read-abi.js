@@ -7,47 +7,47 @@ const Web3 = require('web3')
 const VENUE_REGISTRY_ADDRESS = '0x7AaafaF53A972Bd11f0912049C0268dAE492D175'
 const CELO_TESTNET_RPC = 'https://alfajores-forno.celo-testnet.org'
 
-// READ_ABI structure from utils/contract.ts  
+// READ_ABI structure from utils/contract.ts
 const READ_ABI = [
   {
-    "inputs": [{"name": "venueId", "type": "uint256"}],
-    "name": "getVenueById",
-    "outputs": [
+    inputs: [{ name: 'venueId', type: 'uint256' }],
+    name: 'getVenueById',
+    outputs: [
       {
-        "components": [
-          {"name": "hasPiano", "type": "bool"},
-          {"name": "hasJamSession", "type": "bool"},
-          {"name": "verified", "type": "bool"},
-          {"name": "venueType", "type": "uint8"},
-          {"name": "submissionTimestamp", "type": "uint32"},
-          {"name": "verificationTimestamp", "type": "uint32"},
-          {"name": "submittedBy", "type": "address"},
-          {"name": "name", "type": "string"},
-          {"name": "city", "type": "string"},
-          {"name": "contactType", "type": "string"},
-          {"name": "ipfsHash", "type": "string"}
+        components: [
+          { name: 'hasPiano', type: 'bool' },
+          { name: 'hasJamSession', type: 'bool' },
+          { name: 'verified', type: 'bool' },
+          { name: 'venueType', type: 'uint8' },
+          { name: 'submissionTimestamp', type: 'uint32' },
+          { name: 'verificationTimestamp', type: 'uint32' },
+          { name: 'submittedBy', type: 'address' },
+          { name: 'name', type: 'string' },
+          { name: 'city', type: 'string' },
+          { name: 'contactType', type: 'string' },
+          { name: 'ipfsHash', type: 'string' },
         ],
-        "name": "",
-        "type": "tuple"
-      }
+        name: '',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "venueCount",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [],
+    name: 'venueCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{"name": "", "type": "address"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [],
+    name: 'owner',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 async function testReadABI() {
@@ -66,7 +66,7 @@ async function testReadABI() {
     if (count > 0) {
       console.log('\nReading first venue:')
       const venue = await contract.methods.getVenueById(0).call()
-      
+
       console.log('✅ Venue 0 data:')
       console.log(`  Has Piano: ${venue.hasPiano}`)
       console.log(`  Has Jam Session: ${venue.hasJamSession}`)
@@ -82,7 +82,6 @@ async function testReadABI() {
     }
 
     return true
-    
   } catch (error) {
     console.error('❌ Test failed:', error.message)
     return false
@@ -97,4 +96,4 @@ testReadABI()
       console.log('\n❌ READ_ABI structure failed.')
     }
   })
-  .catch(error => console.error('\n💥 Test error:', error.message))
+  .catch((error) => console.error('\n💥 Test error:', error.message))

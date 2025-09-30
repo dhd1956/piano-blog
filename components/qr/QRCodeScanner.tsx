@@ -31,7 +31,7 @@ export default function QRCodeScanner({
   facingMode = 'environment',
   scanDelay = 500,
   showViewfinder = true,
-  showTorch = false
+  showTorch = false,
 }: QRCodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -64,7 +64,7 @@ export default function QRCodeScanner({
 
       // Get available video devices
       const devices = await navigator.mediaDevices.enumerateDevices()
-      const videoDevices = devices.filter(device => device.kind === 'videoinput')
+      const videoDevices = devices.filter((device) => device.kind === 'videoinput')
       setDevices(videoDevices)
 
       // Set up camera constraints
@@ -73,8 +73,8 @@ export default function QRCodeScanner({
           facingMode: facingMode,
           width: { ideal: width },
           height: { ideal: height },
-          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
-        }
+          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+        },
       }
 
       // Request camera access
@@ -102,7 +102,7 @@ export default function QRCodeScanner({
       console.error('Error starting camera:', error)
       setIsScanning(false)
       setHasPermission(false)
-      
+
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         onPermissionDenied?.()
         setError('Camera permission denied. Please allow camera access and try again.')
@@ -111,22 +111,30 @@ export default function QRCodeScanner({
       } else {
         setError(`Camera error: ${error.message}`)
       }
-      
+
       onError?.(error.message)
     }
-  }, [facingMode, width, height, selectedDeviceId, onError, onPermissionDenied, qrDetectorSupported])
+  }, [
+    facingMode,
+    width,
+    height,
+    selectedDeviceId,
+    onError,
+    onPermissionDenied,
+    qrDetectorSupported,
+  ])
 
   // Stop scanning and release camera
   const stopScanning = useCallback(() => {
     setIsScanning(false)
-    
+
     if (scanTimeoutRef.current) {
       clearTimeout(scanTimeoutRef.current)
       scanTimeoutRef.current = null
     }
 
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
 
@@ -140,20 +148,20 @@ export default function QRCodeScanner({
     try {
       // @ts-ignore - BarcodeDetector is not in TypeScript types yet
       const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] })
-      
+
       const detectQR = async () => {
         if (!videoRef.current || !isScanning) return
 
         try {
           // @ts-ignore
           const barcodes = await barcodeDetector.detect(videoRef.current)
-          
+
           if (barcodes.length > 0) {
             const qrCode = barcodes[0]
             onScan({
               data: qrCode.rawValue,
               timestamp: Date.now(),
-              format: qrCode.format
+              format: qrCode.format,
             })
             return // Stop scanning after successful detection
           }
@@ -193,12 +201,12 @@ export default function QRCodeScanner({
 
       // Get image data for QR detection
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-      
+
       try {
         // Note: This would require a QR code detection library like jsQR
         // For now, we'll simulate detection or use the BarcodeDetector API
         console.log('Manual QR detection not fully implemented - requires jsQR library')
-        
+
         // Continue scanning
         scanTimeoutRef.current = setTimeout(detectQR, scanDelay)
       } catch (error) {
@@ -217,7 +225,7 @@ export default function QRCodeScanner({
     try {
       const track = streamRef.current.getVideoTracks()[0]
       await track.applyConstraints({
-        advanced: [{ torch: !torchEnabled }]
+        advanced: [{ torch: !torchEnabled }],
       })
       setTorchEnabled(!torchEnabled)
     } catch (error) {
@@ -226,13 +234,16 @@ export default function QRCodeScanner({
   }, [torchEnabled, torchSupported])
 
   // Switch camera device
-  const switchCamera = useCallback((deviceId: string) => {
-    setSelectedDeviceId(deviceId)
-    if (isScanning) {
-      stopScanning()
-      setTimeout(() => startScanning(), 100)
-    }
-  }, [isScanning, stopScanning, startScanning])
+  const switchCamera = useCallback(
+    (deviceId: string) => {
+      setSelectedDeviceId(deviceId)
+      if (isScanning) {
+        stopScanning()
+        setTimeout(() => startScanning(), 100)
+      }
+    },
+    [isScanning, stopScanning, startScanning]
+  )
 
   // Component lifecycle
   useEffect(() => {
@@ -243,49 +254,38 @@ export default function QRCodeScanner({
 
   // Viewfinder overlay component
   const Viewfinder = () => (
-    <div className="absolute inset-0 pointer-events-none">
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-      <div 
-        className="absolute border-2 border-white rounded-lg"
+    <div className="pointer-events-none absolute inset-0">
+      <div className="bg-opacity-50 absolute inset-0 bg-black"></div>
+      <div
+        className="absolute rounded-lg border-2 border-white"
         style={{
           top: '20%',
           left: '20%',
           width: '60%',
           height: '60%',
-          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)'
+          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
         }}
       >
         {/* Corner guides */}
-        <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400 rounded-tl"></div>
-        <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400 rounded-tr"></div>
-        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400 rounded-bl"></div>
-        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400 rounded-br"></div>
+        <div className="absolute top-0 left-0 h-6 w-6 rounded-tl border-t-4 border-l-4 border-green-400"></div>
+        <div className="absolute top-0 right-0 h-6 w-6 rounded-tr border-t-4 border-r-4 border-green-400"></div>
+        <div className="absolute bottom-0 left-0 h-6 w-6 rounded-bl border-b-4 border-l-4 border-green-400"></div>
+        <div className="absolute right-0 bottom-0 h-6 w-6 rounded-br border-r-4 border-b-4 border-green-400"></div>
       </div>
-      
+
       {/* Scanning line animation */}
-      <div className="absolute top-1/2 left-1/5 right-1/5 h-0.5 bg-green-400 animate-pulse"></div>
+      <div className="absolute top-1/2 right-1/5 left-1/5 h-0.5 animate-pulse bg-green-400"></div>
     </div>
   )
 
   return (
     <div className={`relative ${className}`}>
       {/* Camera preview */}
-      <div 
-        className="relative overflow-hidden rounded-lg bg-black"
-        style={{ width, height }}
-      >
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          playsInline
-          muted
-        />
-        
+      <div className="relative overflow-hidden rounded-lg bg-black" style={{ width, height }}>
+        <video ref={videoRef} className="h-full w-full object-cover" playsInline muted />
+
         {/* Hidden canvas for manual detection */}
-        <canvas
-          ref={canvasRef}
-          className="hidden"
-        />
+        <canvas ref={canvasRef} className="hidden" />
 
         {/* Viewfinder overlay */}
         {showViewfinder && isScanning && <Viewfinder />}
@@ -296,8 +296,8 @@ export default function QRCodeScanner({
           {showTorch && torchSupported && (
             <button
               onClick={toggleTorch}
-              className={`p-2 rounded-full text-white ${
-                torchEnabled ? 'bg-yellow-600' : 'bg-gray-600 bg-opacity-50'
+              className={`rounded-full p-2 text-white ${
+                torchEnabled ? 'bg-yellow-600' : 'bg-opacity-50 bg-gray-600'
               }`}
             >
               🔦
@@ -309,7 +309,7 @@ export default function QRCodeScanner({
             <select
               value={selectedDeviceId}
               onChange={(e) => switchCamera(e.target.value)}
-              className="p-1 text-xs bg-gray-600 bg-opacity-50 text-white rounded"
+              className="bg-opacity-50 rounded bg-gray-600 p-1 text-xs text-white"
             >
               <option value="">Default Camera</option>
               {devices.map((device, index) => (
@@ -322,21 +322,19 @@ export default function QRCodeScanner({
         </div>
 
         {/* Status indicator */}
-        <div className="absolute bottom-2 left-2 right-2">
+        <div className="absolute right-2 bottom-2 left-2">
           {hasPermission === false && (
-            <div className="bg-red-600 bg-opacity-90 text-white text-xs p-2 rounded">
+            <div className="bg-opacity-90 rounded bg-red-600 p-2 text-xs text-white">
               Camera permission required
             </div>
           )}
-          
+
           {error && (
-            <div className="bg-red-600 bg-opacity-90 text-white text-xs p-2 rounded">
-              {error}
-            </div>
+            <div className="bg-opacity-90 rounded bg-red-600 p-2 text-xs text-white">{error}</div>
           )}
-          
+
           {isScanning && (
-            <div className="bg-green-600 bg-opacity-90 text-white text-xs p-2 rounded text-center">
+            <div className="bg-opacity-90 rounded bg-green-600 p-2 text-center text-xs text-white">
               📷 Scanning for QR codes...
             </div>
           )}
@@ -344,18 +342,18 @@ export default function QRCodeScanner({
       </div>
 
       {/* Control buttons */}
-      <div className="flex gap-2 mt-4 justify-center">
+      <div className="mt-4 flex justify-center gap-2">
         {!isScanning ? (
           <button
             onClick={startScanning}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             📷 Start Scanner
           </button>
         ) : (
           <button
             onClick={stopScanning}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
             ⏹️ Stop Scanner
           </button>
@@ -382,7 +380,7 @@ export function useQRScanner() {
 
   useEffect(() => {
     // Check if camera API is supported
-    const supported = !!(navigator.mediaDevices?.getUserMedia)
+    const supported = !!navigator.mediaDevices?.getUserMedia
     setIsSupported(supported)
 
     if (!supported) {
@@ -392,23 +390,26 @@ export function useQRScanner() {
 
     // Check current permission status
     if ('permissions' in navigator) {
-      navigator.permissions.query({ name: 'camera' as PermissionName }).then(result => {
-        setHasPermission(result.state === 'granted')
-        
-        result.addEventListener('change', () => {
+      navigator.permissions
+        .query({ name: 'camera' as PermissionName })
+        .then((result) => {
           setHasPermission(result.state === 'granted')
+
+          result.addEventListener('change', () => {
+            setHasPermission(result.state === 'granted')
+          })
         })
-      }).catch(() => {
-        // Permission API not available, will check on first use
-        setHasPermission(null)
-      })
+        .catch(() => {
+          // Permission API not available, will check on first use
+          setHasPermission(null)
+        })
     }
   }, [])
 
   const requestPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      stream.getTracks().forEach(track => track.stop()) // Clean up
+      stream.getTracks().forEach((track) => track.stop()) // Clean up
       setHasPermission(true)
       return true
     } catch (error: any) {
@@ -422,6 +423,6 @@ export function useQRScanner() {
     hasPermission,
     isSupported,
     error,
-    requestPermission
+    requestPermission,
   }
 }

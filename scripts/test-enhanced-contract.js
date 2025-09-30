@@ -12,39 +12,39 @@ const CELO_RPC = 'https://alfajores-forno.celo-testnet.org'
 // Test ABI with new functions
 const TEST_ABI = [
   {
-    "inputs": [{"name": "curator", "type": "address"}],
-    "name": "isCurator",
-    "outputs": [{"name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [{ name: 'curator', type: 'address' }],
+    name: 'isCurator',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      {"name": "venueId", "type": "uint256"},
-      {"name": "newIPFSHash", "type": "string"}
+    inputs: [
+      { name: 'venueId', type: 'uint256' },
+      { name: 'newIPFSHash', type: 'string' },
     ],
-    "name": "updateIPFSHash",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'updateIPFSHash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{"name": "", "type": "address"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [],
+    name: 'owner',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 async function testEnhancedContract() {
   const web3 = new Web3(CELO_RPC)
   const contract = new web3.eth.Contract(TEST_ABI, CONTRACT_ADDRESS)
-  
+
   console.log('🔍 Testing enhanced contract functions...')
   console.log('📍 Contract Address:', CONTRACT_ADDRESS)
   console.log('')
-  
+
   try {
     // Test 1: Check if isCurator function exists (new function)
     console.log('Test 1: isCurator function')
@@ -56,9 +56,9 @@ async function testEnhancedContract() {
       console.log('❌ isCurator function does NOT exist')
       console.log('Error:', error.message.substring(0, 100))
     }
-    
+
     console.log('')
-    
+
     // Test 2: Check contract owner (should work on both versions)
     console.log('Test 2: Contract owner')
     try {
@@ -68,16 +68,16 @@ async function testEnhancedContract() {
       console.log('❌ Failed to get contract owner')
       console.log('Error:', error.message.substring(0, 100))
     }
-    
+
     console.log('')
-    
+
     // Test 3: Check if contract has expected functions by examining contract code
     console.log('Test 3: Contract bytecode analysis')
     try {
       const code = await web3.eth.getCode(CONTRACT_ADDRESS)
       const codeSize = code.length
       console.log('📊 Contract bytecode size:', codeSize, 'characters')
-      
+
       // The enhanced contract should be larger than the simple one
       if (codeSize > 10000) {
         console.log('✅ Contract size suggests enhanced version (larger bytecode)')
@@ -87,11 +87,10 @@ async function testEnhancedContract() {
     } catch (error) {
       console.log('❌ Failed to get contract bytecode')
     }
-    
   } catch (error) {
     console.error('❌ Test failed:', error.message)
   }
-  
+
   console.log('')
   console.log('🔍 Test complete!')
 }

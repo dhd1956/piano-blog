@@ -27,7 +27,7 @@ interface VenueCardProps {
 
 export default function VenueCard({ venue, showQRCode = true, onPayment }: VenueCardProps) {
   const [selectedAmount, setSelectedAmount] = useState('10')
-  
+
   // Use venue's payment address or fallback to submitter
   const paymentAddress = venue.paymentAddress || venue.submittedBy
 
@@ -44,13 +44,13 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
   const getStatusBadge = () => {
     if (venue.verified) {
       return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
           ✅ Verified
         </span>
       )
     }
     return (
-      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+      <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
         ⏳ Pending
       </span>
     )
@@ -59,7 +59,7 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
   const getPartnerBadge = () => {
     if (venue.isPartner) {
       return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+        <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800">
           💎 CAV Partner
         </span>
       )
@@ -68,17 +68,17 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+    <div className="overflow-hidden rounded-lg bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
       {/* Header */}
       <div className="p-6 pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               <span className="text-2xl">{getVenueIcon()}</span>
               <h3 className="text-lg font-semibold text-gray-900">{venue.name}</h3>
             </div>
-            
-            <div className="flex items-center gap-2 mb-3">
+
+            <div className="mb-3 flex items-center gap-2">
               {getStatusBadge()}
               {getPartnerBadge()}
             </div>
@@ -91,9 +91,7 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
           </div>
 
           {/* Venue ID */}
-          <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-            #{venue.id}
-          </div>
+          <div className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-400">#{venue.id}</div>
         </div>
       </div>
 
@@ -110,7 +108,7 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
               onPayment?.(venue.id, details.amount || selectedAmount)
             }}
           />
-          
+
           {/* Payment Stats */}
           {venue.totalCAVReceived && venue.totalCAVReceived > 0 && (
             <div className="mt-3 text-center text-sm text-gray-600">
@@ -121,17 +119,17 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
       )}
 
       {/* Actions */}
-      <div className="px-6 py-4 bg-gray-50 flex justify-between items-center">
+      <div className="flex items-center justify-between bg-gray-50 px-6 py-4">
         <div className="text-xs text-gray-500">
           Added {venue.submissionDate.toLocaleDateString()}
         </div>
-        
+
         <div className="flex gap-2">
           {/* Web3 Payment Button (for verified venues) */}
           {venue.verified && (
             <button
               onClick={() => handlePayment(selectedAmount || '10')}
-              className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors"
+              className="rounded bg-green-100 px-3 py-1 text-sm text-green-700 transition-colors hover:bg-green-200"
             >
               🌐 Web3 Pay
             </button>
@@ -141,15 +139,17 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
           <button
             onClick={() => {
               const url = `${window.location.origin}/venues/${venue.id}`
-              navigator.share?.({ 
-                title: venue.name, 
-                text: `Check out ${venue.name} in ${venue.city}`, 
-                url 
-              }).catch(() => {
-                navigator.clipboard.writeText(url)
-              })
+              navigator
+                .share?.({
+                  title: venue.name,
+                  text: `Check out ${venue.name} in ${venue.city}`,
+                  url,
+                })
+                .catch(() => {
+                  navigator.clipboard.writeText(url)
+                })
             }}
-            className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+            className="rounded bg-blue-100 px-3 py-1 text-sm text-blue-700 transition-colors hover:bg-blue-200"
           >
             📤 Share
           </button>
@@ -162,14 +162,26 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
 /**
  * Simplified venue card for list views
  */
-export function CompactVenueCard({ venue, onSelect }: { 
+export function CompactVenueCard({
+  venue,
+  onSelect,
+}: {
   venue: Venue
-  onSelect?: (venue: Venue) => void 
+  onSelect?: (venue: Venue) => void
 }) {
   return (
-    <div 
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+    <div
+      className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
       onClick={() => onSelect?.(venue)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect?.(venue)
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Select venue ${venue.name}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -179,12 +191,10 @@ export function CompactVenueCard({ venue, onSelect }: {
             <p className="text-sm text-gray-600">{venue.city}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {venue.isPartner && (
-            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-              CAV
-            </span>
+            <span className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-800">CAV</span>
           )}
           {venue.verified ? (
             <span className="text-green-600">✅</span>

@@ -12,18 +12,18 @@ async function testIPFSData() {
   console.log('🔍 Testing IPFS data retrieval...')
   console.log('📍 IPFS Hash:', IPFS_HASH)
   console.log('')
-  
+
   // Try Pinata gateway first
   console.log('Test 1: Pinata Gateway')
   try {
     const pinataUrl = `${PINATA_GATEWAY}/${IPFS_HASH}`
     console.log('🌐 URL:', pinataUrl)
-    
+
     const response = await fetch(pinataUrl, {
-      headers: { 'Accept': 'application/json' },
-      timeout: 10000
+      headers: { Accept: 'application/json' },
+      timeout: 10000,
     })
-    
+
     if (response.ok) {
       const data = await response.json()
       console.log('✅ Pinata gateway success!')
@@ -35,20 +35,20 @@ async function testIPFSData() {
   } catch (error) {
     console.log('❌ Pinata gateway error:', error.message.substring(0, 100))
   }
-  
+
   console.log('')
-  
+
   // Try public IPFS gateway
   console.log('Test 2: Public IPFS Gateway')
   try {
     const ipfsUrl = `${IPFS_GATEWAY}/${IPFS_HASH}`
     console.log('🌐 URL:', ipfsUrl)
-    
+
     const response = await fetch(ipfsUrl, {
-      headers: { 'Accept': 'application/json' },
-      timeout: 15000
+      headers: { Accept: 'application/json' },
+      timeout: 15000,
     })
-    
+
     if (response.ok) {
       const data = await response.json()
       console.log('✅ Public gateway success!')
@@ -60,7 +60,7 @@ async function testIPFSData() {
   } catch (error) {
     console.log('❌ Public gateway error:', error.message.substring(0, 100))
   }
-  
+
   console.log('')
   console.log('🔍 IPFS test complete!')
 }

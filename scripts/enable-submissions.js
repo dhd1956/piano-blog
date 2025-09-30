@@ -10,26 +10,26 @@ const YOUR_ADDRESS = '0xe8985AEDF83E2a58fEf53B45db2d9556CD5F453A'
 
 const OWNER_ABI = [
   {
-    "inputs": [],
-    "name": "enableSubmissions",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: 'enableSubmissions',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [{"name": "max", "type": "uint256"}],
-    "name": "setMaxVenues",
-    "outputs": [],
-    "stateMutability": "nonpayable", 
-    "type": "function"
+    inputs: [{ name: 'max', type: 'uint256' }],
+    name: 'setMaxVenues',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "venueCount",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [],
+    name: 'venueCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 async function enableSubmissions() {
@@ -48,20 +48,21 @@ async function enableSubmissions() {
     const enablePatterns = [
       { name: 'No params', params: [] },
       { name: 'Boolean true', params: [true] },
-      { name: 'Number 1', params: [1] }
+      { name: 'Number 1', params: [1] },
     ]
 
     for (const pattern of enablePatterns) {
       try {
         console.log(`\n🧪 Testing enableSubmissions(${pattern.params.join(', ')})...`)
-        
+
         // First try to estimate gas
-        const gasEstimate = await contract.methods.enableSubmissions(...pattern.params).estimateGas({ from: YOUR_ADDRESS })
+        const gasEstimate = await contract.methods
+          .enableSubmissions(...pattern.params)
+          .estimateGas({ from: YOUR_ADDRESS })
         console.log(`✅ ${pattern.name}: Gas estimate ${gasEstimate}`)
         console.log(`💡 This pattern works! You could call this function with MetaMask.`)
-        
+
         return { success: true, method: 'enableSubmissions', params: pattern.params }
-        
       } catch (error) {
         console.log(`❌ ${pattern.name}: ${error.message}`)
       }
@@ -70,18 +71,18 @@ async function enableSubmissions() {
     // Try setMaxVenues to increase limit
     console.log(`\n🧪 Testing setMaxVenues(10)...`)
     try {
-      const gasEstimate = await contract.methods.setMaxVenues(10).estimateGas({ from: YOUR_ADDRESS })
+      const gasEstimate = await contract.methods
+        .setMaxVenues(10)
+        .estimateGas({ from: YOUR_ADDRESS })
       console.log(`✅ setMaxVenues(10): Gas estimate ${gasEstimate}`)
       console.log(`💡 You can increase the venue limit!`)
-      
+
       return { success: true, method: 'setMaxVenues', params: [10] }
-      
     } catch (error) {
       console.log(`❌ setMaxVenues(10): ${error.message}`)
     }
 
     return { success: false, error: 'No working owner functions found' }
-    
   } catch (error) {
     console.error('💥 Enable submissions failed:', error.message)
     return { success: false, error: error.message }
@@ -102,4 +103,4 @@ enableSubmissions()
       console.log('The contract might need different parameters or have other restrictions')
     }
   })
-  .catch(error => console.error('\n💥 Script error:', error.message))
+  .catch((error) => console.error('\n💥 Script error:', error.message))

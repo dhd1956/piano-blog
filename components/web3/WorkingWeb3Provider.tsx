@@ -38,10 +38,10 @@ const CELO_NETWORK_CONFIG = {
   nativeCurrency: {
     name: 'CELO',
     symbol: 'CELO',
-    decimals: 18
+    decimals: 18,
   },
   rpcUrls: ['https://alfajores-forno.celo-testnet.org'],
-  blockExplorerUrls: ['https://alfajores.celoscan.io/']
+  blockExplorerUrls: ['https://alfajores.celoscan.io/'],
 }
 
 export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
@@ -56,11 +56,11 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     isAuthorizedCurator: false,
     web3: null,
     error: null,
-    hasTriedAutoConnect: false
+    hasTriedAutoConnect: false,
   })
 
   const updateState = (updates: Partial<Web3State>) => {
-    setState(prev => ({ ...prev, ...updates }))
+    setState((prev) => ({ ...prev, ...updates }))
   }
 
   // Safe helper functions with try/catch
@@ -76,7 +76,9 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
   const updatePermissions = (address: string) => {
     try {
       const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-      const isBlogOwner = Boolean(BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS)
+      const isBlogOwner = Boolean(
+        BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
+      )
       const isAuthorizedCurator = isBlogOwner // Only owner can be curator in new contract
       updateState({ isBlogOwner, isAuthorizedCurator })
     } catch (error) {
@@ -105,18 +107,15 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       }
 
       const address = accounts[0]
-      const chainId = await safeCall(
-        () => window.ethereum.request({ method: 'eth_chainId' }),
-        null
-      )
+      const chainId = await safeCall(() => window.ethereum.request({ method: 'eth_chainId' }), null)
 
       console.log('🔧 Creating Web3 instance with window.ethereum:', !!window.ethereum)
       console.log('🔧 MetaMask detected:', !!window.ethereum?.isMetaMask)
-      
+
       const web3 = new Web3(window.ethereum)
       console.log('🔧 Web3 instance created:', !!web3)
       console.log('🔧 Web3 provider:', web3.currentProvider)
-      
+
       const networkStatus = chainId === CELO_CHAIN_ID ? 'correct' : 'wrong'
 
       updateState({
@@ -127,18 +126,17 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
         networkStatus,
         isOnCorrectNetwork: networkStatus === 'correct',
         web3,
-        error: null
+        error: null,
       })
 
       updatePermissions(address)
       return true
-
     } catch (error: any) {
       console.error('Connection failed:', error)
       updateState({
         status: 'error',
         isConnected: false,
-        error: error.message || 'Connection failed'
+        error: error.message || 'Connection failed',
       })
       return false
     }
@@ -155,7 +153,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       isBlogOwner: false,
       isAuthorizedCurator: false,
       web3: null,
-      error: null
+      error: null,
     })
   }
 
@@ -164,39 +162,39 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
 
     try {
       updateState({ networkStatus: 'switching' })
-      
+
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: CELO_CHAIN_ID }]
+        params: [{ chainId: CELO_CHAIN_ID }],
       })
 
       updateState({
         chainId: CELO_CHAIN_ID,
         networkStatus: 'correct',
-        isOnCorrectNetwork: true
+        isOnCorrectNetwork: true,
       })
-      
+
       return true
     } catch (error: any) {
       if (error.code === 4902) {
         try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
-            params: [CELO_NETWORK_CONFIG]
+            params: [CELO_NETWORK_CONFIG],
           })
-          
+
           updateState({
             chainId: CELO_CHAIN_ID,
             networkStatus: 'correct',
-            isOnCorrectNetwork: true
+            isOnCorrectNetwork: true,
           })
-          
+
           return true
         } catch (addError) {
           console.error('Failed to add network:', addError)
         }
       }
-      
+
       updateState({ networkStatus: 'wrong' })
       return false
     }
@@ -208,12 +206,12 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
         () => window.ethereum.request({ method: 'eth_chainId' }),
         state.chainId
       )
-      
+
       const networkStatus = chainId === CELO_CHAIN_ID ? 'correct' : 'wrong'
       updateState({
         chainId,
         networkStatus,
-        isOnCorrectNetwork: networkStatus === 'correct'
+        isOnCorrectNetwork: networkStatus === 'correct',
       })
     }
   }
@@ -222,7 +220,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     try {
       await window.ethereum?.request({
         method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
+        params: [{ eth_accounts: {} }],
       })
       return await connect()
     } catch (error) {
@@ -254,10 +252,10 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
 
     const handleChainChanged = (chainId: string) => {
       try {
-        updateState({ 
+        updateState({
           chainId,
           networkStatus: chainId === CELO_CHAIN_ID ? 'correct' : 'wrong',
-          isOnCorrectNetwork: chainId === CELO_CHAIN_ID
+          isOnCorrectNetwork: chainId === CELO_CHAIN_ID,
         })
       } catch (error) {
         console.warn('Chain change handler failed:', error)
@@ -288,7 +286,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
             () => window.ethereum.request({ method: 'eth_accounts' }),
             []
           )
-          
+
           if (accounts && accounts.length > 0) {
             await connect()
           }
@@ -310,14 +308,10 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     switchNetwork,
     refreshConnection,
     requestAccountChange,
-    clearError
+    clearError,
   }
 
-  return (
-    <Web3Context.Provider value={contextValue}>
-      {children}
-    </Web3Context.Provider>
-  )
+  return <Web3Context.Provider value={contextValue}>{children}</Web3Context.Provider>
 }
 
 export function useWeb3() {
@@ -336,7 +330,7 @@ export function useWalletConnection() {
     isConnected,
     walletAddress,
     error,
-    isLoading: status === 'connecting'
+    isLoading: status === 'connecting',
   }
 }
 
@@ -344,7 +338,7 @@ export function useNetwork() {
   const { isOnCorrectNetwork, networkStatus } = useWeb3()
   return {
     isOnCorrectNetwork,
-    needsNetworkSwitch: networkStatus === 'wrong'
+    needsNetworkSwitch: networkStatus === 'wrong',
   }
 }
 
@@ -354,6 +348,6 @@ export function usePermissions() {
     isBlogOwner,
     isAuthorizedCurator,
     hasAnyPermissions: isBlogOwner || isAuthorizedCurator,
-    canAccessCurator: isBlogOwner || isAuthorizedCurator
+    canAccessCurator: isBlogOwner || isAuthorizedCurator,
   }
 }

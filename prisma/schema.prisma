@@ -1,0 +1,254 @@
+// Simplified Prisma schema - PostgreSQL only for content, blockchain only for payments
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Simplified venue model - PostgreSQL-only, no blockchain sync
+model Venue {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique // URL-friendly identifier
+
+  // Basic venue information
+  name         String
+  city         String
+  contactInfo  String
+  contactType  String   @default("email")
+  submittedBy  String   // Wallet address of scout
+  hasPiano     Boolean  @default(false)
+  hasJamSession Boolean @default(false)
+  venueType    Int      @default(0) // Enum: 0=Cafe, 1=Restaurant, 2=Bar, etc.
+
+  // Rich PostgreSQL-only fields
+  description  String?  @db.Text // Rich text description
+  address      String?  // Physical address
+  latitude     Float?   // For geolocation
+  longitude    Float?   // For geolocation
+  phone        String?  // Phone number
+  website      String?  // Website URL
+  socialLinks  Json?    // Social media links as JSON
+  amenities    String[] // Array of amenities
+  tags         String[] // Searchable tags
+  priceRange   String?  // Price range indicator
+
+  // Ratings and reviews (PostgreSQL-only)
+  rating       Float?   @default(0) // Average rating
+  reviewCount  Int      @default(0) // Number of reviews
+
+  // Verification (references blockchain but no sync needed)
+  verified     Boolean  @default(false) // Manually updated from blockchain events
+  verifiedAt   DateTime? // When verification was completed
+  venueHash    String?  @unique // Hash used for blockchain verification
+
+  // Metadata
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  reviews      VenueReview[]
+  verifications VenueVerification[]
+  analytics    VenueAnalytics[]
+
+  // Indexes for performance
+  @@index([city, verified])
+  @@index([hasPiano, verified])
+  @@index([latitude, longitude])
+  @@index([submittedBy])
+  @@index([venueHash])
+  @@index([name, city])  // For text search
+}
+
+// User profiles linked by wallet address
+model User {
+  id             Int      @id @default(autoincrement())
+  walletAddress  String   @unique @db.VarChar(42) // Ethereum address format
+
+  // Profile information
+  username       String?  @unique
+  displayName    String?
+  email          String?  @unique
+  bio            String?  @db.Text
+  avatar         String?  // IPFS hash or URL
+  location       String?
+
+  // Web3 profile
+  ensName        String?  // ENS domain name
+  profileNFT     String?  // Profile picture NFT
+
+  // CAV-related fields (cached from blockchain)
+  totalCAVEarned Float    @default(0) // Total CAV earned (cached)
+  hasClaimedNewUserReward Boolean @default(false) // Cached from contract
+  isAuthorizedVerifier   Boolean @default(false) // Cached from contract
+
+  // Activity tracking
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastActive     DateTime @default(now())
+
+  // Relations
+  reviews        VenueReview[]
+
+  @@index([walletAddress])
+  @@index([totalCAVEarned])
+}
+
+// User reviews (PostgreSQL-only for performance)
+model VenueReview {
+  id          Int      @id @default(autoincrement())
+  venue       Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId     Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+
+  // Review content
+  rating      Int      // 1-5 stars
+  title       String?
+  content     String?  @db.Text
+  pianoQuality Int?    // Piano-specific rating
+
+  // Moderation
+  isVerified   Boolean @default(false) // Verified review
+  isHidden     Boolean @default(false) // Hidden by moderators
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([venueId, rating])
+  @@index([userId])
+  @@unique([venueId, userId]) // One review per user per venue
+}
+
+// Venue verifications (references blockchain transactions)
+model VenueVerification {
+  id          Int      @id @default(autoincrement())
+  venue       Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId     Int
+
+  // Verification details
+  verifierAddress String // Curator wallet address
+  approved    Boolean
+  notes       String?  @db.Text
+  rating      Int?     // 1-5 star rating from curator
+  timestamp   DateTime @default(now())
+
+  // Blockchain reference (for transparency)
+  transactionHash String? @unique // Reference to blockchain tx
+  blockNumber     Int?    // Block number
+
+  @@index([venueId, approved])
+  @@index([verifierAddress])
+}
+
+// CAV payment tracking (blockchain transaction references)
+model CAVPayment {
+  id               Int         @id @default(autoincrement())
+
+  // Payment participants
+  fromAddress      String      // Sender wallet
+  toAddress        String      // Recipient wallet
+  venueId          Int?        // Optional venue reference
+
+  // Payment details
+  amount           Float       // Amount in CAV tokens
+
+  // Blockchain tracking
+  transactionHash  String      @unique // Blockchain transaction hash
+  blockNumber      Int?        // Block number
+  blockTimestamp   DateTime    // Transaction timestamp
+  status           PaymentStatus @default(CONFIRMED) // Assume confirmed when recorded
+
+  // Payment context
+  paymentType      String      // venue_payment, reward, tip, etc.
+  memo             String?
+  paymentMethod    String      // web3, qr
+
+  createdAt        DateTime    @default(now())
+
+  @@index([venueId, status])
+  @@index([fromAddress])
+  @@index([toAddress])
+  @@index([transactionHash])
+  @@index([blockTimestamp])
+}
+
+// Analytics (PostgreSQL-only for performance)
+model VenueAnalytics {
+  id          Int      @id @default(autoincrement())
+  venue       Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId     Int
+  date        DateTime @db.Date
+
+  // View metrics
+  views       Int      @default(0)
+  uniqueViews Int      @default(0)
+  qrScans     Int      @default(0)
+
+  // Engagement metrics
+  detailViews Int      @default(0)
+  shareClicks Int      @default(0)
+
+  // Search metrics
+  searchImpressions Int @default(0)
+  searchClicks      Int @default(0)
+
+  @@unique([venueId, date])
+  @@index([date])
+}
+
+// App configuration
+model AppConfig {
+  id            Int      @id @default(autoincrement())
+  key           String   @unique
+  value         Json
+  description   String?
+  updatedAt     DateTime @updatedAt
+
+  @@index([key])
+}
+
+// Blockchain event log (for tracking important events)
+model BlockchainEvent {
+  id          Int      @id @default(autoincrement())
+  eventType   String   // NewUserRewarded, ScoutRewarded, VenueVerified, etc.
+  contractAddress String // Contract that emitted the event
+  transactionHash String @unique
+  blockNumber Int
+  blockTimestamp DateTime
+
+  // Event data (JSON)
+  eventData   Json
+
+  // Processing status
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([eventType, processed])
+  @@index([blockNumber])
+  @@index([contractAddress])
+}
+
+// Simplified enums
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum VenueType {
+  CAFE
+  RESTAURANT
+  BAR
+  CLUB
+  COMMUNITY_CENTER
+  HOTEL
+  LIBRARY
+  SCHOOL
+  OTHER
+}
+

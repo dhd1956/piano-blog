@@ -52,28 +52,28 @@ export function generateCeloPaymentURI({
   amount,
   tokenAddress,
   memo,
-  chainId = 44787
+  chainId = 44787,
 }: CeloPaymentURIProps): string {
   const params = new URLSearchParams()
-  
+
   params.set('address', address)
-  
+
   if (amount) {
     // Convert amount to wei (18 decimals)
     const amountInWei = (parseFloat(amount.toString()) * 1e18).toString()
     params.set('amount', amountInWei)
   }
-  
+
   if (tokenAddress) {
     params.set('token', tokenAddress)
   }
-  
+
   if (memo) {
     params.set('memo', encodeURIComponent(memo))
   }
-  
+
   params.set('chainId', chainId.toString())
-  
+
   return `celo:pay?${params.toString()}`
 }
 
@@ -93,7 +93,7 @@ export default function QRCodeGenerator({
   allowDownload = false,
   downloadFilename = 'qrcode',
   onCopy,
-  onDownload
+  onDownload,
 }: QRCodeGeneratorProps) {
   const [qrCodeDataURL, setQRCodeDataURL] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -121,9 +121,9 @@ export default function QRCodeGenerator({
         margin: 2,
         color: {
           dark: color,
-          light: backgroundColor
+          light: backgroundColor,
         },
-        errorCorrectionLevel
+        errorCorrectionLevel,
       })
 
       setQRCodeDataURL(dataURL)
@@ -140,7 +140,7 @@ export default function QRCodeGenerator({
       await navigator.clipboard.writeText(data)
       setCopied(true)
       onCopy?.()
-      
+
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -157,30 +157,30 @@ export default function QRCodeGenerator({
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     onDownload?.()
   }
 
   if (loading) {
     return (
-      <div 
-        className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
+      <div
+        className={`flex items-center justify-center rounded-lg bg-gray-100 ${className}`}
         style={{ width: size, height: size }}
       >
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div 
-        className={`flex items-center justify-center bg-red-50 border border-red-200 rounded-lg ${className}`}
+      <div
+        className={`flex items-center justify-center rounded-lg border border-red-200 bg-red-50 ${className}`}
         style={{ width: size, height: size }}
       >
-        <div className="text-center p-4">
-          <div className="text-red-600 text-sm font-medium">❌ Error</div>
-          <div className="text-red-500 text-xs mt-1">{error}</div>
+        <div className="p-4 text-center">
+          <div className="text-sm font-medium text-red-600">❌ Error</div>
+          <div className="mt-1 text-xs text-red-500">{error}</div>
         </div>
       </div>
     )
@@ -189,41 +189,41 @@ export default function QRCodeGenerator({
   return (
     <div className="space-y-3">
       {/* QR Code Image */}
-      <div className={`inline-block rounded-lg overflow-hidden shadow-md ${className}`}>
+      <div className={`inline-block overflow-hidden rounded-lg shadow-md ${className}`}>
         <img
           src={qrCodeDataURL}
           alt={alt}
           width={size}
           height={size}
-          className="block max-w-full h-auto"
-          style={{ 
+          className="block h-auto max-w-full"
+          style={{
             imageRendering: 'pixelated',
             maxWidth: 'min(100%, 90vw)', // Ensure it fits on small screens
-            maxHeight: '70vh'
+            maxHeight: '70vh',
           }}
         />
       </div>
 
       {/* Action Buttons */}
       {(showCopyButton || allowDownload) && (
-        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+        <div className="flex flex-col justify-center gap-2 sm:flex-row">
           {showCopyButton && (
             <button
               onClick={handleCopy}
-              className={`px-3 py-2 text-sm rounded-md transition-colors touch-manipulation ${
-                copied 
-                  ? 'bg-green-100 text-green-700 border border-green-200' 
-                  : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 active:bg-gray-300'
+              className={`touch-manipulation rounded-md px-3 py-2 text-sm transition-colors ${
+                copied
+                  ? 'border border-green-200 bg-green-100 text-green-700'
+                  : 'border border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
               }`}
             >
               {copied ? '✅ Copied!' : '📋 Copy Data'}
             </button>
           )}
-          
+
           {allowDownload && (
             <button
               onClick={handleDownload}
-              className="px-3 py-2 text-sm rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 active:bg-blue-300 transition-colors touch-manipulation"
+              className="touch-manipulation rounded-md border border-blue-200 bg-blue-100 px-3 py-2 text-sm text-blue-700 transition-colors hover:bg-blue-200 active:bg-blue-300"
             >
               💾 Download PNG
             </button>
@@ -233,7 +233,7 @@ export default function QRCodeGenerator({
 
       {/* Data Preview (for debugging) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 font-mono break-all">
+        <div className="mt-2 rounded bg-gray-50 p-2 font-mono text-xs break-all text-gray-600">
           {data.slice(0, 100)}
           {data.length > 100 && '...'}
         </div>
@@ -255,15 +255,16 @@ export function CeloPaymentQRCode({
   className = '',
   showDetails = true,
   ...props
-}: CeloPaymentURIProps & Omit<QRCodeGeneratorProps, 'data'> & {
-  showDetails?: boolean
-}) {
+}: CeloPaymentURIProps &
+  Omit<QRCodeGeneratorProps, 'data'> & {
+    showDetails?: boolean
+  }) {
   const paymentURI = generateCeloPaymentURI({
     address,
     amount,
     tokenAddress,
     memo,
-    chainId
+    chainId,
   })
 
   return (
@@ -276,21 +277,17 @@ export function CeloPaymentQRCode({
         downloadFilename={`celo-payment-${address.slice(0, 8)}`}
         {...props}
       />
-      
+
       {showDetails && (
-        <div className="text-center space-y-1 px-2">
+        <div className="space-y-1 px-2 text-center">
           {amount && (
-            <div className="text-sm sm:text-base font-medium text-gray-900">
-              💰 {amount} CAV
-            </div>
+            <div className="text-sm font-medium text-gray-900 sm:text-base">💰 {amount} CAV</div>
           )}
-          <div className="text-xs sm:text-sm text-gray-600 font-mono break-all">
+          <div className="font-mono text-xs break-all text-gray-600 sm:text-sm">
             {address.slice(0, 6)}...{address.slice(-4)}
           </div>
           {memo && (
-            <div className="text-xs sm:text-sm text-gray-500 italic break-words">
-              "{memo}"
-            </div>
+            <div className="text-xs break-words text-gray-500 italic sm:text-sm">"{memo}"</div>
           )}
         </div>
       )}

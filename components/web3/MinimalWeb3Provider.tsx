@@ -41,7 +41,7 @@ export function MinimalWeb3Provider({ children }: { children: ReactNode }) {
     isAuthorizedCurator: false,
     web3: null,
     error: null,
-    hasTriedAutoConnect: false
+    hasTriedAutoConnect: false,
   }
 
   // Actions that won't cause RPC errors during render
@@ -66,19 +66,15 @@ export function MinimalWeb3Provider({ children }: { children: ReactNode }) {
     },
     clearError: () => {
       console.log('Clear error called')
-    }
+    },
   }
 
   const contextValue = {
     ...staticState,
-    ...actions
+    ...actions,
   }
 
-  return (
-    <Web3Context.Provider value={contextValue}>
-      {children}
-    </Web3Context.Provider>
-  )
+  return <Web3Context.Provider value={contextValue}>{children}</Web3Context.Provider>
 }
 
 export function useWeb3() {
@@ -97,7 +93,7 @@ export function useWalletConnection() {
     isConnected,
     walletAddress,
     error,
-    isLoading: status === 'connecting'
+    isLoading: status === 'connecting',
   }
 }
 
@@ -105,7 +101,7 @@ export function useNetwork() {
   const { isOnCorrectNetwork, networkStatus } = useWeb3()
   return {
     isOnCorrectNetwork,
-    needsNetworkSwitch: networkStatus === 'wrong'
+    needsNetworkSwitch: networkStatus === 'wrong',
   }
 }
 
@@ -114,6 +110,6 @@ export function usePermissions() {
   return {
     isBlogOwner,
     isAuthorizedCurator,
-    hasAnyPermissions: isBlogOwner || isAuthorizedCurator
+    hasAnyPermissions: isBlogOwner || isAuthorizedCurator,
   }
 }

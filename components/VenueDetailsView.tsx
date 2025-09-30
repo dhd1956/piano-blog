@@ -265,8 +265,11 @@ function MusicalInformation({
 
 function CuratorNotes({ venue, extendedData }: { venue: Venue; extendedData?: VenueMetadata }) {
   const curatorInfo = extendedData?.curatorInfo
-  
-  if (!curatorInfo || (!curatorInfo.curatorNotes && !curatorInfo.curatorRating && !curatorInfo.followUpNeeded)) {
+
+  if (
+    !curatorInfo ||
+    (!curatorInfo.curatorNotes && !curatorInfo.curatorRating && !curatorInfo.followUpNeeded)
+  ) {
     return null
   }
 
@@ -282,7 +285,7 @@ function CuratorNotes({ venue, extendedData }: { venue: Venue; extendedData?: Ve
             </p>
           </div>
         )}
-        
+
         {curatorInfo.curatorRating && curatorInfo.curatorRating > 0 && (
           <InfoRow
             label="Curator Rating"
@@ -296,7 +299,7 @@ function CuratorNotes({ venue, extendedData }: { venue: Venue; extendedData?: Ve
             }
           />
         )}
-        
+
         {curatorInfo.followUpNeeded && (
           <div className="flex items-center gap-2">
             <span className="text-yellow-600 dark:text-yellow-400">⚠️</span>
@@ -318,7 +321,11 @@ function ContactInformation({ venue }: { venue: Venue }) {
       <h3 className="mb-3 text-lg font-semibold text-gray-900">Contact Information</h3>
       <div className="rounded-lg bg-gray-50 p-4">
         <InfoRow
-          label={venue.contactType ? venue.contactType.charAt(0).toUpperCase() + venue.contactType.slice(1) : "Contact Info"}
+          label={
+            venue.contactType
+              ? venue.contactType.charAt(0).toUpperCase() + venue.contactType.slice(1)
+              : 'Contact Info'
+          }
           value={venue.contactInfo}
         />
       </div>
@@ -448,7 +455,7 @@ function CAVPaymentSection({ venue }: { venue: Venue }) {
       paymentRequest={{
         recipientAddress: venue.submittedBy,
         recipientName: venue.name,
-        memo: `Payment to ${venue.name} - ${venue.city}`
+        memo: `Payment to ${venue.name} - ${venue.city}`,
       }}
       onPaymentInitiated={(method, details) => {
         console.log(`Payment initiated via ${method}:`, details)
@@ -461,7 +468,7 @@ function CAVPaymentSection({ venue }: { venue: Venue }) {
         console.error('Payment failed:', error)
         alert(`Payment failed: ${error}`)
       }}
-      className="bg-transparent shadow-none p-0"
+      className="bg-transparent p-0 shadow-none"
     />
   )
 }

@@ -1,22 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useWallet } from '@/hooks/useWallet'
 import { QuickCAVPayment } from '@/components/payments/UnifiedCAVPayment'
 
 interface Venue {
   id: number
+  slug: string
   name: string
   city: string
   contactInfo: string
   hasPiano: boolean
   verified: boolean
   submittedBy: string
-  timestamp: number
-  submissionDate: Date
+  description?: string
+  address?: string
+  phone?: string
+  amenities: string[]
+  tags: string[]
+  rating: number
+  reviewCount: number
+  createdAt: Date
 }
-
-const VENUE_TYPES = ['Cafe', 'Restaurant', 'Bar', 'Club', 'Community Center']
 
 export default function VenueList() {
   const [venues, setVenues] = useState<Venue[]>([])
@@ -25,20 +29,34 @@ export default function VenueList() {
   const [cityFilter, setCityFilter] = useState<string>('all')
   const [error, setError] = useState<string>('')
 
-  const { getAllVenues } = useWallet()
-
-  // Load venues from blockchain
+  // Load venues from PostgreSQL API
   const loadVenues = async () => {
     try {
       setLoading(true)
       setError('')
 
-      const result = await getAllVenues()
+      const response = await fetch('/api/venues', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      if (result.success && result.venues) {
-        setVenues(result.venues)
+      if (!response.ok) {
+        throw new Error(`Failed to load venues: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.venues) {
+        // Convert date strings to Date objects
+        const processedVenues = data.venues.map((venue: any) => ({
+          ...venue,
+          createdAt: new Date(venue.createdAt),
+        }))
+        setVenues(processedVenues)
       } else {
-        setError(result.error || 'Failed to load venues from blockchain')
+        setError(data.error || 'Failed to load venues')
       }
     } catch (error: any) {
       console.error('Error loading venues:', error)
@@ -69,7 +87,7 @@ export default function VenueList() {
       <div className="min-h-screen bg-gray-50 px-4 py-12">
         <div className="mx-auto max-w-6xl text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading venues from blockchain...</p>
+          <p className="mt-4 text-gray-600">Loading venues...</p>
         </div>
       </div>
     )
@@ -195,16 +213,26 @@ export default function VenueList() {
                     )}
                   </div>
 
-                  {/* Submission Info */}
+                  {/* Venue Info */}
                   <div className="space-y-1 text-xs text-gray-500">
-                    <div>Submitted: {venue.submissionDate.toLocaleDateString()}</div>
+                    {venue.description && (
+                      <div className="line-clamp-2 text-gray-600">{venue.description}</div>
+                    )}
+                    <div>Added: {venue.createdAt.toLocaleDateString()}</div>
                     <div className="font-mono">By: {venue.submittedBy.substring(0, 8)}...</div>
+                    {venue.rating > 0 && (
+                      <div className="flex items-center gap-1">
+                        <span>⭐</span>
+                        <span>{venue.rating.toFixed(1)}</span>
+                        <span className="text-gray-400">({venue.reviewCount} reviews)</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* CAV Payment for verified venues */}
                 {venue.verified && (
-                  <div className="px-6 py-3 border-t border-gray-200">
+                  <div className="border-t border-gray-200 px-3 py-3 sm:px-6">
                     <QuickCAVPayment
                       recipientAddress={venue.submittedBy}
                       recipientName={venue.name}

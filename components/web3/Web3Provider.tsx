@@ -114,7 +114,9 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     try {
       // Get Blog Owner address from environment
       const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-      const isBlogOwner = Boolean(BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS)
+      const isBlogOwner = Boolean(
+        BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
+      )
 
       // In the new simplified contract, only the owner can be a curator
       const isAuthorizedCurator = isBlogOwner

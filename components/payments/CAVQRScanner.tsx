@@ -24,12 +24,12 @@ export default function CAVQRScanner({
   onWalletAddressDetected,
   onError,
   className = '',
-  showInstructions = true
+  showInstructions = true,
 }: CAVQRScannerProps) {
   const [scanHistory, setScanHistory] = useState<QRScanResult[]>([])
   const [lastScanResult, setLastScanResult] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
-  
+
   const { hasPermission, isSupported, requestPermission } = useQRScanner()
 
   // Parse Celo payment URI
@@ -39,13 +39,13 @@ export default function CAVQRScanner({
       if (uri.startsWith('celo:pay?')) {
         const url = new URL(uri)
         const params = url.searchParams
-        
+
         return {
           address: params.get('address') || '',
           amount: params.get('amount'),
           tokenAddress: params.get('token'),
           memo: params.get('memo'),
-          chainId: params.get('chainId') ? parseInt(params.get('chainId')!) : undefined
+          chainId: params.get('chainId') ? parseInt(params.get('chainId')!) : undefined,
         }
       }
 
@@ -55,13 +55,13 @@ export default function CAVQRScanner({
         if (match) {
           const [, address, chainId, queryString] = match
           const params = new URLSearchParams(queryString || '')
-          
+
           return {
             address,
             amount: params.get('value') || params.get('amount'),
             tokenAddress: params.get('token'),
             memo: params.get('memo') || params.get('data'),
-            chainId: chainId ? parseInt(chainId) : undefined
+            chainId: chainId ? parseInt(chainId) : undefined,
           }
         }
       }
@@ -84,12 +84,12 @@ export default function CAVQRScanner({
 
     setIsProcessing(true)
     setLastScanResult(result.data)
-    setScanHistory(prev => [result, ...prev.slice(0, 4)]) // Keep last 5 scans
+    setScanHistory((prev) => [result, ...prev.slice(0, 4)]) // Keep last 5 scans
 
     try {
       // Try to parse as payment URI first
       const paymentData = parseCeloPaymentURI(result.data)
-      
+
       if (paymentData && paymentData.address) {
         console.log('Payment QR detected:', paymentData)
         onPaymentDetected(paymentData)
@@ -118,7 +118,6 @@ export default function CAVQRScanner({
       const errorMsg = 'QR code does not contain a valid payment or wallet address'
       onError?.(errorMsg)
       console.warn('Unrecognized QR format:', result.data)
-      
     } catch (error: any) {
       console.error('Error processing QR scan:', error)
       onError?.(error.message)
@@ -147,10 +146,8 @@ export default function CAVQRScanner({
 
   if (!isSupported) {
     return (
-      <div className={`text-center p-6 bg-gray-50 rounded-lg ${className}`}>
-        <div className="text-gray-600 mb-4">
-          📷 Camera scanning is not supported on this device
-        </div>
+      <div className={`rounded-lg bg-gray-50 p-6 text-center ${className}`}>
+        <div className="mb-4 text-gray-600">📷 Camera scanning is not supported on this device</div>
         <div className="text-sm text-gray-500">
           Please use a device with camera support or manually enter payment details
         </div>
@@ -160,16 +157,16 @@ export default function CAVQRScanner({
 
   if (hasPermission === false) {
     return (
-      <div className={`text-center p-6 bg-yellow-50 border border-yellow-200 rounded-lg ${className}`}>
-        <div className="text-yellow-800 mb-4">
-          📷 Camera Permission Required
-        </div>
-        <div className="text-sm text-yellow-700 mb-4">
+      <div
+        className={`rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center ${className}`}
+      >
+        <div className="mb-4 text-yellow-800">📷 Camera Permission Required</div>
+        <div className="mb-4 text-sm text-yellow-700">
           Allow camera access to scan CAV payment QR codes
         </div>
         <button
           onClick={handleRequestPermission}
-          className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+          className="rounded-md bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700"
         >
           Grant Camera Permission
         </button>
@@ -181,9 +178,9 @@ export default function CAVQRScanner({
     <div className={`space-y-4 ${className}`}>
       {/* Instructions */}
       {showInstructions && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">📱 QR Code Scanner</h4>
-          <ul className="text-sm text-blue-800 space-y-1">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <h4 className="mb-2 font-medium text-blue-900">📱 QR Code Scanner</h4>
+          <ul className="space-y-1 text-sm text-blue-800">
             <li>• Point your camera at a CAV payment QR code</li>
             <li>• Supports Celo payment URIs and wallet addresses</li>
             <li>• Scanner will automatically detect and process codes</li>
@@ -209,42 +206,34 @@ export default function CAVQRScanner({
 
       {/* Processing indicator */}
       {isProcessing && (
-        <div className="text-center text-sm text-blue-600">
-          🔍 Processing QR code...
-        </div>
+        <div className="text-center text-sm text-blue-600">🔍 Processing QR code...</div>
       )}
 
       {/* Last scan result */}
       {lastScanResult && (
-        <div className="bg-gray-50 rounded-lg p-3">
-          <div className="text-sm font-medium text-gray-700 mb-1">Last Scanned:</div>
-          <div className="text-xs text-gray-600 font-mono break-all">
-            {lastScanResult.length > 100 
-              ? `${lastScanResult.substring(0, 100)}...` 
-              : lastScanResult
-            }
+        <div className="rounded-lg bg-gray-50 p-3">
+          <div className="mb-1 text-sm font-medium text-gray-700">Last Scanned:</div>
+          <div className="font-mono text-xs break-all text-gray-600">
+            {lastScanResult.length > 100
+              ? `${lastScanResult.substring(0, 100)}...`
+              : lastScanResult}
           </div>
         </div>
       )}
 
       {/* Scan history */}
       {scanHistory.length > 0 && (
-        <details className="bg-gray-50 rounded-lg p-3">
-          <summary className="text-sm font-medium text-gray-700 cursor-pointer">
+        <details className="rounded-lg bg-gray-50 p-3">
+          <summary className="cursor-pointer text-sm font-medium text-gray-700">
             Scan History ({scanHistory.length})
           </summary>
           <div className="mt-2 space-y-2">
             {scanHistory.map((scan, index) => (
               <div key={index} className="text-xs text-gray-600">
                 <div className="font-mono break-all">
-                  {scan.data.length > 80 
-                    ? `${scan.data.substring(0, 80)}...` 
-                    : scan.data
-                  }
+                  {scan.data.length > 80 ? `${scan.data.substring(0, 80)}...` : scan.data}
                 </div>
-                <div className="text-gray-400">
-                  {new Date(scan.timestamp).toLocaleTimeString()}
-                </div>
+                <div className="text-gray-400">{new Date(scan.timestamp).toLocaleTimeString()}</div>
               </div>
             ))}
           </div>
@@ -276,7 +265,7 @@ export function CAVQRScannerModal({
   onClose,
   onPaymentDetected,
   onWalletAddressDetected,
-  title = 'Scan QR Code'
+  title = 'Scan QR Code',
 }: {
   isOpen: boolean
   onClose: () => void
@@ -287,18 +276,15 @@ export function CAVQRScannerModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-screen overflow-y-auto">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+      <div className="max-h-screen w-full max-w-md overflow-y-auto rounded-lg bg-white">
+        <div className="flex items-center justify-between border-b border-gray-200 p-4">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             ✕
           </button>
         </div>
-        
+
         <div className="p-4">
           <CAVQRScanner
             onPaymentDetected={(payment) => {
@@ -316,11 +302,11 @@ export function CAVQRScannerModal({
             showInstructions={true}
           />
         </div>
-        
-        <div className="p-4 border-t border-gray-200">
+
+        <div className="border-t border-gray-200 p-4">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            className="w-full rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
           >
             Cancel
           </button>

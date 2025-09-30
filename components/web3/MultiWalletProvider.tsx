@@ -13,7 +13,7 @@ export interface MultiWalletContextType {
 }
 
 const MultiWalletContext = createContext<MultiWalletContextType>({
-  isMultiWalletSupported: false
+  isMultiWalletSupported: false,
 })
 
 export function useMultiWallet() {
@@ -26,12 +26,8 @@ export function useMultiWallet() {
  */
 export default function MultiWalletProvider({ children }: MultiWalletProviderProps) {
   const contextValue: MultiWalletContextType = {
-    isMultiWalletSupported: false
+    isMultiWalletSupported: false,
   }
 
-  return (
-    <MultiWalletContext.Provider value={contextValue}>
-      {children}
-    </MultiWalletContext.Provider>
-  )
+  return <MultiWalletContext.Provider value={contextValue}>{children}</MultiWalletContext.Provider>
 }

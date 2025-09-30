@@ -88,3 +88,5 @@ private-keys.txt
 **/out/
 
 .env.local
+
+/generated/prisma

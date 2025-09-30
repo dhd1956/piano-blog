@@ -54,11 +54,11 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
     isAuthorizedCurator: false,
     web3: null,
     error: null,
-    hasTriedAutoConnect: false
+    hasTriedAutoConnect: false,
   })
 
   const updateState = (updates: Partial<Web3State>) => {
-    setState(prev => ({ ...prev, ...updates }))
+    setState((prev) => ({ ...prev, ...updates }))
   }
 
   // Safe Web3 instance creation
@@ -77,9 +77,11 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
   const updatePermissions = (address: string) => {
     try {
       const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-      const isBlogOwner = Boolean(BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS)
+      const isBlogOwner = Boolean(
+        BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
+      )
       const isAuthorizedCurator = isBlogOwner // Only owner can be curator in new contract
-      
+
       updateState({ isBlogOwner, isAuthorizedCurator })
     } catch (error) {
       console.warn('Permission check failed:', error)
@@ -98,7 +100,7 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
       updateState({ status: 'connecting', error: null })
 
       const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
+        method: 'eth_requestAccounts',
       })
 
       if (!accounts || accounts.length === 0) {
@@ -119,18 +121,17 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
         networkStatus,
         isOnCorrectNetwork: networkStatus === 'correct',
         web3,
-        error: null
+        error: null,
       })
 
       updatePermissions(address)
       return true
-
     } catch (error: any) {
       console.error('Connection failed:', error)
       updateState({
         status: 'error',
         isConnected: false,
-        error: error.message || 'Connection failed'
+        error: error.message || 'Connection failed',
       })
       return false
     }
@@ -148,7 +149,7 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
       isBlogOwner: false,
       isAuthorizedCurator: false,
       web3: null,
-      error: null
+      error: null,
     })
   }
 
@@ -157,18 +158,18 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
     try {
       updateState({ networkStatus: 'switching' })
       const success = await switchToCeloNetwork()
-      
+
       if (success) {
         const chainId = await getCurrentChainId()
         updateState({
           chainId,
           networkStatus: 'correct',
-          isOnCorrectNetwork: true
+          isOnCorrectNetwork: true,
         })
       } else {
         updateState({ networkStatus: 'wrong' })
       }
-      
+
       return success
     } catch (error) {
       console.error('Network switch failed:', error)
@@ -182,11 +183,11 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
     if (state.isConnected && state.walletAddress) {
       const chainId = await getCurrentChainId()
       const networkStatus = chainId === CELO_CHAIN_ID ? 'correct' : 'wrong'
-      
+
       updateState({
         chainId,
         networkStatus,
-        isOnCorrectNetwork: networkStatus === 'correct'
+        isOnCorrectNetwork: networkStatus === 'correct',
       })
     }
   }
@@ -196,7 +197,7 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
     try {
       await window.ethereum?.request({
         method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
+        params: [{ eth_accounts: {} }],
       })
       return await connect()
     } catch (error) {
@@ -224,10 +225,10 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
     }
 
     const handleChainChanged = (chainId: string) => {
-      updateState({ 
+      updateState({
         chainId,
         networkStatus: chainId === CELO_CHAIN_ID ? 'correct' : 'wrong',
-        isOnCorrectNetwork: chainId === CELO_CHAIN_ID
+        isOnCorrectNetwork: chainId === CELO_CHAIN_ID,
       })
     }
 
@@ -248,9 +249,9 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
       if (typeof window !== 'undefined' && window.ethereum) {
         try {
           const accounts = await window.ethereum.request({
-            method: 'eth_accounts'
+            method: 'eth_accounts',
           })
-          
+
           if (accounts && accounts.length > 0) {
             await connect()
           }
@@ -258,7 +259,7 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
           console.warn('Auto-connect failed:', error)
         }
       }
-      
+
       updateState({ hasTriedAutoConnect: true })
     }
 
@@ -272,14 +273,10 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
     switchNetwork,
     refreshConnection,
     requestAccountChange,
-    clearError
+    clearError,
   }
 
-  return (
-    <Web3Context.Provider value={contextValue}>
-      {children}
-    </Web3Context.Provider>
-  )
+  return <Web3Context.Provider value={contextValue}>{children}</Web3Context.Provider>
 }
 
 export function useWeb3() {
@@ -298,7 +295,7 @@ export function useWalletConnection() {
     isConnected,
     walletAddress,
     error,
-    isLoading: status === 'connecting'
+    isLoading: status === 'connecting',
   }
 }
 
@@ -306,7 +303,7 @@ export function useNetwork() {
   const { isOnCorrectNetwork, networkStatus } = useWeb3()
   return {
     isOnCorrectNetwork,
-    needsNetworkSwitch: networkStatus === 'wrong'
+    needsNetworkSwitch: networkStatus === 'wrong',
   }
 }
 
@@ -315,6 +312,6 @@ export function usePermissions() {
   return {
     isBlogOwner,
     isAuthorizedCurator,
-    hasAnyPermissions: isBlogOwner || isAuthorizedCurator
+    hasAnyPermissions: isBlogOwner || isAuthorizedCurator,
   }
 }

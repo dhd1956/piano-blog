@@ -2,31 +2,53 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useWallet } from '@/hooks/useWallet'
-import {
-  checkVenuePermissions,
-  getClientPermissions,
-  formatAddress,
-  PermissionCheck,
-} from '@/utils/permissions'
-import {
-  VENUE_REGISTRY_ABI,
-  VENUE_REGISTRY_ADDRESS,
-  CELO_TESTNET_RPC,
-  createReadOnlyContract,
-  switchToCeloNetwork,
-} from '@/utils/contract'
-import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
 import VenueDetailsView from '@/components/VenueDetailsView'
 import VenueEditForm from '@/components/VenueEditForm'
-import { IPFSService } from '@/utils/ipfs'
-import Web3 from 'web3'
+import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
+
+interface PermissionCheck {
+  isBlogOwner: boolean
+  isVenueCurator: boolean
+  canEdit: boolean
+  canUpdateCurator: boolean
+}
+
+// Simple permission checking functions for simplified architecture
+function formatAddress(address: string | null): string {
+  if (!address) return 'Not connected'
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+function getClientPermissions(walletAddress: string) {
+  const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
+  const isBlogOwner =
+    blogOwnerAddress && walletAddress?.toLowerCase() === blogOwnerAddress.toLowerCase()
+
+  return {
+    isBlogOwner: Boolean(isBlogOwner),
+  }
+}
+
+async function checkVenuePermissions(
+  walletAddress: string,
+  venueId: number
+): Promise<PermissionCheck> {
+  const clientPerms = getClientPermissions(walletAddress)
+
+  return {
+    isBlogOwner: clientPerms.isBlogOwner,
+    isVenueCurator: false, // Simplified: no curator system yet
+    canEdit: clientPerms.isBlogOwner, // Only blog owner can edit
+    canUpdateCurator: clientPerms.isBlogOwner,
+  }
+}
 
 export default function VenueDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const venueId = params.id ? parseInt(params.id as string, 10) : null
-  const { getVenueById, isConnected, walletAddress, connect, updateVenueWithMetadata } = useWallet()
+  const { isConnected, walletAddress, connectWallet } = useHybridWallet()
 
   const [venue, setVenue] = useState<Venue | null>(null)
   const [extendedData, setExtendedData] = useState<VenueMetadata>(() => ({
@@ -60,7 +82,6 @@ export default function VenueDetailsPage() {
     canUpdateCurator: false,
   })
 
-
   // Load venue data
   const loadVenueData = async () => {
     if (venueId === null || venueId < 0) {
@@ -71,42 +92,114 @@ export default function VenueDetailsPage() {
 
     try {
       setLoading(true)
-      
-      const result = await getVenueById(venueId)
-      
-      if (result.success && result.venue) {
+
+      // Fetch venue from simplified PostgreSQL API
+      const response = await fetch(`/api/venues/${venueId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Venue not found')
+        } else {
+          setError(`Failed to load venue: ${response.statusText}`)
+        }
+        setLoading(false)
+        return
+      }
+
+      const result = await response.json()
+
+      if (result.venue) {
+        const venueData = result.venue
+
         // Convert the venue data to match our Venue type
         const processedVenue: Venue = {
-          id: result.venue.id,
-          name: result.venue.name,
-          city: result.venue.city,
-          fullAddress: '', // Not available in simplified contract
-          hasPiano: result.venue.hasPiano,
-          hasJamSession: result.venue.hasJamSession || false,
-          verified: result.venue.verified,
-          venueType: result.venue.venueType || 0,
-          contactType: result.venue.contactType || 'email',
-          contactInfo: result.venue.contactInfo || '',
-          ipfsHash: result.venue.ipfsHash || '',
-          submittedBy: result.venue.submittedBy,
-          verifiedBy: '', // Not available in simplified contract
-          lastUpdatedBy: result.venue.submittedBy, // Default to submitter
-          submissionDate: result.venue.submissionDate,
-          verificationDate: undefined, // Not available in simplified contract
-          lastUpdatedDate: result.venue.submissionDate, // Default to submission date
-          curatorNotes: '', // Not available in simplified contract
+          id: venueData.id,
+          name: venueData.name,
+          city: venueData.city,
+          fullAddress: venueData.fullAddress || '',
+          hasPiano: venueData.hasPiano,
+          hasJamSession: venueData.hasJamSession || false,
+          verified: venueData.verified,
+          venueType: venueData.venueType || 0,
+          contactType: venueData.contactType || 'email',
+          contactInfo: venueData.contactInfo || '',
+          ipfsHash: venueData.ipfsHash || '',
+          submittedBy: venueData.submittedBy,
+          verifiedBy: venueData.verifiedBy || '',
+          lastUpdatedBy: venueData.lastUpdatedBy || venueData.submittedBy,
+          submissionDate: new Date(venueData.submissionDate),
+          verificationDate: venueData.verificationDate
+            ? new Date(venueData.verificationDate)
+            : undefined,
+          lastUpdatedDate: new Date(venueData.lastUpdatedDate || venueData.submissionDate),
+          curatorNotes: venueData.curatorNotes || '',
         }
-        
+
         setVenue(processedVenue)
-        
-        console.log('🔍 Venue IPFS hash:', processedVenue.ipfsHash)
-        
-        // Load extended data from IPFS
-        if (processedVenue.ipfsHash && processedVenue.ipfsHash.trim() !== '') {
-          console.log('🔄 Loading extended data for IPFS hash:', processedVenue.ipfsHash)
-          await loadExtendedData(processedVenue.ipfsHash)
-        } else {
-          console.log('⚠️ No IPFS hash found for venue, skipping extended data load')
+
+        console.log('🔍 Venue loaded from database:', processedVenue.name)
+
+        // Load extended data from venue metadata if available
+        if (venueData.description || venueData.website) {
+          setExtendedData({
+            venueDetails: {
+              fullName: venueData.name,
+              description: venueData.description || '',
+              fullAddress: venueData.fullAddress || '',
+              city: venueData.city,
+              contactInfo: venueData.contactInfo,
+              contactType: venueData.contactType,
+              website: venueData.website || '',
+              socialMedia: {
+                facebook: venueData.facebook,
+                instagram: venueData.instagram,
+                twitter: venueData.twitter,
+              },
+            },
+            musicalInfo: {
+              hasPiano: venueData.hasPiano,
+              hasJamSession: venueData.hasJamSession || false,
+              pianoType: venueData.pianoType,
+              pianoCondition: venueData.pianoCondition,
+              pianoBrand: venueData.pianoBrand,
+              lastTuned: venueData.lastTuned,
+              jamSchedule: venueData.jamSchedule,
+              jamFrequency: venueData.jamFrequency,
+              jamGenres: venueData.jamGenres || [],
+            },
+            operationalInfo: {
+              operatingHours: venueData.operatingHours
+                ? {
+                    notes: venueData.operatingHours,
+                  }
+                : undefined,
+              accessibility: {
+                wheelchairAccessible: venueData.wheelchairAccessible || false,
+                parkingAvailable: venueData.parkingAvailable || false,
+                publicTransportNear: venueData.publicTransportNear || false,
+              },
+              ambiance: {
+                atmosphere: venueData.specialNotes || undefined,
+              },
+            },
+            submissionInfo: {
+              submittedBy: venueData.submittedBy,
+              submissionDate: venueData.submissionDate,
+              verified: venueData.verified,
+              version: 1,
+              lastUpdated: venueData.lastUpdatedDate || venueData.submissionDate,
+            },
+            curatorInfo: {
+              curatorNotes: venueData.curatorNotes || '',
+              curatorRating: venueData.curatorRating,
+              followUpNeeded: venueData.followUpNeeded || false,
+            },
+          })
         }
       } else {
         setError(result.error || 'Venue not found')
@@ -122,7 +215,7 @@ export default function VenueDetailsPage() {
         setPermissions({
           isBlogOwner: clientPerms.isBlogOwner,
           isVenueCurator: false,
-          canEdit: true, // Temporarily allow any connected wallet to edit for testing
+          canEdit: clientPerms.isBlogOwner, // Only blog owner can edit
           canUpdateCurator: clientPerms.isBlogOwner,
         })
       }
@@ -134,95 +227,10 @@ export default function VenueDetailsPage() {
     }
   }
 
-  // Load extended data from IPFS via blockchain-stored hash
-  const loadExtendedData = async (ipfsHash: string) => {
-    console.log('🔍 Loading extended data for venue ID:', venue?.id)
-    
-    if (!ipfsHash || ipfsHash.trim() === '') {
-      console.log('No IPFS hash available, using default extended data')
-      return
-    }
-
-    try {
-      console.log('🔍 Loading extended data from IPFS:', ipfsHash)
-      const { success, metadata, error } = await IPFSService.getMetadata(ipfsHash)
-      
-      if (success && metadata) {
-        console.log('✅ Extended data loaded from IPFS')
-        console.log('📄 Raw IPFS metadata:', metadata)
-        // Convert IPFS metadata to VenueMetadata format
-        const convertedData: VenueMetadata = {
-          venueDetails: {
-            fullName: venue?.name || '',
-            description: metadata.description || '',
-            fullAddress: metadata.fullAddress || venue?.fullAddress || '',
-            city: venue?.city || '',
-            contactInfo: venue?.contactInfo,
-            contactType: venue?.contactType,
-            website: metadata.website || '',
-            socialMedia: {
-              facebook: metadata.facebook,
-              instagram: metadata.instagram,
-              twitter: metadata.twitter,
-            }
-          },
-          musicalInfo: {
-            hasPiano: venue?.hasPiano || false,
-            hasJamSession: venue?.hasJamSession || false,
-            pianoType: metadata.pianoType || undefined,
-            pianoCondition: metadata.pianoCondition || undefined,
-            pianoBrand: metadata.pianoBrand || undefined,
-            lastTuned: metadata.lastTuned || undefined,
-            jamSchedule: metadata.jamSchedule || undefined,
-            jamFrequency: metadata.jamFrequency || undefined,
-            jamGenres: metadata.jamGenres || [],
-          },
-          operationalInfo: {
-            operatingHours: metadata.operatingHours ? {
-              notes: metadata.operatingHours
-            } : undefined,
-            accessibility: {
-              wheelchairAccessible: metadata.wheelchairAccessible || false,
-              parkingAvailable: metadata.parkingAvailable || false,
-              publicTransportNear: metadata.publicTransportNear || false,
-            },
-            ambiance: {
-              atmosphere: metadata.specialNotes || undefined,
-            },
-          },
-          submissionInfo: {
-            submittedBy: venue?.submittedBy || '',
-            submissionDate: venue?.submissionDate.toISOString() || '',
-            verified: venue?.verified || false,
-            version: metadata.version || 1,
-            lastUpdated: metadata.lastUpdated || new Date().toISOString(),
-          },
-          curatorInfo: {
-            curatorNotes: metadata.curatorNotes || metadata.specialNotes || '',
-            curatorRating: metadata.curatorRating || undefined,
-            followUpNeeded: metadata.followUpNeeded || false,
-          }
-        }
-        console.log('🔄 Setting extended data:', convertedData)
-        setExtendedData(convertedData)
-      } else {
-        console.warn('Failed to load IPFS data:', error)
-        // Keep default extended data structure
-      }
-    } catch (error) {
-      console.error('Error loading extended data from IPFS:', error)
-    }
-  }
-
-  // Connect wallet (using the hook's connect function)
-  const connectWallet = async () => {
-    await connect()
-  }
-
-  // Venue update function with IPFS metadata storage
+  // Venue update function using simplified PostgreSQL API
   const updateVenue = async (updateData: VenueUpdateForm) => {
-    if (!isConnected || !walletAddress || !venue) {
-      throw new Error('Wallet not connected')
+    if (!venue) {
+      throw new Error('No venue data available')
     }
 
     if (!permissions.canEdit) {
@@ -232,99 +240,60 @@ export default function VenueDetailsPage() {
     setIsSubmitting(true)
     try {
       console.log('🔄 Updating venue with data:', updateData)
-      console.log('🔄 Current venue data:', venue)
-      
-      // Debug: Check what fields have actually changed
-      console.log('🔍 Field changes:', {
-        name: `${venue.name} -> ${updateData.name}`,
-        contactInfo: `${venue.contactInfo} -> ${updateData.contactInfo}`,
-        fullAddress: `${venue.fullAddress} -> ${updateData.fullAddress}`,
-        curatorNotes: `${venue.curatorNotes || 'empty'} -> ${updateData.curatorNotes || 'empty'}`
+
+      // Send update to simplified PostgreSQL API
+      const response = await fetch(`/api/venues/${venue.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: updateData.name,
+          description: updateData.description,
+          fullAddress: updateData.fullAddress,
+          contactInfo: updateData.contactInfo,
+          website: updateData.website,
+          pianoType: updateData.pianoType,
+          pianoCondition: updateData.pianoCondition,
+          pianoBrand: updateData.pianoBrand,
+          lastTuned: updateData.lastTuned,
+          jamSchedule: updateData.jamSchedule,
+          jamFrequency: updateData.jamFrequency,
+          jamGenres: updateData.jamGenres,
+          operatingHours: updateData.operatingHours,
+          wheelchairAccessible: updateData.wheelchairAccessible,
+          parkingAvailable: updateData.parkingAvailable,
+          publicTransportNear: updateData.publicTransportNear,
+          facebook: updateData.facebook,
+          instagram: updateData.instagram,
+          twitter: updateData.twitter,
+          curatorNotes: updateData.curatorNotes,
+          curatorRating: updateData.curatorRating,
+          followUpNeeded: updateData.followUpNeeded,
+          specialNotes: updateData.specialNotes,
+          lastUpdatedBy: walletAddress || 'anonymous',
+        }),
       })
-      
-      // Separate basic updates (blockchain) from extended updates (IPFS)
-      const basicUpdates = {
-        name: updateData.name !== venue.name ? updateData.name : undefined,
-        contactInfo: updateData.contactInfo !== venue.contactInfo ? updateData.contactInfo : undefined,
+
+      if (!response.ok) {
+        throw new Error(`Update failed: ${response.statusText}`)
       }
 
-      const extendedUpdates = {
-        description: updateData.description,
-        fullAddress: updateData.fullAddress,
-        website: updateData.website,
-        pianoType: updateData.pianoType,
-        pianoCondition: updateData.pianoCondition,
-        pianoBrand: updateData.pianoBrand,
-        lastTuned: updateData.lastTuned,
-        jamSchedule: updateData.jamSchedule,
-        jamFrequency: updateData.jamFrequency,
-        jamGenres: updateData.jamGenres,
-        operatingHours: updateData.operatingHours,
-        wheelchairAccessible: updateData.wheelchairAccessible,
-        parkingAvailable: updateData.parkingAvailable,
-        publicTransportNear: updateData.publicTransportNear,
-        facebook: updateData.facebook,
-        instagram: updateData.instagram,
-        twitter: updateData.twitter,
-        curatorNotes: updateData.curatorNotes,
-        curatorRating: updateData.curatorRating,
-        followUpNeeded: updateData.followUpNeeded,
-        specialNotes: updateData.specialNotes,
-      }
+      const result = await response.json()
 
-      // Filter out undefined values from extended updates
-      const filteredExtendedUpdates = Object.fromEntries(
-        Object.entries(extendedUpdates).filter(([_, value]) => value !== undefined)
-      )
-
-      console.log('🔍 Debug update data:', {
-        basicUpdates,
-        extendedUpdates,
-        filteredExtendedUpdates,
-        hasExtendedUpdates: Object.keys(filteredExtendedUpdates).length > 0
-      })
-
-      // Use the IPFS-integrated update function
-      console.log('🚀 Calling updateVenueWithMetadata with:', {
-        venueId: venue.id,
-        basicUpdates,
-        filteredExtendedUpdates
-      })
-      
-      const result = await updateVenueWithMetadata(
-        venue.id,
-        basicUpdates,
-        filteredExtendedUpdates
-      )
-
-      console.log('📊 Update result:', result)
-
-      if (result.success) {
+      if (result.venue) {
         console.log('✅ Venue updated successfully!')
-        if (result.transactionHash) {
-          console.log('📍 Blockchain transaction hash:', result.transactionHash)
-        }
-        if (result.ipfsHash) {
-          console.log('📍 IPFS metadata hash:', result.ipfsHash)
-        }
 
-        // Enhanced contract now properly stores IPFS hash on blockchain
-        console.log('✅ IPFS metadata properly stored on blockchain via enhanced contract')
+        // Reload venue data
+        await loadVenueData()
 
-        // Wait a moment for transaction to be mined and IPFS to propagate
-        setTimeout(async () => {
-          console.log('🔄 Reloading venue data...')
-          await loadVenueData()
-          console.log('✅ Venue data reloaded')
-        }, 2000)
-        
         // Exit edit mode
         setIsEditing(false)
       } else {
         throw new Error(result.error || 'Update failed')
       }
 
-      return result.transactionHash
+      return 'database-update'
     } catch (error) {
       console.error('Error updating venue:', error)
       throw error

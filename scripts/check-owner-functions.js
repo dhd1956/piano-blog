@@ -12,44 +12,52 @@ const YOUR_ADDRESS = '0xe8985AEDF83E2a58fEf53B45db2d9556CD5F453A'
 const OWNER_FUNCTIONS = [
   {
     name: 'enableSubmissions',
-    abi: [{
-      "inputs": [],
-      "name": "enableSubmissions",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }]
+    abi: [
+      {
+        inputs: [],
+        name: 'enableSubmissions',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+      },
+    ],
   },
   {
     name: 'setMaxVenues',
-    abi: [{
-      "inputs": [{"name": "max", "type": "uint256"}],
-      "name": "setMaxVenues", 
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }]
+    abi: [
+      {
+        inputs: [{ name: 'max', type: 'uint256' }],
+        name: 'setMaxVenues',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+      },
+    ],
   },
   {
     name: 'maxVenues',
-    abi: [{
-      "inputs": [],
-      "name": "maxVenues",
-      "outputs": [{"name": "", "type": "uint256"}],
-      "stateMutability": "view",
-      "type": "function"
-    }]
+    abi: [
+      {
+        inputs: [],
+        name: 'maxVenues',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+      },
+    ],
   },
   {
     name: 'submissionDeadline',
-    abi: [{
-      "inputs": [],
-      "name": "submissionDeadline", 
-      "outputs": [{"name": "", "type": "uint256"}],
-      "stateMutability": "view",
-      "type": "function"
-    }]
-  }
+    abi: [
+      {
+        inputs: [],
+        name: 'submissionDeadline',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+      },
+    ],
+  },
 ]
 
 async function checkOwnerFunctions() {
@@ -62,29 +70,28 @@ async function checkOwnerFunctions() {
     try {
       const contract = new web3.eth.Contract(func.abi, VENUE_REGISTRY_ADDRESS)
       const methodName = func.abi[0].name
-      
+
       console.log(`🔍 Testing ${func.name}...`)
-      
+
       if (func.abi[0].stateMutability === 'view') {
         // Read-only function
         try {
           const result = await contract.methods[methodName]().call()
           console.log(`✅ ${func.name}: ${result}`)
-          
+
           if (func.name === 'maxVenues' && result <= 3) {
             console.log(`🚨 FOUND ISSUE: maxVenues is ${result}, current count is 3!`)
           }
-          
         } catch (error) {
           console.log(`❌ ${func.name}: Not found`)
         }
-        
       } else {
         // Write function - just test if it exists
         try {
-          await contract.methods[methodName](...(func.abi[0].inputs.map(() => 0))).estimateGas({ from: YOUR_ADDRESS })
+          await contract.methods[methodName](...func.abi[0].inputs.map(() => 0)).estimateGas({
+            from: YOUR_ADDRESS,
+          })
           console.log(`✅ ${func.name}: Available (owner function)`)
-          
         } catch (error) {
           if (error.message.includes('execution reverted')) {
             console.log(`⚠️ ${func.name}: Exists but reverted (might need different params)`)
@@ -93,7 +100,6 @@ async function checkOwnerFunctions() {
           }
         }
       }
-      
     } catch (error) {
       console.log(`❌ ${func.name}: Error testing`)
     }
@@ -107,4 +113,4 @@ async function checkOwnerFunctions() {
 
 checkOwnerFunctions()
   .then(() => console.log('\n🏁 Owner function check complete'))
-  .catch(error => console.error('\n💥 Check error:', error.message))
+  .catch((error) => console.error('\n💥 Check error:', error.message))

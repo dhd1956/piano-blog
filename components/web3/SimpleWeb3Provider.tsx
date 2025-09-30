@@ -4,11 +4,7 @@ import React, { ReactNode } from 'react'
 
 // Minimal Web3 provider for testing
 export function SimpleWeb3Provider({ children }: { children: ReactNode }) {
-  return (
-    <div>
-      {children}
-    </div>
-  )
+  return <div>{children}</div>
 }
 
 // Export all hooks for compatibility
@@ -30,7 +26,7 @@ export function useWeb3() {
     switchNetwork: async () => true,
     refreshConnection: async () => {},
     requestAccountChange: async () => true,
-    clearError: () => {}
+    clearError: () => {},
   }
 }
 
@@ -40,14 +36,14 @@ export function useWalletConnection() {
     isConnected: true,
     walletAddress: '0xe8985aedf83e2a58fef53b45db2d9556cd5f453a',
     error: null,
-    isLoading: false
+    isLoading: false,
   }
 }
 
 export function useNetwork() {
   return {
     isOnCorrectNetwork: true,
-    needsNetworkSwitch: false
+    needsNetworkSwitch: false,
   }
 }
 
@@ -55,6 +51,6 @@ export function usePermissions() {
   return {
     isBlogOwner: true,
     isAuthorizedCurator: true,
-    hasAnyPermissions: true
+    hasAnyPermissions: true,
   }
 }

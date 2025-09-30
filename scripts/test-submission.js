@@ -14,24 +14,24 @@ const TEST_ADDRESS = '0x1673A1b7DDCF7a7850Df2577067d93897a1CE8E0'
 // Full ABI for testing submission
 const VENUE_REGISTRY_ABI = [
   {
-    "inputs": [],
-    "name": "venueCount",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [],
+    name: 'venueCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      {"name": "name", "type": "string"},
-      {"name": "city", "type": "string"},
-      {"name": "contactInfo", "type": "string"},
-      {"name": "hasPiano", "type": "bool"}
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'city', type: 'string' },
+      { name: 'contactInfo', type: 'string' },
+      { name: 'hasPiano', type: 'bool' },
     ],
-    "name": "submitVenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    name: 'submitVenue',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
 ]
 
 async function testSubmission() {
@@ -41,69 +41,66 @@ async function testSubmission() {
   try {
     const web3 = new Web3(CELO_TESTNET_RPC)
     const contract = new web3.eth.Contract(VENUE_REGISTRY_ABI, VENUE_REGISTRY_ADDRESS)
-    
+
     const testVenue = {
-      name: "Test Piano Venue",
-      city: "Test City", 
-      contactInfo: "test@example.com",
-      hasPiano: true
+      name: 'Test Piano Venue',
+      city: 'Test City',
+      contactInfo: 'test@example.com',
+      hasPiano: true,
     }
-    
+
     console.log('Test Venue Data:', testVenue)
     console.log('')
-    
+
     // Test if method exists
     console.log('🔍 Testing submitVenue method availability...')
-    
+
     try {
       // This should succeed if method exists
-      await contract.methods.submitVenue(
-        testVenue.name,
-        testVenue.city,
-        testVenue.contactInfo,
-        testVenue.hasPiano
-      ).estimateGas({ from: TEST_ADDRESS })
-      
+      await contract.methods
+        .submitVenue(testVenue.name, testVenue.city, testVenue.contactInfo, testVenue.hasPiano)
+        .estimateGas({ from: TEST_ADDRESS })
+
       console.log('✅ submitVenue method exists and gas estimation works')
-      
     } catch (gasError) {
       console.error('❌ Gas estimation failed:')
       console.error('Error Code:', gasError.code)
       console.error('Error Message:', gasError.message)
-      
+
       if (gasError.data) {
         console.error('Error Data:', gasError.data)
       }
-      
+
       // Check if it's a method signature issue
       if (gasError.message.includes('execution reverted')) {
-        console.log('\n💡 This might be a contract logic issue (revert), not a method signature problem')
+        console.log(
+          '\n💡 This might be a contract logic issue (revert), not a method signature problem'
+        )
       } else if (gasError.message.includes('method') || gasError.message.includes('function')) {
         console.log('\n💡 This might be an ABI/method signature mismatch')
       }
-      
+
       throw gasError
     }
-    
+
     // If gas estimation works, try to get more details
     console.log('\n📋 Contract method details:')
-    console.log('Method signature:', contract.methods.submitVenue(
-      testVenue.name,
-      testVenue.city,
-      testVenue.contactInfo,
-      testVenue.hasPiano
-    ).encodeABI())
-    
+    console.log(
+      'Method signature:',
+      contract.methods
+        .submitVenue(testVenue.name, testVenue.city, testVenue.contactInfo, testVenue.hasPiano)
+        .encodeABI()
+    )
   } catch (error) {
     console.error('\n💥 Test submission failed:')
     console.error('Error type:', error.constructor.name)
     console.error('Error code:', error.code)
     console.error('Error message:', error.message)
-    
+
     if (error.data) {
       console.error('Error data:', error.data)
     }
-    
+
     // Provide debugging hints
     console.log('\n🔧 Debugging hints:')
     if (error.code === -32000) {
@@ -121,14 +118,14 @@ async function testSubmission() {
 // Test reading methods first
 async function testBasicReads() {
   console.log('📖 Testing basic read operations...')
-  
+
   try {
     const web3 = new Web3(CELO_TESTNET_RPC)
     const contract = new web3.eth.Contract(VENUE_REGISTRY_ABI, VENUE_REGISTRY_ADDRESS)
-    
+
     const count = await contract.methods.venueCount().call()
     console.log(`✅ Current venue count: ${count}`)
-    
+
     return true
   } catch (error) {
     console.error('❌ Basic read failed:', error.message)
@@ -138,17 +135,17 @@ async function testBasicReads() {
 
 async function runAllTests() {
   console.log('🚀 Starting comprehensive contract tests...\n')
-  
+
   // Test basic reads first
   const readsWork = await testBasicReads()
-  
+
   if (!readsWork) {
     console.log('❌ Basic reads failed, skipping submission test')
     return
   }
-  
+
   console.log('')
-  
+
   // Test submission
   await testSubmission()
 }

@@ -10,53 +10,53 @@ const CELO_TESTNET_RPC = 'https://alfajores-forno.celo-testnet.org'
 // Working READ_ABI
 const READ_ABI = [
   {
-    "inputs": [{"name": "venueId", "type": "uint256"}],
-    "name": "getVenueById",
-    "outputs": [
+    inputs: [{ name: 'venueId', type: 'uint256' }],
+    name: 'getVenueById',
+    outputs: [
       {
-        "components": [
-          {"name": "hasPiano", "type": "bool"},
-          {"name": "hasJamSession", "type": "bool"},
-          {"name": "verified", "type": "bool"},
-          {"name": "venueType", "type": "uint8"},
-          {"name": "submissionTimestamp", "type": "uint32"},
-          {"name": "verificationTimestamp", "type": "uint32"},
-          {"name": "submittedBy", "type": "address"},
-          {"name": "name", "type": "string"},
-          {"name": "city", "type": "string"},
-          {"name": "contactType", "type": "string"},
-          {"name": "ipfsHash", "type": "string"}
+        components: [
+          { name: 'hasPiano', type: 'bool' },
+          { name: 'hasJamSession', type: 'bool' },
+          { name: 'verified', type: 'bool' },
+          { name: 'venueType', type: 'uint8' },
+          { name: 'submissionTimestamp', type: 'uint32' },
+          { name: 'verificationTimestamp', type: 'uint32' },
+          { name: 'submittedBy', type: 'address' },
+          { name: 'name', type: 'string' },
+          { name: 'city', type: 'string' },
+          { name: 'contactType', type: 'string' },
+          { name: 'ipfsHash', type: 'string' },
         ],
-        "name": "",
-        "type": "tuple"
-      }
+        name: '',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "venueCount",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [],
+    name: 'venueCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 // Simple submit ABI
 const SUBMIT_ABI = [
   {
-    "inputs": [
-      {"name": "name", "type": "string"},
-      {"name": "city", "type": "string"},
-      {"name": "contactInfo", "type": "string"},
-      {"name": "hasPiano", "type": "bool"}
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'city', type: 'string' },
+      { name: 'contactInfo', type: 'string' },
+      { name: 'hasPiano', type: 'bool' },
     ],
-    "name": "submitVenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    name: 'submitVenue',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
 ]
 
 async function analyzeExistingVenues() {
@@ -73,7 +73,7 @@ async function analyzeExistingVenues() {
     console.log('')
 
     const venues = []
-    
+
     // Get all existing venues
     for (let i = 0; i < count; i++) {
       try {
@@ -86,9 +86,9 @@ async function analyzeExistingVenues() {
           ipfsHash: venue.ipfsHash,
           hasPiano: venue.hasPiano,
           submittedBy: venue.submittedBy,
-          submissionDate: new Date(venue.submissionTimestamp * 1000).toISOString()
+          submissionDate: new Date(venue.submissionTimestamp * 1000).toISOString(),
         })
-        
+
         console.log(`Venue ${i}:`)
         console.log(`  Name: "${venue.name}"`)
         console.log(`  City: "${venue.city}"`)
@@ -98,7 +98,6 @@ async function analyzeExistingVenues() {
         console.log(`  Submitted By: ${venue.submittedBy}`)
         console.log(`  Date: ${new Date(venue.submissionTimestamp * 1000).toLocaleString()}`)
         console.log('')
-        
       } catch (error) {
         console.log(`❌ Error reading venue ${i}: ${error.message}`)
       }
@@ -106,63 +105,59 @@ async function analyzeExistingVenues() {
 
     // Look for patterns
     console.log('🔍 Looking for submission patterns...')
-    
-    const cities = venues.map(v => v.city).filter(c => c)
-    const names = venues.map(v => v.name).filter(n => n)
-    const submitters = venues.map(v => v.submittedBy)
-    
+
+    const cities = venues.map((v) => v.city).filter((c) => c)
+    const names = venues.map((v) => v.name).filter((n) => n)
+    const submitters = venues.map((v) => v.submittedBy)
+
     console.log('Cities used:', [...new Set(cities)])
     console.log('Unique submitters:', [...new Set(submitters)])
     console.log('')
-    
+
     // Try submitting with a completely different pattern
     console.log('🧪 Testing submission with unique data...')
-    
+
     const uniqueTest = {
-      name: "Unique Test " + Math.random().toString(36).substring(7),
-      city: "UniqueCity" + Math.random().toString(36).substring(7),
-      contactInfo: "unique" + Date.now() + "@test.com",
-      hasPiano: true
+      name: 'Unique Test ' + Math.random().toString(36).substring(7),
+      city: 'UniqueCity' + Math.random().toString(36).substring(7),
+      contactInfo: 'unique' + Date.now() + '@test.com',
+      hasPiano: true,
     }
-    
+
     console.log('Test data:', uniqueTest)
-    
+
     const blogOwner = '0x1673A1b7DDCF7a7850Df2577067d93897a1CE8E0'
-    
+
     try {
-      const gasEstimate = await submitContract.methods.submitVenue(
-        uniqueTest.name,
-        uniqueTest.city,
-        uniqueTest.contactInfo,
-        uniqueTest.hasPiano
-      ).estimateGas({ from: blogOwner })
-      
+      const gasEstimate = await submitContract.methods
+        .submitVenue(uniqueTest.name, uniqueTest.city, uniqueTest.contactInfo, uniqueTest.hasPiano)
+        .estimateGas({ from: blogOwner })
+
       console.log('✅ Unique submission works! Gas:', gasEstimate)
-      
     } catch (error) {
       console.error('❌ Unique submission failed:', error.message)
-      
+
       // Get more details about the error
       try {
-        const result = await submitContract.methods.submitVenue(
-          uniqueTest.name,
-          uniqueTest.city,
-          uniqueTest.contactInfo,
-          uniqueTest.hasPiano
-        ).call({ from: blogOwner })
-        
+        const result = await submitContract.methods
+          .submitVenue(
+            uniqueTest.name,
+            uniqueTest.city,
+            uniqueTest.contactInfo,
+            uniqueTest.hasPiano
+          )
+          .call({ from: blogOwner })
+
         console.log('Call result:', result)
-        
       } catch (callError) {
         console.error('Call error:', callError.message)
-        
+
         // Try to decode the revert reason
         if (callError.data) {
           console.log('Error data:', callError.data)
         }
       }
     }
-    
   } catch (error) {
     console.error('💥 Analysis failed:', error.message)
   }
@@ -170,4 +165,4 @@ async function analyzeExistingVenues() {
 
 analyzeExistingVenues()
   .then(() => console.log('\n🏁 Analysis complete'))
-  .catch(error => console.error('\n💥 Analysis error:', error.message))
+  .catch((error) => console.error('\n💥 Analysis error:', error.message))

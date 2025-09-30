@@ -1,10 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useWallet } from '@/hooks/useWallet'
-import { useWalletConnection, useNetwork } from '@/components/web3/WorkingWeb3Provider'
-import WalletConnection from '@/components/web3/WalletConnection'
-import { DebugInfo } from '@/components/web3/DebugInfo'
+import { useHybridWallet } from '@/hooks/useHybridWallet'
 
 interface VenueFormData {
   name: string
@@ -20,14 +17,7 @@ interface VenueFormData {
 const VENUE_TYPES = ['Cafe', 'Restaurant', 'Bar', 'Club', 'Community Center']
 
 export default function SubmitVenue() {
-  const {
-    isConnected,
-    walletAddress,
-    submitVenue,
-    getVenueCount,
-    isOnCorrectNetwork,
-    ensureConnection,
-  } = useWallet()
+  const { isConnected, walletAddress, connectWallet } = useHybridWallet()
 
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
@@ -45,31 +35,26 @@ export default function SubmitVenue() {
   const [venueCount, setVenueCount] = useState<number>(0)
   const [error, setError] = useState<string>('')
 
-  // Fetch current venue count
+  // Fetch current venue count from PostgreSQL API
   const fetchVenueCount = async () => {
     try {
-      const result = await getVenueCount()
-      if (result.success && result.count !== undefined) {
-        setVenueCount(result.count)
+      const response = await fetch('/api/venues', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setVenueCount(result.venues?.length || 0)
       }
     } catch (error) {
       console.error('Error fetching venue count:', error)
     }
   }
 
-  // Submit venue function
+  // Submit venue function using PostgreSQL API
   const handleSubmitVenue = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!isConnected) {
-      setError('Please connect your wallet first')
-      return
-    }
-
-    if (!isOnCorrectNetwork) {
-      setError('Please switch to Celo Alfajores network')
-      return
-    }
 
     // Validate required fields
     if (!formData.name || !formData.city || !formData.contactInfo) {
@@ -82,41 +67,35 @@ export default function SubmitVenue() {
     setError('')
 
     try {
-      // Ensure wallet connection and network
-      const connected = await ensureConnection()
-      if (!connected) {
-        setError('Failed to ensure wallet connection')
-        return
-      }
-
       console.log('🚀 About to submit venue:', {
         name: formData.name,
         city: formData.city,
         contactInfo: formData.contactInfo,
         hasPiano: formData.hasPiano,
-        walletAddress
+        submittedBy: walletAddress || 'anonymous',
       })
 
-      const result = await submitVenue(
-        {
+      // Submit to PostgreSQL API
+      const response = await fetch('/api/venues', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.name,
           city: formData.city,
           contactInfo: formData.contactInfo,
           hasPiano: formData.hasPiano,
-          // Note: other fields are UI-only, not sent to contract
+          hasJamSession: formData.hasJamSession,
+          venueType: formData.venueType,
           description: formData.description,
-          address: formData.address,
-        },
-        {
-          onTransactionHash: (hash) => {
-            setSubmitStatus(`Transaction submitted! Hash: ${hash}`)
-            console.log('✅ Transaction hash received:', hash)
-          },
-        }
-      )
+          fullAddress: formData.address,
+          submittedBy: walletAddress || 'anonymous',
+        }),
+      })
 
-      if (result.success) {
-        setSubmitStatus(`✅ Venue submitted successfully! Transaction: ${result.transactionHash}`)
+      if (response.ok) {
+        const result = await response.json()
+        setSubmitStatus(`✅ Venue submitted successfully! ID: ${result.venue?.id}`)
+        console.log('✅ Venue submitted to database:', result.venue)
 
         // Reset form
         setFormData({
@@ -130,20 +109,16 @@ export default function SubmitVenue() {
           address: '',
         })
 
-        // Update venue count after delay
-        setTimeout(fetchVenueCount, 3000)
+        // Update venue count
+        fetchVenueCount()
       } else {
-        console.error('❌ Venue submission failed:', result.error)
-        setError(result.error || 'Failed to submit venue')
+        const errorResult = await response.json()
+        console.error('❌ Venue submission failed:', errorResult.error)
+        setError(errorResult.error || 'Failed to submit venue')
         setSubmitStatus('')
       }
     } catch (error: any) {
       console.error('💥 Exception during venue submission:', error)
-      console.error('Error details:', {
-        message: error.message,
-        code: error.code,
-        data: error.data
-      })
       setError(`Failed to submit venue: ${error.message}`)
       setSubmitStatus('')
     } finally {
@@ -166,7 +141,6 @@ export default function SubmitVenue() {
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <DebugInfo />
       <div className="mx-auto max-w-2xl rounded-lg bg-white p-8 shadow-md">
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">🎹 Submit a Piano Venue</h1>
@@ -174,23 +148,32 @@ export default function SubmitVenue() {
             Found a venue with a piano? Help build our community by submitting it for verification.
           </p>
           <p className="mt-2 text-sm text-blue-600">
-            Current venues in database: {venueCount} | Reward: Verification by curator
+            Current venues in database: {venueCount} | Reward: Community recognition
           </p>
         </div>
 
-        {/* Wallet Connection Section */}
+        {/* Optional Wallet Connection Section */}
         <div className="mb-8 rounded-lg bg-blue-50 p-4">
           {!isConnected ? (
             <div>
               <p className="mb-3 text-blue-800">
-                Connect your wallet to submit venues to the blockchain
+                Optionally connect your wallet to get credit for submissions
               </p>
-              <WalletConnection size="md" showNetworkStatus={true} />
+              <button
+                onClick={connectWallet}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              >
+                Connect Wallet (Optional)
+              </button>
             </div>
           ) : (
             <div>
-              <p className="mb-2 text-green-800">✅ Wallet Connected & Ready to Submit</p>
-              <WalletConnection showFullAddress={false} showNetworkStatus={true} size="sm" />
+              <p className="mb-2 text-green-800">
+                ✅ Wallet Connected - You'll get credit for this submission
+              </p>
+              <p className="text-sm text-gray-600">
+                Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+              </p>
             </div>
           )}
         </div>
@@ -345,30 +328,22 @@ export default function SubmitVenue() {
           <div>
             <button
               type="submit"
-              disabled={!isConnected || isSubmitting || !isOnCorrectNetwork}
+              disabled={isSubmitting}
               className="w-full rounded-lg bg-blue-600 px-4 py-3 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-                  Submitting to Blockchain...
+                  Submitting venue...
                 </span>
               ) : (
                 'Submit Venue for Verification'
               )}
             </button>
 
-            {!isConnected && (
-              <p className="mt-2 text-center text-sm text-gray-500">
-                Please connect your wallet to submit
-              </p>
-            )}
-
-            {isConnected && !isOnCorrectNetwork && (
-              <p className="mt-2 text-center text-sm text-orange-600">
-                Please switch to Celo Alfajores network
-              </p>
-            )}
+            <p className="mt-2 text-center text-sm text-gray-500">
+              No wallet required - submissions welcome from everyone!
+            </p>
           </div>
         </form>
 
@@ -377,7 +352,7 @@ export default function SubmitVenue() {
           <h3 className="mb-2 font-medium text-yellow-800">How it works:</h3>
           <ol className="space-y-1 text-sm text-yellow-700">
             <li>1. Fill out the venue details in the form above</li>
-            <li>2. Connect your wallet and submit to the blockchain</li>
+            <li>2. Submit directly to our database (no wallet required)</li>
             <li>3. A curator will visit and verify the venue information</li>
             <li>4. Once approved, the venue becomes searchable by the community</li>
             <li>5. Help build the largest database of piano-friendly venues!</li>
@@ -385,12 +360,14 @@ export default function SubmitVenue() {
 
           <div className="mt-3 text-xs text-yellow-600">
             <p>
-              <strong>Gas Fees:</strong> Submitting requires a small transaction fee on Celo
-              (~$0.001)
+              <strong>No Fees:</strong> Submitting venues is completely free!
             </p>
             <p>
               <strong>Verification:</strong> All submissions are manually verified before appearing
               in search
+            </p>
+            <p>
+              <strong>Optional Credit:</strong> Connect your wallet to get credited for submissions
             </p>
           </div>
         </div>

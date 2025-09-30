@@ -80,10 +80,12 @@ export default function CuratorDashboard() {
     console.log('📊 Initial state check:', {
       canAccessCurator,
       isConnected,
-      walletAddress: walletAddress ? `${walletAddress.substring(0, 8)}...${walletAddress.substring(-4)}` : 'null',
+      walletAddress: walletAddress
+        ? `${walletAddress.substring(0, 8)}...${walletAddress.substring(-4)}`
+        : 'null',
       venueId,
       approved,
-      notesLength: verificationNotes.length
+      notesLength: verificationNotes.length,
     })
 
     if (!canAccessCurator) {
@@ -95,17 +97,20 @@ export default function CuratorDashboard() {
     try {
       setError('')
       setLoading(true)
-      
-      console.log('🎯 About to call verifyVenue with:', { 
-        venueId, 
-        approved, 
+
+      console.log('🎯 About to call verifyVenue with:', {
+        venueId,
+        approved,
         notes: verificationNotes.substring(0, 50) + (verificationNotes.length > 50 ? '...' : ''),
-        fullNotesLength: verificationNotes.length
+        fullNotesLength: verificationNotes.length,
       })
 
       // Check wallet connection state before verification
       if (!isConnected || !walletAddress) {
-        console.error('❌ Pre-verification check failed:', { isConnected, hasWalletAddress: !!walletAddress })
+        console.error('❌ Pre-verification check failed:', {
+          isConnected,
+          hasWalletAddress: !!walletAddress,
+        })
         setError('Wallet not connected. Please connect your wallet and try again.')
         setLoading(false)
         return
@@ -113,14 +118,16 @@ export default function CuratorDashboard() {
 
       console.log('✅ Pre-verification checks passed, calling verifyVenue...')
       const result = await verifyVenue(venueId, approved, verificationNotes)
-      
+
       console.log('🔄 Verify venue result:', {
         success: result.success,
         hasTransactionHash: !!result.transactionHash,
         hasIpfsHash: !!result.ipfsHash,
         error: result.error,
-        transactionHash: result.transactionHash ? `${result.transactionHash.substring(0, 10)}...` : 'none',
-        ipfsHash: result.ipfsHash ? `${result.ipfsHash.substring(0, 10)}...` : 'none'
+        transactionHash: result.transactionHash
+          ? `${result.transactionHash.substring(0, 10)}...`
+          : 'none',
+        ipfsHash: result.ipfsHash ? `${result.ipfsHash.substring(0, 10)}...` : 'none',
       })
 
       if (result.success) {
@@ -143,7 +150,7 @@ export default function CuratorDashboard() {
         name: error.name,
         message: error.message,
         code: error.code,
-        stack: error.stack?.substring(0, 200) + '...'
+        stack: error.stack?.substring(0, 200) + '...',
       })
       setError('Verification failed: ' + error.message)
     } finally {
@@ -173,7 +180,7 @@ export default function CuratorDashboard() {
         name: editForm.name,
         contactInfo: editForm.contactInfo,
         updateNotes: editForm.updateNotes,
-        updateNotesLength: editForm.updateNotes.length
+        updateNotesLength: editForm.updateNotes.length,
       })
 
       // Save update notes to localStorage if provided
@@ -185,21 +192,33 @@ export default function CuratorDashboard() {
           updateDate: new Date().toISOString(),
           updateType: 'venue_edit',
           changes: {
-            name: editForm.name !== selectedVenue.name ? { from: selectedVenue.name, to: editForm.name } : null,
-            contactInfo: editForm.contactInfo !== selectedVenue.contactInfo ? { from: selectedVenue.contactInfo, to: editForm.contactInfo } : null,
-            hasPiano: editForm.hasPiano !== selectedVenue.hasPiano ? { from: selectedVenue.hasPiano, to: editForm.hasPiano } : null,
-            hasJamSession: editForm.hasJamSession !== selectedVenue.hasJamSession ? { from: selectedVenue.hasJamSession, to: editForm.hasJamSession } : null
-          }
+            name:
+              editForm.name !== selectedVenue.name
+                ? { from: selectedVenue.name, to: editForm.name }
+                : null,
+            contactInfo:
+              editForm.contactInfo !== selectedVenue.contactInfo
+                ? { from: selectedVenue.contactInfo, to: editForm.contactInfo }
+                : null,
+            hasPiano:
+              editForm.hasPiano !== selectedVenue.hasPiano
+                ? { from: selectedVenue.hasPiano, to: editForm.hasPiano }
+                : null,
+            hasJamSession:
+              editForm.hasJamSession !== selectedVenue.hasJamSession
+                ? { from: selectedVenue.hasJamSession, to: editForm.hasJamSession }
+                : null,
+          },
         }
 
         const storageKey = `update_notes_${selectedVenue.id}`
         const existingNotes = localStorage.getItem(storageKey)
         let allNotes = []
-        
+
         if (existingNotes) {
           allNotes = JSON.parse(existingNotes)
         }
-        
+
         allNotes.push(updateMetadata)
         localStorage.setItem(storageKey, JSON.stringify(allNotes))
         console.log('✅ Update notes saved to localStorage')
@@ -210,21 +229,21 @@ export default function CuratorDashboard() {
         console.log('🔧 Piano status changed, saving to localStorage...', {
           venueId: selectedVenue.id,
           from: selectedVenue.hasPiano,
-          to: editForm.hasPiano
+          to: editForm.hasPiano,
         })
-        
+
         const pianoStorageKey = `venue_piano_${selectedVenue.id}`
         const pianoUpdate = {
           hasPiano: editForm.hasPiano,
           updatedBy: walletAddress,
           updateDate: new Date().toISOString(),
-          previousValue: selectedVenue.hasPiano
+          previousValue: selectedVenue.hasPiano,
         }
-        
+
         localStorage.setItem(pianoStorageKey, JSON.stringify(pianoUpdate))
         console.log('✅ Piano status saved to localStorage with key:', pianoStorageKey)
         console.log('✅ Saved data:', pianoUpdate)
-        
+
         // Verify it was saved
         const verification = localStorage.getItem(pianoStorageKey)
         console.log('✅ Verification - data in localStorage:', verification)
@@ -232,7 +251,7 @@ export default function CuratorDashboard() {
         console.log('ℹ️ No piano status change detected', {
           venueId: selectedVenue.id,
           editFormHasPiano: editForm.hasPiano,
-          selectedVenueHasPiano: selectedVenue.hasPiano
+          selectedVenueHasPiano: selectedVenue.hasPiano,
         })
       }
 
@@ -241,21 +260,21 @@ export default function CuratorDashboard() {
         console.log('🔧 Jam session status changed, saving to localStorage...', {
           venueId: selectedVenue.id,
           from: selectedVenue.hasJamSession,
-          to: editForm.hasJamSession
+          to: editForm.hasJamSession,
         })
-        
+
         const jamSessionStorageKey = `venue_jam_session_${selectedVenue.id}`
         const jamSessionUpdate = {
           hasJamSession: editForm.hasJamSession,
           updatedBy: walletAddress,
           updateDate: new Date().toISOString(),
-          previousValue: selectedVenue.hasJamSession
+          previousValue: selectedVenue.hasJamSession,
         }
-        
+
         localStorage.setItem(jamSessionStorageKey, JSON.stringify(jamSessionUpdate))
         console.log('✅ Jam session status saved to localStorage with key:', jamSessionStorageKey)
         console.log('✅ Saved data:', jamSessionUpdate)
-        
+
         // Verify it was saved
         const verification = localStorage.getItem(jamSessionStorageKey)
         console.log('✅ Verification - data in localStorage:', verification)
@@ -263,7 +282,7 @@ export default function CuratorDashboard() {
         console.log('ℹ️ No jam session status change detected', {
           venueId: selectedVenue.id,
           editFormHasJamSession: editForm.hasJamSession,
-          selectedVenueHasJamSession: selectedVenue.hasJamSession
+          selectedVenueHasJamSession: selectedVenue.hasJamSession,
         })
       }
 
@@ -272,37 +291,41 @@ export default function CuratorDashboard() {
       if (result.success) {
         let successMsg = 'Venue updated successfully!'
         const changes = []
-        
+
         if (editForm.updateNotes.trim()) {
           changes.push('update notes saved')
         }
-        
+
         if (editForm.hasPiano !== selectedVenue.hasPiano) {
-          changes.push(`piano status changed to ${editForm.hasPiano ? 'available' : 'not available'}`)
+          changes.push(
+            `piano status changed to ${editForm.hasPiano ? 'available' : 'not available'}`
+          )
         }
-        
+
         if (editForm.hasJamSession !== selectedVenue.hasJamSession) {
-          changes.push(`jam session status changed to ${editForm.hasJamSession ? 'available' : 'not available'}`)
+          changes.push(
+            `jam session status changed to ${editForm.hasJamSession ? 'available' : 'not available'}`
+          )
         }
-        
+
         if (changes.length > 0) {
           successMsg += ' (' + changes.join(', ') + ')'
         }
-        
+
         setSuccessMessage(successMsg)
         setIsEditing(false)
-        
+
         // Update selectedVenue with the changes to reflect them immediately
         const updatedVenue = {
           ...selectedVenue,
           name: editForm.name,
           contactInfo: editForm.contactInfo,
           hasPiano: editForm.hasPiano,
-          hasJamSession: editForm.hasJamSession
+          hasJamSession: editForm.hasJamSession,
         }
         console.log('🔧 Updating selectedVenue state with changes:', updatedVenue)
         setSelectedVenue(updatedVenue)
-        
+
         await loadVenues()
       } else {
         setError(result.error || 'Failed to update venue')
@@ -319,12 +342,12 @@ export default function CuratorDashboard() {
   const loadCuratorNotes = async (venueId: number) => {
     setLoadingNotes(true)
     setExistingCuratorNotes(null)
-    
+
     try {
       // Load curator verification notes
       const result = await getCuratorNotes(venueId)
       let notes = null
-      
+
       if (result.success && result.notes) {
         notes = { verification: result.notes }
         console.log('📝 Loaded curator notes:', result.notes)
@@ -623,23 +646,30 @@ export default function CuratorDashboard() {
                           onChange={(e) => setEditForm({ ...editForm, hasPiano: e.target.checked })}
                           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-700">🎹 This venue has a piano available</span>
+                        <span className="text-sm text-gray-700">
+                          🎹 This venue has a piano available
+                        </span>
                       </div>
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Jam Session Availability</label>
+                      <label className="mb-1 block text-sm font-medium">
+                        Jam Session Availability
+                      </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           checked={editForm.hasJamSession}
-                          onChange={(e) => setEditForm({ ...editForm, hasJamSession: e.target.checked })}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, hasJamSession: e.target.checked })
+                          }
                           className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500"
                         />
-                        <span className="text-sm text-gray-700">🎵 This venue hosts jam sessions</span>
+                        <span className="text-sm text-gray-700">
+                          🎵 This venue hosts jam sessions
+                        </span>
                       </div>
                     </div>
-
 
                     <div>
                       <label className="mb-1 block text-sm font-medium">Update Notes</label>
@@ -702,44 +732,109 @@ export default function CuratorDashboard() {
                       <div className="space-y-3">
                         {/* Verification Notes */}
                         {existingCuratorNotes.verification && (
-                          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-                            <h4 className="font-medium text-amber-800 mb-2">📝 Previous Verification Notes</h4>
-                            <div className="text-sm space-y-1">
-                              <p><strong>Notes:</strong> {existingCuratorNotes.verification.verificationNotes}</p>
-                              <p><strong>Status:</strong> {existingCuratorNotes.verification.verificationStatus}</p>
-                              <p><strong>Verified by:</strong> {existingCuratorNotes.verification.verifiedBy?.substring(0, 12)}...</p>
-                              <p><strong>Date:</strong> {new Date(existingCuratorNotes.verification.verificationDate).toLocaleDateString()}</p>
+                          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                            <h4 className="mb-2 font-medium text-amber-800">
+                              📝 Previous Verification Notes
+                            </h4>
+                            <div className="space-y-1 text-sm">
+                              <p>
+                                <strong>Notes:</strong>{' '}
+                                {existingCuratorNotes.verification.verificationNotes}
+                              </p>
+                              <p>
+                                <strong>Status:</strong>{' '}
+                                {existingCuratorNotes.verification.verificationStatus}
+                              </p>
+                              <p>
+                                <strong>Verified by:</strong>{' '}
+                                {existingCuratorNotes.verification.verifiedBy?.substring(0, 12)}...
+                              </p>
+                              <p>
+                                <strong>Date:</strong>{' '}
+                                {new Date(
+                                  existingCuratorNotes.verification.verificationDate
+                                ).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
                         )}
-                        
+
                         {/* Update Notes */}
-                        {existingCuratorNotes.updates && existingCuratorNotes.updates.length > 0 && (
-                          <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-                            <h4 className="font-medium text-green-800 mb-2">✏️ Previous Update Notes</h4>
-                            <div className="space-y-2">
-                              {existingCuratorNotes.updates.slice(-2).map((update, index) => (
-                                <div key={index} className="text-sm border-l-2 border-green-300 pl-3">
-                                  <p><strong>Notes:</strong> {update.updateNotes}</p>
-                                  <p><strong>Updated by:</strong> {update.updatedBy?.substring(0, 12)}...</p>
-                                  <p><strong>Date:</strong> {new Date(update.updateDate).toLocaleDateString()}</p>
-                                  {update.changes && (
-                                    <div className="text-xs text-gray-600 mt-1">
-                                      <p>Changes made:</p>
-                                      {update.changes.name && <p>• Name: {update.changes.name.from} → {update.changes.name.to}</p>}
-                                      {update.changes.contactInfo && <p>• Contact: {update.changes.contactInfo.from} → {update.changes.contactInfo.to}</p>}
-                                      {update.changes.hasPiano && <p>• Piano: {update.changes.hasPiano.from ? 'Available' : 'Not Available'} → {update.changes.hasPiano.to ? 'Available' : 'Not Available'}</p>}
-                                      {update.changes.hasJamSession && <p>• Jam Sessions: {update.changes.hasJamSession.from ? 'Available' : 'Not Available'} → {update.changes.hasJamSession.to ? 'Available' : 'Not Available'}</p>}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                              {existingCuratorNotes.updates.length > 2 && (
-                                <p className="text-xs text-gray-500">Showing latest 2 of {existingCuratorNotes.updates.length} update notes</p>
-                              )}
+                        {existingCuratorNotes.updates &&
+                          existingCuratorNotes.updates.length > 0 && (
+                            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                              <h4 className="mb-2 font-medium text-green-800">
+                                ✏️ Previous Update Notes
+                              </h4>
+                              <div className="space-y-2">
+                                {existingCuratorNotes.updates.slice(-2).map((update, index) => (
+                                  <div
+                                    key={index}
+                                    className="border-l-2 border-green-300 pl-3 text-sm"
+                                  >
+                                    <p>
+                                      <strong>Notes:</strong> {update.updateNotes}
+                                    </p>
+                                    <p>
+                                      <strong>Updated by:</strong>{' '}
+                                      {update.updatedBy?.substring(0, 12)}...
+                                    </p>
+                                    <p>
+                                      <strong>Date:</strong>{' '}
+                                      {new Date(update.updateDate).toLocaleDateString()}
+                                    </p>
+                                    {update.changes && (
+                                      <div className="mt-1 text-xs text-gray-600">
+                                        <p>Changes made:</p>
+                                        {update.changes.name && (
+                                          <p>
+                                            • Name: {update.changes.name.from} →{' '}
+                                            {update.changes.name.to}
+                                          </p>
+                                        )}
+                                        {update.changes.contactInfo && (
+                                          <p>
+                                            • Contact: {update.changes.contactInfo.from} →{' '}
+                                            {update.changes.contactInfo.to}
+                                          </p>
+                                        )}
+                                        {update.changes.hasPiano && (
+                                          <p>
+                                            • Piano:{' '}
+                                            {update.changes.hasPiano.from
+                                              ? 'Available'
+                                              : 'Not Available'}{' '}
+                                            →{' '}
+                                            {update.changes.hasPiano.to
+                                              ? 'Available'
+                                              : 'Not Available'}
+                                          </p>
+                                        )}
+                                        {update.changes.hasJamSession && (
+                                          <p>
+                                            • Jam Sessions:{' '}
+                                            {update.changes.hasJamSession.from
+                                              ? 'Available'
+                                              : 'Not Available'}{' '}
+                                            →{' '}
+                                            {update.changes.hasJamSession.to
+                                              ? 'Available'
+                                              : 'Not Available'}
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                                {existingCuratorNotes.updates.length > 2 && (
+                                  <p className="text-xs text-gray-500">
+                                    Showing latest 2 of {existingCuratorNotes.updates.length} update
+                                    notes
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </div>
                     ) : null}
 
@@ -753,14 +848,16 @@ export default function CuratorDashboard() {
                         onChange={(e) => setVerificationNotes(e.target.value)}
                         className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
                         rows={3}
-                        placeholder={existingCuratorNotes 
-                          ? "Add additional verification notes (optional)..." 
-                          : "Add verification notes (optional)..."
+                        placeholder={
+                          existingCuratorNotes
+                            ? 'Add additional verification notes (optional)...'
+                            : 'Add verification notes (optional)...'
                         }
                       />
                       {existingCuratorNotes && (
                         <p className="mt-1 text-xs text-gray-500">
-                          Note: Previous curator notes are preserved above. These will be added as additional notes.
+                          Note: Previous curator notes are preserved above. These will be added as
+                          additional notes.
                         </p>
                       )}
                     </div>
