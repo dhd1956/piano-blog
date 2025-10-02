@@ -63,7 +63,7 @@ export interface VenueMetadata {
       twitter?: string
     }
   }
-  
+
   // Musical information
   musicalInfo: {
     hasPiano: boolean
@@ -74,7 +74,7 @@ export interface VenueMetadata {
     pianoModel?: string
     lastTuned?: string
     pianoNotes?: string
-    
+
     // Jam session details
     jamSchedule?: string
     jamFrequency?: 'daily' | 'weekly' | 'monthly' | 'occasional' | 'by_request'
@@ -82,8 +82,8 @@ export interface VenueMetadata {
     jamRequirements?: string
     jamContactInfo?: string
   }
-  
-  // Operational information  
+
+  // Operational information
   operationalInfo: {
     operatingHours?: {
       monday?: string
@@ -108,7 +108,7 @@ export interface VenueMetadata {
       musicPolicy?: string
     }
   }
-  
+
   // Submission/verification metadata
   submissionInfo: {
     submittedBy: string
@@ -116,18 +116,18 @@ export interface VenueMetadata {
     verified: boolean
     verificationDate?: string
     verifiedBy?: string
-    
+
     // Version control
     version: number
     lastUpdated: string
     lastUpdatedBy?: string
-    
+
     // Media
     photos?: string[]
     videos?: string[]
     audioSamples?: string[]
   }
-  
+
   // Curator-specific information
   curatorInfo?: {
     curatorNotes?: string
@@ -150,29 +150,33 @@ export interface VenueSubmissionForm {
   contactType: string
   contactInfo: string
   description: string
-  
+
   // Features
   hasPiano: boolean
   hasJamSession: boolean
-  
+
   // Extended information
   website?: string
   pianoType?: string
   pianoCondition?: string
+  pianoBrand?: string
+  lastTuned?: string
   jamSchedule?: string
+  jamFrequency?: string
+  jamGenres?: string
   operatingHours?: string
   specialNotes?: string
-  
+
   // Social media
   facebook?: string
   instagram?: string
   twitter?: string
-  
+
   // Accessibility
   wheelchairAccessible?: boolean
   parkingAvailable?: boolean
   publicTransportNear?: boolean
-  
+
   // Media uploads (file paths or base64)
   photos?: File[] | string[]
   videos?: File[] | string[]
@@ -284,7 +288,7 @@ export interface VenueEventLog {
 // Constants
 export const VENUE_TYPES = [
   'Cafe',
-  'Restaurant', 
+  'Restaurant',
   'Bar',
   'Club',
   'Community Center',
@@ -292,39 +296,16 @@ export const VENUE_TYPES = [
   'Music School',
   'Church/Religious',
   'Library',
-  'Other'
+  'Other',
 ] as const
 
-export const PIANO_TYPES = [
-  'upright',
-  'grand', 
-  'digital',
-  'electric',
-  'keyboard'
-] as const
+export const PIANO_TYPES = ['upright', 'grand', 'digital', 'electric', 'keyboard'] as const
 
-export const PIANO_CONDITIONS = [
-  'excellent',
-  'good',
-  'fair', 
-  'needs_tuning',
-  'poor'
-] as const
+export const PIANO_CONDITIONS = ['excellent', 'good', 'fair', 'needs_tuning', 'poor'] as const
 
-export const JAM_FREQUENCIES = [
-  'daily',
-  'weekly',
-  'monthly', 
-  'occasional',
-  'by_request'
-] as const
+export const JAM_FREQUENCIES = ['daily', 'weekly', 'monthly', 'occasional', 'by_request'] as const
 
-export const NOISE_LEVELS = [
-  'quiet',
-  'moderate',
-  'lively',
-  'loud'
-] as const
+export const NOISE_LEVELS = ['quiet', 'moderate', 'lively', 'loud'] as const
 
 // Type guards
 export function isValidVenueType(type: number): boolean {
@@ -337,10 +318,10 @@ export function isValidAddress(address: string): boolean {
 
 // Utility types
 export type VenueTypeKey = keyof typeof VENUE_TYPES
-export type PianoType = typeof PIANO_TYPES[number]
-export type PianoCondition = typeof PIANO_CONDITIONS[number]
-export type JamFrequency = typeof JAM_FREQUENCIES[number]
-export type NoiseLevel = typeof NOISE_LEVELS[number]
+export type PianoType = (typeof PIANO_TYPES)[number]
+export type PianoCondition = (typeof PIANO_CONDITIONS)[number]
+export type JamFrequency = (typeof JAM_FREQUENCIES)[number]
+export type NoiseLevel = (typeof NOISE_LEVELS)[number]
 
 // Database/persistence types (for future local storage or backend)
 export interface VenueDatabaseRecord extends Venue {

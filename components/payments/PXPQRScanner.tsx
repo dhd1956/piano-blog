@@ -7,8 +7,8 @@ import {
   BaseQRData,
   VenueQRData,
   UserProfileQRData,
-  isVenueQRData,
-  isUserProfileQRData,
+  isValidVenueQRData,
+  isValidUserProfileQRData,
 } from '@/types/qr-profile'
 
 export interface PaymentQRData {
@@ -107,7 +107,7 @@ export default function PXPQRScanner({
         const jsonData = JSON.parse(result.data)
 
         // Check if it's a VenueQRData
-        if (isVenueQRData(jsonData)) {
+        if (isValidVenueQRData(jsonData)) {
           console.log('Venue QR detected:', jsonData)
           onVenueDetected?.(jsonData)
 
@@ -130,7 +130,7 @@ export default function PXPQRScanner({
         }
 
         // Check if it's a UserProfileQRData
-        if (isUserProfileQRData(jsonData)) {
+        if (isValidUserProfileQRData(jsonData)) {
           console.log('User profile QR detected:', jsonData)
           onUserProfileDetected?.(jsonData)
 

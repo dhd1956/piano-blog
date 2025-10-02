@@ -93,9 +93,9 @@ export default function HybridVenueList() {
       }
 
       if (append) {
-        setVenues((prev) => [...prev, ...filteredVenues])
+        setVenues((prev) => [...prev, ...(filteredVenues as any)])
       } else {
-        setVenues(filteredVenues)
+        setVenues(filteredVenues as any)
       }
 
       setTotalCount(result.totalCount)

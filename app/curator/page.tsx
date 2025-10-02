@@ -213,7 +213,7 @@ export default function CuratorDashboard() {
 
         const storageKey = `update_notes_${selectedVenue.id}`
         const existingNotes = localStorage.getItem(storageKey)
-        let allNotes = []
+        let allNotes: any[] = []
 
         if (existingNotes) {
           allNotes = JSON.parse(existingNotes)
@@ -290,7 +290,7 @@ export default function CuratorDashboard() {
 
       if (result.success) {
         let successMsg = 'Venue updated successfully!'
-        const changes = []
+        const changes: string[] = []
 
         if (editForm.updateNotes.trim()) {
           changes.push('update notes saved')
@@ -346,7 +346,7 @@ export default function CuratorDashboard() {
     try {
       // Load curator verification notes
       const result = await getCuratorNotes(venueId)
-      let notes = null
+      let notes: any = null
 
       if (result.success && result.notes) {
         notes = { verification: result.notes }

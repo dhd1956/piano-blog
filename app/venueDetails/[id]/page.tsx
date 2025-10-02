@@ -294,8 +294,6 @@ export default function VenueDetailsPage() {
       } else {
         throw new Error(result.error || 'Update failed')
       }
-
-      return 'database-update'
     } catch (error) {
       console.error('Error updating venue:', error)
       throw error
