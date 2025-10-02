@@ -89,7 +89,7 @@ export default function QRCodeScanner({
         // Check for torch support
         const track = stream.getVideoTracks()[0]
         const capabilities = track.getCapabilities?.()
-        setTorchSupported(!!capabilities?.torch)
+        setTorchSupported(!!(capabilities as any)?.torch)
 
         // Start QR detection
         if (qrDetectorSupported) {
@@ -225,8 +225,8 @@ export default function QRCodeScanner({
     try {
       const track = streamRef.current.getVideoTracks()[0]
       await track.applyConstraints({
-        advanced: [{ torch: !torchEnabled }],
-      })
+        advanced: [{ torch: !torchEnabled } as any],
+      } as any)
       setTorchEnabled(!torchEnabled)
     } catch (error) {
       console.warn('Error toggling torch:', error)

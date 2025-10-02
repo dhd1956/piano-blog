@@ -66,13 +66,13 @@ export default function UserProfileQRCard({
   const [showCustomization, setShowCustomization] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  // Convert badge strings to UserBadge objects
-  const convertBadges = (): UserBadge[] => {
+  // Convert badge strings to UserBadge array
+  const convertBadges = (): any[] => {
     if (!userData.badges || userData.badges.length === 0) return []
 
     return userData.badges.map((badgeId) => {
       // Map badge IDs to badge data
-      const badgeMap: Record<string, UserBadge> = {
+      const badgeMap: Record<string, any> = {
         'first-venue': {
           id: 'first-venue',
           name: 'First Discovery',
@@ -161,11 +161,12 @@ export default function UserProfileQRCard({
         stats: {
           totalPXPEarned: userData.totalPXPEarned || 0,
           venuesDiscovered: userData.venuesDiscovered || 0,
-          reviewCount: userData.reviewCount || 0,
+          verificationsCompleted: userData.reviewCount || 0,
         },
         badges: convertBadges(),
         profileDescription: config.includeDescription ? PROFILE_DESCRIPTION : undefined,
-      },
+        publicProfile: true,
+      } as any,
     }
 
     if (config.includePayment && config.defaultPaymentAmount) {
@@ -409,7 +410,7 @@ function UserProfileQRCardContent({
       {/* Badges */}
       {!isSmall && qrData.data.badges && qrData.data.badges.length > 0 && (
         <div className="mt-3 flex justify-center gap-1">
-          {qrData.data.badges.slice(0, isBadge ? 3 : 5).map((badge) => (
+          {qrData.data.badges.slice(0, isBadge ? 3 : 5).map((badge: any) => (
             <span key={badge.id} className="text-lg" title={badge.name}>
               {badge.icon}
             </span>

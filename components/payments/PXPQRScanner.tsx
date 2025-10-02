@@ -57,9 +57,9 @@ export default function PXPQRScanner({
 
         return {
           address: params.get('address') || '',
-          amount: params.get('amount'),
-          tokenAddress: params.get('token'),
-          memo: params.get('memo'),
+          amount: params.get('amount') ?? undefined,
+          tokenAddress: params.get('token') ?? undefined,
+          memo: params.get('memo') ?? undefined,
           chainId: params.get('chainId') ? parseInt(params.get('chainId')!) : undefined,
         }
       }
@@ -73,9 +73,9 @@ export default function PXPQRScanner({
 
           return {
             address,
-            amount: params.get('value') || params.get('amount'),
-            tokenAddress: params.get('token'),
-            memo: params.get('memo') || params.get('data'),
+            amount: params.get('value') || params.get('amount') || undefined,
+            tokenAddress: params.get('token') ?? undefined,
+            memo: params.get('memo') || params.get('data') || undefined,
             chainId: chainId ? parseInt(chainId) : undefined,
           }
         }
