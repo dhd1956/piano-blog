@@ -14,7 +14,7 @@ export class BlockchainEventProcessor {
 
   constructor() {
     this.web3 = new Web3(CELO_TESTNET_RPC)
-    this.contract = new this.web3.eth.Contract(PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS)
+    this.contract = new this.web3.eth.Contract(PXP_REWARDS_ABI as any, PXP_REWARDS_ADDRESS)
   }
 
   /**
