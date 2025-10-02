@@ -271,7 +271,7 @@ export function useHybridWallet() {
 
   // Enhanced capability checks
   const getPlatformRecommendations = () => {
-    const recs = []
+    const recs: string[] = []
 
     if (state.capabilities.isMobile) {
       recs.push('Mobile QR scanning available')
@@ -297,7 +297,7 @@ export function useHybridWallet() {
 
   // Generate smart payment method suggestion
   const getSmartPaymentSuggestion = (amount?: string) => {
-    const suggestions = []
+    const suggestions: any[] = []
 
     if (state.userType === 'web3') {
       suggestions.push({
