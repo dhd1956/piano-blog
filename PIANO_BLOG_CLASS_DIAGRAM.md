@@ -5,7 +5,7 @@
 The Piano Style Platform uses a **simplified hybrid architecture** where:
 
 - **PostgreSQL**: Handles all venue data, user profiles, reviews, analytics
-- **Blockchain (Celo)**: Only handles CAV token transactions and rewards
+- **Blockchain (Celo)**: Only handles PXP token transactions and rewards
 - **Performance**: 10-50x improvement with <100ms venue loading
 
 ```mermaid
@@ -418,7 +418,7 @@ classDiagram
 ### 1. **Simplified Hybrid Architecture**
 
 - **PostgreSQL**: Primary data store for all venue content, user profiles, reviews
-- **Blockchain**: Only for CAV token transactions and reward distribution
+- **Blockchain**: Only for PXP token transactions and reward distribution
 - **Event-driven sync**: Blockchain events update PostgreSQL cache
 
 ### 2. **Service Layer Pattern**

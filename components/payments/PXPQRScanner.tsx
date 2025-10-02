@@ -1,7 +1,15 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import QRCodeScanner, { QRScanResult, useQRScanner } from '@/components/qr/QRCodeScanner'
+import {
+  BaseQRData,
+  VenueQRData,
+  UserProfileQRData,
+  isVenueQRData,
+  isUserProfileQRData,
+} from '@/types/qr-profile'
 
 export interface PaymentQRData {
   address: string
@@ -11,24 +19,31 @@ export interface PaymentQRData {
   chainId?: number
 }
 
-export interface CAVQRScannerProps {
+export interface PXPQRScannerProps {
   onPaymentDetected: (payment: PaymentQRData) => void
   onWalletAddressDetected?: (address: string) => void
+  onVenueDetected?: (venueData: VenueQRData) => void
+  onUserProfileDetected?: (userData: UserProfileQRData) => void
   onError?: (error: string) => void
   className?: string
   showInstructions?: boolean
+  autoNavigate?: boolean // If true, automatically navigate to venue/user pages
 }
 
-export default function CAVQRScanner({
+export default function PXPQRScanner({
   onPaymentDetected,
   onWalletAddressDetected,
+  onVenueDetected,
+  onUserProfileDetected,
   onError,
   className = '',
   showInstructions = true,
-}: CAVQRScannerProps) {
+  autoNavigate = false,
+}: PXPQRScannerProps) {
   const [scanHistory, setScanHistory] = useState<QRScanResult[]>([])
   const [lastScanResult, setLastScanResult] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
 
   const { hasPermission, isSupported, requestPermission } = useQRScanner()
 
@@ -87,7 +102,71 @@ export default function CAVQRScanner({
     setScanHistory((prev) => [result, ...prev.slice(0, 4)]) // Keep last 5 scans
 
     try {
-      // Try to parse as payment URI first
+      // Try to parse as JSON (new QR profile format)
+      try {
+        const jsonData = JSON.parse(result.data)
+
+        // Check if it's a VenueQRData
+        if (isVenueQRData(jsonData)) {
+          console.log('Venue QR detected:', jsonData)
+          onVenueDetected?.(jsonData)
+
+          // Auto-navigate to venue page if enabled
+          if (autoNavigate && jsonData.data.slug) {
+            router.push(`/venues/${jsonData.data.slug}`)
+          }
+
+          // Check for embedded payment data
+          if (jsonData.payment) {
+            onPaymentDetected({
+              address: jsonData.payment.address,
+              amount: jsonData.payment.amount?.toString(),
+              memo: `Venue: ${jsonData.data.name}`,
+            })
+          }
+
+          setIsProcessing(false)
+          return
+        }
+
+        // Check if it's a UserProfileQRData
+        if (isUserProfileQRData(jsonData)) {
+          console.log('User profile QR detected:', jsonData)
+          onUserProfileDetected?.(jsonData)
+
+          // Auto-navigate to user profile page if enabled
+          if (autoNavigate && jsonData.data.walletAddress) {
+            const profileSlug = jsonData.data.username || jsonData.data.walletAddress
+            router.push(`/profile/${profileSlug}`)
+          }
+
+          // Check for embedded payment data
+          if (jsonData.payment) {
+            onPaymentDetected({
+              address: jsonData.payment.address,
+              amount: jsonData.payment.amount?.toString(),
+              memo: `Tip for ${jsonData.data.username || 'user'}`,
+            })
+          }
+
+          setIsProcessing(false)
+          return
+        }
+
+        // Check for deep links in JSON
+        if (jsonData.url) {
+          console.log('Deep link detected:', jsonData.url)
+          if (autoNavigate) {
+            // Extract path from URL
+            const url = new URL(jsonData.url)
+            router.push(url.pathname)
+          }
+        }
+      } catch (jsonError) {
+        // Not JSON, continue with other parsing methods
+      }
+
+      // Try to parse as payment URI
       const paymentData = parseCeloPaymentURI(result.data)
 
       if (paymentData && paymentData.address) {
@@ -95,6 +174,26 @@ export default function CAVQRScanner({
         onPaymentDetected(paymentData)
         setIsProcessing(false)
         return
+      }
+
+      // Handle deep link URIs (pianostyle://venue/{slug} or pianostyle://user/{address})
+      if (result.data.startsWith('pianostyle://')) {
+        const deepLinkMatch = result.data.match(/^pianostyle:\/\/(venue|user)\/(.+)$/)
+        if (deepLinkMatch) {
+          const [, type, identifier] = deepLinkMatch
+          console.log('Deep link detected:', type, identifier)
+
+          if (autoNavigate) {
+            if (type === 'venue') {
+              router.push(`/venues/${identifier}`)
+            } else if (type === 'user') {
+              router.push(`/profile/${identifier}`)
+            }
+          }
+
+          setIsProcessing(false)
+          return
+        }
       }
 
       // Check if it's a plain wallet address
@@ -115,7 +214,8 @@ export default function CAVQRScanner({
       }
 
       // Not a recognized format
-      const errorMsg = 'QR code does not contain a valid payment or wallet address'
+      const errorMsg =
+        'QR code does not contain a valid payment, wallet address, venue, or user profile'
       onError?.(errorMsg)
       console.warn('Unrecognized QR format:', result.data)
     } catch (error: any) {
@@ -162,7 +262,7 @@ export default function CAVQRScanner({
       >
         <div className="mb-4 text-yellow-800">📷 Camera Permission Required</div>
         <div className="mb-4 text-sm text-yellow-700">
-          Allow camera access to scan CAV payment QR codes
+          Allow camera access to scan PXP payment QR codes
         </div>
         <button
           onClick={handleRequestPermission}
@@ -181,8 +281,8 @@ export default function CAVQRScanner({
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
           <h4 className="mb-2 font-medium text-blue-900">📱 QR Code Scanner</h4>
           <ul className="space-y-1 text-sm text-blue-800">
-            <li>• Point your camera at a CAV payment QR code</li>
-            <li>• Supports Celo payment URIs and wallet addresses</li>
+            <li>• Point your camera at any PianoStyle QR code</li>
+            <li>• Supports venue profiles, user profiles, and payments</li>
             <li>• Scanner will automatically detect and process codes</li>
             <li>• Ensure good lighting for best results</li>
           </ul>
@@ -260,18 +360,24 @@ export default function CAVQRScanner({
 /**
  * Modal wrapper for QR scanner
  */
-export function CAVQRScannerModal({
+export function PXPQRScannerModal({
   isOpen,
   onClose,
   onPaymentDetected,
   onWalletAddressDetected,
+  onVenueDetected,
+  onUserProfileDetected,
   title = 'Scan QR Code',
+  autoNavigate = true,
 }: {
   isOpen: boolean
   onClose: () => void
   onPaymentDetected: (payment: PaymentQRData) => void
   onWalletAddressDetected?: (address: string) => void
+  onVenueDetected?: (venueData: VenueQRData) => void
+  onUserProfileDetected?: (userData: UserProfileQRData) => void
   title?: string
+  autoNavigate?: boolean
 }) {
   if (!isOpen) return null
 
@@ -286,7 +392,7 @@ export function CAVQRScannerModal({
         </div>
 
         <div className="p-4">
-          <CAVQRScanner
+          <PXPQRScanner
             onPaymentDetected={(payment) => {
               onPaymentDetected(payment)
               onClose()
@@ -295,11 +401,20 @@ export function CAVQRScannerModal({
               onWalletAddressDetected?.(address)
               onClose()
             }}
+            onVenueDetected={(venueData) => {
+              onVenueDetected?.(venueData)
+              onClose()
+            }}
+            onUserProfileDetected={(userData) => {
+              onUserProfileDetected?.(userData)
+              onClose()
+            }}
             onError={(error) => {
               console.error('Scanner error:', error)
               // Keep modal open on error
             }}
             showInstructions={true}
+            autoNavigate={autoNavigate}
           />
         </div>
 

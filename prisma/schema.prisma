@@ -44,6 +44,11 @@ model Venue {
   verifiedAt   DateTime? // When verification was completed
   venueHash    String?  @unique // Hash used for blockchain verification
 
+  // QR Code settings
+  qrCodeGenerated Boolean  @default(false) // Whether QR code has been generated
+  qrCardStyle     Json?    // QR card theme and layout preferences
+  defaultPayment  Float?   // Default PXP payment amount for tips
+
   // Metadata
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -74,15 +79,31 @@ model User {
   bio            String?  @db.Text
   avatar         String?  // IPFS hash or URL
   location       String?
+  profileSlug    String?  @unique // Custom URL slug for profile
+
+  // Professional info
+  title          String?  // Professional title (e.g., "Jazz Pianist")
+  skills         String[] // Array of skills/tags
+  socialLinks    Json?    // Twitter, LinkedIn, GitHub, etc.
 
   // Web3 profile
   ensName        String?  // ENS domain name
   profileNFT     String?  // Profile picture NFT
 
-  // CAV-related fields (cached from blockchain)
-  totalCAVEarned Float    @default(0) // Total CAV earned (cached)
+  // PXP-related fields (cached from blockchain)
+  totalCAVEarned Float    @default(0) // Total PXP earned (cached)
   hasClaimedNewUserReward Boolean @default(false) // Cached from contract
   isAuthorizedVerifier   Boolean @default(false) // Cached from contract
+
+  // User badges
+  badges         String[] // Array of earned badge IDs
+
+  // Privacy settings
+  publicProfile  Boolean  @default(true)  // Profile visibility
+  showPXPBalance Boolean  @default(false) // Show token balance publicly
+
+  // QR Code settings
+  qrCardStyle    Json?    // Saved QR card theme preferences
 
   // Activity tracking
   createdAt      DateTime @default(now())
@@ -93,6 +114,8 @@ model User {
   reviews        VenueReview[]
 
   @@index([walletAddress])
+  @@index([username])
+  @@index([profileSlug])
   @@index([totalCAVEarned])
 }
 
@@ -143,7 +166,7 @@ model VenueVerification {
   @@index([verifierAddress])
 }
 
-// CAV payment tracking (blockchain transaction references)
+// PXP payment tracking (blockchain transaction references)
 model CAVPayment {
   id               Int         @id @default(autoincrement())
 
@@ -153,7 +176,7 @@ model CAVPayment {
   venueId          Int?        // Optional venue reference
 
   // Payment details
-  amount           Float       // Amount in CAV tokens
+  amount           Float       // Amount in PXP tokens
 
   // Blockchain tracking
   transactionHash  String      @unique // Blockchain transaction hash

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Venue, VenueMetadata, VENUE_TYPES } from '@/types/venue'
 import { formatAddress } from '@/utils/permissions'
-import UnifiedCAVPayment from '@/components/payments/UnifiedCAVPayment'
+import UnifiedPXPPayment from '@/components/payments/UnifiedPXPPayment'
 
 interface VenueDetailsViewProps {
   venue: Venue
@@ -451,7 +451,7 @@ function AmbianceInfo({ ambiance }: { ambiance: any }) {
 
 function CAVPaymentSection({ venue }: { venue: Venue }) {
   return (
-    <UnifiedCAVPayment
+    <UnifiedPXPPayment
       paymentRequest={{
         recipientAddress: venue.submittedBy,
         recipientName: venue.name,

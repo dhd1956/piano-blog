@@ -28,7 +28,7 @@ This document explains the hybrid architecture implementation for the Piano Styl
 - **Blockchain verification**: All venues anchored on Celo blockchain
 - **Immutable audit trail**: Complete history of venue submissions and verifications
 - **Democratic verification**: Community-based venue approval system
-- **Transparent payments**: All CAV transactions recorded on-chain
+- **Transparent payments**: All PXP transactions recorded on-chain
 
 ### 💳 Hybrid Payments
 

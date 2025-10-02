@@ -34,7 +34,7 @@ Integration plan for storing music files on IPFS with the Piano Style Platform's
 
 - **Unique Content**: First venue platform with comprehensive audio
 - **Engagement**: Audio content increases time on platform
-- **Monetization**: Premium audio features with CAV tokens
+- **Monetization**: Premium audio features with PXP tokens
 - **Community**: Musicians sharing authentic venue experiences
 
 ## 📊 Technical Analysis
@@ -159,7 +159,7 @@ interface VenueAudio {
 
 #### Monetization & Tokens
 
-- Integrate CAV token micropayments for premium audio
+- Integrate PXP token micropayments for premium audio
 - Create audio NFT tokenization for unique recordings
 - Implement pay-per-listen model for exclusive content
 - Add audio licensing system for commercial use
@@ -269,7 +269,7 @@ The current simplified architecture is already well-positioned for music integra
 2. **Database Schema**: Easily extensible for audio metadata
 3. **Service Layer**: Modular design allows clean audio service addition
 4. **Component Architecture**: React patterns support audio components
-5. **Payment System**: CAV tokens ready for audio monetization
+5. **Payment System**: PXP tokens ready for audio monetization
 
 ### Optional Preparatory Work
 
@@ -285,7 +285,7 @@ This music storage integration perfectly aligns with the Piano Style Platform's 
 - **Performance**: Maintains fast PostgreSQL queries for metadata
 - **Decentralization**: Uses IPFS for immutable audio storage
 - **Community**: Enables musician collaboration and sharing
-- **Monetization**: Creates new CAV token use cases
+- **Monetization**: Creates new PXP token use cases
 - **Unique Value**: First venue platform with comprehensive audio
 
 The phased approach ensures gradual feature rollout while maintaining system performance and user experience quality.

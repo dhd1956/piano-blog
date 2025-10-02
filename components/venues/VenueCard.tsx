@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { QuickCAVPayment } from '@/components/payments/UnifiedCAVPayment'
+import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
 
 interface Venue {
   id: number
@@ -13,7 +13,7 @@ interface Venue {
   submittedBy: string
   timestamp: number
   submissionDate: Date
-  // Extended properties for CAV integration
+  // Extended properties for PXP integration
   isPartner?: boolean
   paymentAddress?: string
   totalCAVReceived?: number
@@ -60,7 +60,7 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
     if (venue.isPartner) {
       return (
         <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800">
-          💎 CAV Partner
+          💎 PXP Partner
         </span>
       )
     }
@@ -95,10 +95,10 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
         </div>
       </div>
 
-      {/* CAV Payment Section (for partner venues) */}
+      {/* PXP Payment Section (for partner venues) */}
       {venue.isPartner && showQRCode && (
         <div className="px-6 pb-4">
-          <QuickCAVPayment
+          <QuickPXPPayment
             recipientAddress={paymentAddress}
             recipientName={venue.name}
             amount={selectedAmount}
@@ -112,7 +112,7 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
           {/* Payment Stats */}
           {venue.totalCAVReceived && venue.totalCAVReceived > 0 && (
             <div className="mt-3 text-center text-sm text-gray-600">
-              💼 Total CAV received: {venue.totalCAVReceived.toFixed(2)}
+              💼 Total PXP received: {venue.totalCAVReceived.toFixed(2)}
             </div>
           )}
         </div>
@@ -194,7 +194,7 @@ export function CompactVenueCard({
 
         <div className="flex items-center gap-2">
           {venue.isPartner && (
-            <span className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-800">CAV</span>
+            <span className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-800">PXP</span>
           )}
           {venue.verified ? (
             <span className="text-green-600">✅</span>

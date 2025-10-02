@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { VenueService } from '@/lib/database'
-import { QuickCAVPayment } from '@/components/payments/UnifiedCAVPayment'
+import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
 import Link from 'next/link'
 
@@ -355,10 +355,10 @@ export default function HybridVenueList() {
                 )}
               </div>
 
-              {/* CAV Payment Section (for partners) */}
+              {/* PXP Payment Section (for partners) */}
               {venue.isPartner && venue.verified && (
                 <div className="px-6 pb-4">
-                  <QuickCAVPayment
+                  <QuickPXPPayment
                     recipientAddress={venue.paymentAddress || venue.submittedBy}
                     recipientName={venue.name}
                     memo={`Payment to ${venue.name} - ${venue.city}`}
@@ -375,7 +375,7 @@ export default function HybridVenueList() {
                   <div>Added {new Date(venue.createdAt).toLocaleDateString()}</div>
                   {venue.totalCAVReceived > 0 && (
                     <div className="font-medium text-green-600">
-                      💰 {venue.totalCAVReceived} CAV received
+                      💰 {venue.totalCAVReceived} PXP received
                     </div>
                   )}
                 </div>
@@ -449,7 +449,7 @@ export default function HybridVenueList() {
           <ul className="space-y-1 text-sm text-blue-800">
             <li>✅ Instant search and filtering via PostgreSQL</li>
             <li>✅ Blockchain verification for trust and transparency</li>
-            <li>✅ Real-time CAV payment integration</li>
+            <li>✅ Real-time PXP payment integration</li>
             <li>✅ Offline-capable with QR code support</li>
             <li>✅ Progressive enhancement based on user capabilities</li>
           </ul>

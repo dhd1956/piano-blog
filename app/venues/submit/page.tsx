@@ -131,7 +131,7 @@ export default function SubmitVenue() {
               Venue Submitted Successfully!
             </h1>
             <p className="mb-6 text-gray-600">
-              Your venue has been submitted and will be reviewed by our curators. You'll receive CAV
+              Your venue has been submitted and will be reviewed by our curators. You'll receive PXP
               tokens as a reward once it's verified!
             </p>
             <div className="flex justify-center gap-4">
@@ -160,7 +160,7 @@ export default function SubmitVenue() {
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">🎹 Submit a Piano Venue</h1>
           <p className="text-gray-600">
-            Help grow our community by submitting venues with pianos. Earn 50 CAV tokens when your
+            Help grow our community by submitting venues with pianos. Earn 50 PXP tokens when your
             venue is verified!
           </p>
         </div>
@@ -172,7 +172,7 @@ export default function SubmitVenue() {
               <h3 className="font-medium text-yellow-800">Wallet Connection Required</h3>
             </div>
             <p className="mb-3 text-yellow-700">
-              You need to connect your wallet to submit venues and receive CAV token rewards.
+              You need to connect your wallet to submit venues and receive PXP token rewards.
             </p>
             <button
               onClick={connectWallet}
@@ -388,8 +388,8 @@ export default function SubmitVenue() {
           <ol className="space-y-1 text-sm text-blue-700">
             <li>1. Submit your venue information (stored securely in our database)</li>
             <li>2. Community curators will review and verify your submission</li>
-            <li>3. Once approved, you earn 50 CAV tokens as a reward!</li>
-            <li>4. Verified venues appear in our directory and can receive CAV payments</li>
+            <li>3. Once approved, you earn 50 PXP tokens as a reward!</li>
+            <li>4. Verified venues appear in our directory and can receive PXP payments</li>
           </ol>
         </div>
       </div>

@@ -299,16 +299,16 @@ As a platform owner, I want to optimize audio file sizes so that IPFS storage co
 
 ## 🎯 Phase 3 Stories (Future Sprints)
 
-### Story 9: CAV Token Audio Payments
+### Story 9: PXP Token Audio Payments
 
 **Story Points**: 8
 **Labels**: Blockchain, Payments
 **Priority**: Low
 
-**Summary**: Enable CAV token payments for premium audio content
+**Summary**: Enable PXP token payments for premium audio content
 
 **Description**:
-As a platform user, I want to pay CAV tokens for premium audio content so that I can access exclusive venue recordings.
+As a platform user, I want to pay PXP tokens for premium audio content so that I can access exclusive venue recordings.
 
 ---
 

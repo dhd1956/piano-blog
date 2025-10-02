@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { CeloPaymentQRCode } from '@/components/qr/QRCodeGenerator'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
-import { CAVRewardsService } from '@/utils/rewards-contract'
+import { PXPRewardsService } from '@/utils/rewards-contract'
 
 export interface PaymentRequest {
   recipientAddress: string
@@ -14,7 +14,7 @@ export interface PaymentRequest {
   chainId?: number
 }
 
-export interface UnifiedCAVPaymentProps {
+export interface UnifiedPXPPaymentProps {
   paymentRequest: PaymentRequest
   onPaymentInitiated?: (method: 'web3' | 'qr', details: any) => void
   onPaymentCompleted?: (transactionHash: string) => void
@@ -23,21 +23,21 @@ export interface UnifiedCAVPaymentProps {
   compact?: boolean
 }
 
-// Default CAV token configuration
-const DEFAULT_CAV_CONFIG = {
+// Default PXP token configuration
+const DEFAULT_PXP_CONFIG = {
   tokenAddress: '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F',
   chainId: 44787, // Celo Alfajores
   decimals: 18,
 }
 
-export default function UnifiedCAVPayment({
+export default function UnifiedPXPPayment({
   paymentRequest,
   onPaymentInitiated,
   onPaymentCompleted,
   onPaymentFailed,
   className = '',
   compact = false,
-}: UnifiedCAVPaymentProps) {
+}: UnifiedPXPPaymentProps) {
   const [selectedMethod, setSelectedMethod] = useState<'web3' | 'qr'>('web3')
   const [paymentAmount, setPaymentAmount] = useState(paymentRequest.amount || '')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -67,7 +67,7 @@ export default function UnifiedCAVPayment({
     },
   ]
 
-  // Execute Web3 payment using CAV token transfer
+  // Execute Web3 payment using PXP token transfer
   const executeWeb3Payment = async () => {
     if (!isConnected || !walletAddress) {
       setErrorMessage('Wallet not connected')
@@ -85,27 +85,27 @@ export default function UnifiedCAVPayment({
     setPaymentStatus('pending')
 
     try {
-      const cavService = new CAVRewardsService()
+      const pxpService = new PXPRewardsService()
 
       onPaymentInitiated?.('web3', {
         from: walletAddress,
         to: paymentRequest.recipientAddress,
         amount: paymentAmount,
-        memo: paymentRequest.memo || 'CAV Payment',
+        memo: paymentRequest.memo || 'PXP Payment',
       })
 
-      // Execute direct CAV token transfer
-      const transferResult = await cavService.transferCAV(
+      // Execute direct PXP token transfer
+      const transferResult = await pxpService.transferPXP(
         paymentRequest.recipientAddress,
         paymentAmount,
         walletAddress
       )
 
       // Track payment on contract for transparency
-      await cavService.trackPayment(
+      await pxpService.trackPayment(
         paymentRequest.recipientAddress,
         paymentAmount,
-        paymentRequest.memo || 'CAV Payment',
+        paymentRequest.memo || 'PXP Payment',
         walletAddress
       )
 
@@ -132,7 +132,7 @@ export default function UnifiedCAVPayment({
       address: paymentRequest.recipientAddress,
       amount: paymentAmount,
       memo: paymentRequest.memo,
-      tokenAddress: paymentRequest.tokenAddress || DEFAULT_CAV_CONFIG.tokenAddress,
+      tokenAddress: paymentRequest.tokenAddress || DEFAULT_PXP_CONFIG.tokenAddress,
     })
   }
 
@@ -217,7 +217,7 @@ export default function UnifiedCAVPayment({
     <div className={`rounded-lg bg-white p-4 shadow-md sm:p-6 ${className}`}>
       {/* Header */}
       <div className="mb-4 sm:mb-6">
-        <h3 className="mb-2 text-lg font-semibold text-gray-900 sm:text-xl">💰 Pay with CAV</h3>
+        <h3 className="mb-2 text-lg font-semibold text-gray-900 sm:text-xl">💰 Pay with PXP</h3>
         {paymentRequest.recipientName && (
           <p className="text-sm text-gray-600 sm:text-base">
             To: <span className="font-medium break-words">{paymentRequest.recipientName}</span>
@@ -227,7 +227,7 @@ export default function UnifiedCAVPayment({
 
       {/* Payment Amount */}
       <div className="mb-4 sm:mb-6">
-        <label className="mb-2 block text-sm font-medium text-gray-700">Amount (CAV)</label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Amount (PXP)</label>
         <input
           type="number"
           step="0.01"
@@ -303,12 +303,12 @@ export default function UnifiedCAVPayment({
             <CeloPaymentQRCode
               address={paymentRequest.recipientAddress}
               amount={paymentAmount}
-              tokenAddress={paymentRequest.tokenAddress || DEFAULT_CAV_CONFIG.tokenAddress}
-              memo={paymentRequest.memo || `Payment of ${paymentAmount} CAV`}
+              tokenAddress={paymentRequest.tokenAddress || DEFAULT_PXP_CONFIG.tokenAddress}
+              memo={paymentRequest.memo || `Payment of ${paymentAmount} PXP`}
               size={200}
               showCopyButton={true}
               allowDownload={true}
-              downloadFilename={`cav-payment-${paymentAmount}`}
+              downloadFilename={`pxp-payment-${paymentAmount}`}
             />
           </div>
 
@@ -332,7 +332,7 @@ export default function UnifiedCAVPayment({
             disabled={!paymentAmount || isProcessing || !isConnected}
             className="min-h-[44px] flex-1 touch-manipulation rounded-md bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700 active:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2"
           >
-            {isProcessing ? 'Processing...' : `Pay ${paymentAmount || '0'} CAV`}
+            {isProcessing ? 'Processing...' : `Pay ${paymentAmount || '0'} PXP`}
           </button>
         )}
 
@@ -362,7 +362,7 @@ export default function UnifiedCAVPayment({
 /**
  * Simplified payment button for quick actions
  */
-export function QuickCAVPayment({
+export function QuickPXPPayment({
   recipientAddress,
   recipientName,
   amount = '10',
@@ -378,7 +378,7 @@ export function QuickCAVPayment({
   className?: string
 }) {
   return (
-    <UnifiedCAVPayment
+    <UnifiedPXPPayment
       paymentRequest={{
         recipientAddress,
         recipientName,

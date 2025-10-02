@@ -4,7 +4,7 @@
  */
 
 import { PrismaClient } from '@prisma/client'
-import { CAVRewardsService } from '@/utils/rewards-contract'
+import { PXPRewardsService } from '@/utils/rewards-contract'
 
 // Global Prisma client instance
 const globalForPrisma = globalThis as unknown as {
@@ -171,10 +171,10 @@ export const VenueService = {
     }
 
     // Generate venue hash for potential blockchain verification
-    const cavService = new CAVRewardsService()
+    const pxpService = new PXPRewardsService()
     let venueHash: string | undefined
     try {
-      venueHash = await cavService.generateVenueHash(data.name, data.city, data.submittedBy)
+      venueHash = await pxpService.generateVenueHash(data.name, data.city, data.submittedBy)
     } catch (error) {
       console.warn('Could not generate venue hash:', error)
     }
@@ -248,13 +248,13 @@ export const UserService = {
 
     if (!user) {
       // Check blockchain for user status when creating
-      const cavService = new CAVRewardsService()
+      const pxpService = new PXPRewardsService()
       let hasClaimedNewUserReward = false
       let isAuthorizedVerifier = false
 
       try {
-        hasClaimedNewUserReward = await cavService.hasClaimedNewUserReward(normalizedAddress)
-        isAuthorizedVerifier = await cavService.isAuthorizedVerifier(normalizedAddress)
+        hasClaimedNewUserReward = await pxpService.hasClaimedNewUserReward(normalizedAddress)
+        isAuthorizedVerifier = await pxpService.isAuthorizedVerifier(normalizedAddress)
       } catch (error) {
         console.warn('Could not fetch user blockchain status:', error)
       }
@@ -442,7 +442,7 @@ export const BlockchainEventService = {
         break
 
       case 'PaymentTracked':
-        // Record CAV payment
+        // Record PXP payment
         await prisma.cAVPayment.create({
           data: {
             fromAddress: event.eventData.from,

@@ -1,5 +1,5 @@
 /**
- * CAV Rewards Contract Configuration
+ * PXP Rewards Contract Configuration
  * Simplified contract focused only on rewards and payment tracking
  */
 
@@ -7,26 +7,26 @@ import Web3 from 'web3'
 
 // Contract addresses (update after deployment)
 // For development: using zero address to prevent accidental token transfers
-export const CAV_REWARDS_ADDRESS =
-  process.env.NEXT_PUBLIC_CAV_REWARDS_ADDRESS || '0x0000000000000000000000000000000000000000'
-export const CAV_TOKEN_ADDRESS =
-  process.env.NEXT_PUBLIC_CAV_TOKEN_ADDRESS || '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F'
+export const PXP_REWARDS_ADDRESS =
+  process.env.NEXT_PUBLIC_PXP_REWARDS_ADDRESS || '0x0000000000000000000000000000000000000000'
+export const PXP_TOKEN_ADDRESS =
+  process.env.NEXT_PUBLIC_PXP_TOKEN_ADDRESS || '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F'
 
 // Network configuration
 export const CELO_TESTNET_RPC = 'https://alfajores-forno.celo-testnet.org'
 export const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
 
-// Reward amounts (in CAV tokens)
+// Reward amounts (in PXP tokens)
 export const REWARD_AMOUNTS = {
   NEW_USER: 25,
   SCOUT: 50,
   VERIFIER: 25,
 } as const
 
-// CAV Rewards Contract ABI
-export const CAV_REWARDS_ABI = [
+// PXP Rewards Contract ABI
+export const PXP_REWARDS_ABI = [
   {
-    inputs: [{ name: '_cavToken', type: 'address' }],
+    inputs: [{ name: '_pxpToken', type: 'address' }],
     stateMutability: 'nonpayable',
     type: 'constructor',
   },
@@ -179,7 +179,7 @@ export const CAV_REWARDS_ABI = [
   },
 ] as const
 
-// Standard ERC-20 ABI (for CAV token)
+// Standard ERC-20 ABI (for PXP token)
 export const ERC20_ABI = [
   {
     constant: true,
@@ -244,7 +244,7 @@ export const ERC20_ABI = [
 /**
  * Contract utility functions
  */
-export class CAVRewardsService {
+export class PXPRewardsService {
   private web3: Web3
   private rewardsContract: any
   private tokenContract: any
@@ -252,12 +252,12 @@ export class CAVRewardsService {
 
   constructor(web3Instance?: Web3) {
     this.web3 = web3Instance || new Web3(CELO_TESTNET_RPC)
-    this.isDevelopment = CAV_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
+    this.isDevelopment = PXP_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
 
     // Only create contracts if not in development mode with zero address
     if (!this.isDevelopment) {
-      this.rewardsContract = new this.web3.eth.Contract(CAV_REWARDS_ABI, CAV_REWARDS_ADDRESS)
-      this.tokenContract = new this.web3.eth.Contract(ERC20_ABI, CAV_TOKEN_ADDRESS)
+      this.rewardsContract = new this.web3.eth.Contract(PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS)
+      this.tokenContract = new this.web3.eth.Contract(ERC20_ABI, PXP_TOKEN_ADDRESS)
     }
   }
 
@@ -294,14 +294,14 @@ export class CAVRewardsService {
   }
 
   /**
-   * Get CAV token balance for address
+   * Get PXP token balance for address
    */
-  getCAVBalance(address: string): Promise<string> {
+  getPXPBalance(address: string): Promise<string> {
     return this.tokenContract.methods.balanceOf(address).call()
   }
 
   /**
-   * Get contract CAV balance (for rewards funding)
+   * Get contract PXP balance (for rewards funding)
    */
   getContractBalance(): Promise<string> {
     return this.rewardsContract.methods.getContractBalance().call()
@@ -347,7 +347,7 @@ export class CAVRewardsService {
       console.log('🔧 Development Mode: Payment tracked locally', {
         from: fromAddress,
         to: toAddress,
-        amount: amount + ' CAV',
+        amount: amount + ' PXP',
         memo,
         timestamp: new Date().toISOString(),
       })
@@ -367,15 +367,15 @@ export class CAVRewardsService {
   }
 
   /**
-   * Transfer CAV tokens directly
+   * Transfer PXP tokens directly
    */
-  async transferCAV(toAddress: string, amount: string, fromAddress: string) {
+  async transferPXP(toAddress: string, amount: string, fromAddress: string) {
     // In development mode, simulate the transfer without calling real contract
     if (this.isDevelopment) {
-      console.log('🔧 Development Mode: CAV transfer simulated', {
+      console.log('🔧 Development Mode: PXP transfer simulated', {
         from: fromAddress,
         to: toAddress,
-        amount: amount + ' CAV',
+        amount: amount + ' PXP',
         note: 'No real tokens transferred in development',
         timestamp: new Date().toISOString(),
       })
@@ -397,4 +397,4 @@ export class CAVRewardsService {
   }
 }
 
-export default CAVRewardsService
+export default PXPRewardsService

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Piano Style Platform uses a **simplified hybrid architecture** where blockchain is used only for **CAV token transactions and rewards**, while all venue content is stored in PostgreSQL for performance. Here's the complete file layout for blockchain data structures:
+The Piano Style Platform uses a **simplified hybrid architecture** where blockchain is used only for **PXP token transactions and rewards**, while all venue content is stored in PostgreSQL for performance. Here's the complete file layout for blockchain data structures:
 
 ## 📁 File Structure
 
@@ -26,7 +26,7 @@ piano-blog/
 │   └── database.ts                   # Legacy database service
 │
 ├── 🛠️ utils/                         # Blockchain Utilities
-│   ├── rewards-contract.ts           # ⭐ CAV rewards service
+│   ├── rewards-contract.ts           # ⭐ PXP rewards service
 │   ├── contract.ts                   # Legacy contract utilities
 │   ├── contract-v2.ts                # Contract v2 utilities
 │   ├── ipfs.ts                       # IPFS storage service
@@ -99,7 +99,7 @@ CREATE TABLE "CAVPayment" (
   "fromAddress" TEXT NOT NULL,         -- Sender wallet
   "toAddress" TEXT NOT NULL,           -- Recipient wallet
   "venueId" INTEGER,                   -- Optional venue reference
-  "amount" DOUBLE PRECISION NOT NULL,  -- Amount in CAV tokens
+  "amount" DOUBLE PRECISION NOT NULL,  -- Amount in PXP tokens
   "transactionHash" TEXT UNIQUE NOT NULL,
   "blockNumber" INTEGER,
   "blockTimestamp" TIMESTAMP(3) NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE "CAVPayment" (
   "eventData": {
     "from": "0x8ba1f109551bd432...",
     "to": "0x742d35cc6634c053...",
-    "amount": "25000000000000000000", // 25 CAV (in wei)
+    "amount": "25000000000000000000", // 25 PXP (in wei)
     "memo": "Coffee and piano time"
   },
   "processed": true
@@ -162,7 +162,7 @@ CREATE TABLE "CAVPayment" (
   "blockTimestamp": "2024-01-16T10:15:00.000Z",
   "eventData": {
     "user": "0x742d35cc6634c053...",
-    "amount": "25000000000000000000" // 25 CAV (in wei)
+    "amount": "25000000000000000000" // 25 PXP (in wei)
   },
   "processed": true
 }
@@ -188,7 +188,7 @@ graph TD
 
     %% Database Updates
     I --> J[Update Venue Verification]
-    I --> K[Update User CAV Cache]
+    I --> K[Update User PXP Cache]
     I --> L[Create CAVPayment Records]
 
     %% API Layer
@@ -233,7 +233,7 @@ graph TD
 ### **Simplified Architecture**
 
 - **Venue Data**: Stored in PostgreSQL (not blockchain)
-- **Payments Only**: Blockchain handles CAV transactions and rewards
+- **Payments Only**: Blockchain handles PXP transactions and rewards
 - **Event-Driven Sync**: Real-time event processing updates cache
 
 ### **Progressive Enhancement**

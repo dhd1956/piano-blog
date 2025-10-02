@@ -6,17 +6,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
- * @title CAV Rewards Contract
- * @dev Simplified contract focused only on CAV token rewards and payment tracking
+ * @title PXP Rewards Contract
+ * @dev Simplified contract focused only on PXP token rewards and payment tracking
  * All venue data is stored off-chain in PostgreSQL for performance
  */
-contract CAVRewards is Ownable, ReentrancyGuard {
-    IERC20 public immutable cavToken;
+contract PXPRewards is Ownable, ReentrancyGuard {
+    IERC20 public immutable pxpToken;
 
-    // Reward amounts (in CAV tokens with 18 decimals)
-    uint256 public constant NEW_USER_REWARD = 25 * 10**18;      // 25 CAV
-    uint256 public constant SCOUT_REWARD = 50 * 10**18;         // 50 CAV
-    uint256 public constant VERIFIER_REWARD = 25 * 10**18;      // 25 CAV
+    // Reward amounts (in PXP tokens with 18 decimals)
+    uint256 public constant NEW_USER_REWARD = 25 * 10**18;      // 25 PXP
+    uint256 public constant SCOUT_REWARD = 50 * 10**18;         // 50 PXP
+    uint256 public constant VERIFIER_REWARD = 25 * 10**18;      // 25 PXP
 
     // Verification requirements
     uint256 public constant MIN_VERIFICATIONS = 2;
@@ -39,8 +39,8 @@ contract CAVRewards is Ownable, ReentrancyGuard {
     event PaymentTracked(address indexed from, address indexed to, uint256 amount, string memo);
     event VerifierStatusUpdated(address indexed verifier, bool authorized);
 
-    constructor(address _cavToken) {
-        cavToken = IERC20(_cavToken);
+    constructor(address _pxpToken) {
+        pxpToken = IERC20(_pxpToken);
     }
 
     /**
@@ -48,10 +48,10 @@ contract CAVRewards is Ownable, ReentrancyGuard {
      */
     function claimNewUserReward() external nonReentrant {
         require(!hasClaimedNewUserReward[msg.sender], "Already claimed new user reward");
-        require(cavToken.balanceOf(address(this)) >= NEW_USER_REWARD, "Insufficient contract balance");
+        require(pxpToken.balanceOf(address(this)) >= NEW_USER_REWARD, "Insufficient contract balance");
 
         hasClaimedNewUserReward[msg.sender] = true;
-        require(cavToken.transfer(msg.sender, NEW_USER_REWARD), "Transfer failed");
+        require(pxpToken.transfer(msg.sender, NEW_USER_REWARD), "Transfer failed");
 
         emit NewUserRewarded(msg.sender, NEW_USER_REWARD);
     }
@@ -78,8 +78,8 @@ contract CAVRewards is Ownable, ReentrancyGuard {
             venueVerificationCount[venueHash]++;
 
             // Pay verifier reward immediately
-            require(cavToken.balanceOf(address(this)) >= VERIFIER_REWARD, "Insufficient balance for verifier");
-            require(cavToken.transfer(msg.sender, VERIFIER_REWARD), "Verifier transfer failed");
+            require(pxpToken.balanceOf(address(this)) >= VERIFIER_REWARD, "Insufficient balance for verifier");
+            require(pxpToken.transfer(msg.sender, VERIFIER_REWARD), "Verifier transfer failed");
             emit VerifierRewarded(msg.sender, venueHash, VERIFIER_REWARD);
 
             // Check if venue has enough approvals for scout reward
@@ -89,8 +89,8 @@ contract CAVRewards is Ownable, ReentrancyGuard {
                 venueVerificationPaid[venueHash] = true;
 
                 // Pay scout reward
-                require(cavToken.balanceOf(address(this)) >= SCOUT_REWARD, "Insufficient balance for scout");
-                require(cavToken.transfer(scout, SCOUT_REWARD), "Scout transfer failed");
+                require(pxpToken.balanceOf(address(this)) >= SCOUT_REWARD, "Insufficient balance for scout");
+                require(pxpToken.transfer(scout, SCOUT_REWARD), "Scout transfer failed");
                 emit ScoutRewarded(scout, venueHash, SCOUT_REWARD);
             }
         }
@@ -100,7 +100,7 @@ contract CAVRewards is Ownable, ReentrancyGuard {
 
     /**
      * @dev Track a payment for transparency (doesn't handle the actual transfer)
-     * The actual CAV transfer happens separately via direct token transfer
+     * The actual PXP transfer happens separately via direct token transfer
      * @param to Recipient address
      * @param amount Amount transferred
      * @param memo Payment memo/description
@@ -135,23 +135,23 @@ contract CAVRewards is Ownable, ReentrancyGuard {
      * @dev Emergency withdrawal (owner only)
      */
     function emergencyWithdraw() external onlyOwner {
-        uint256 balance = cavToken.balanceOf(address(this));
-        require(cavToken.transfer(owner(), balance), "Emergency withdrawal failed");
+        uint256 balance = pxpToken.balanceOf(address(this));
+        require(pxpToken.transfer(owner(), balance), "Emergency withdrawal failed");
     }
 
     /**
-     * @dev Deposit CAV tokens to fund rewards (anyone can fund)
+     * @dev Deposit PXP tokens to fund rewards (anyone can fund)
      */
     function fundRewards(uint256 amount) external {
         require(amount > 0, "Amount must be greater than 0");
-        require(cavToken.transferFrom(msg.sender, address(this), amount), "Funding transfer failed");
+        require(pxpToken.transferFrom(msg.sender, address(this), amount), "Funding transfer failed");
     }
 
     /**
-     * @dev Get contract CAV balance
+     * @dev Get contract PXP balance
      */
     function getContractBalance() external view returns (uint256) {
-        return cavToken.balanceOf(address(this));
+        return pxpToken.balanceOf(address(this));
     }
 
     /**

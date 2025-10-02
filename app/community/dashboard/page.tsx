@@ -21,7 +21,7 @@ export default function CAVDashboard() {
       <div className="mx-auto max-w-4xl px-4">
         {/* Header */}
         <div className="mb-8 rounded-lg bg-gradient-to-r from-green-600 to-blue-600 p-6 text-white">
-          <h1 className="mb-2 text-3xl font-bold">CAV Community Dashboard</h1>
+          <h1 className="mb-2 text-3xl font-bold">PXP Community Dashboard</h1>
           <p className="text-green-100">
             Your hybrid Web3 + QR Code payment hub for Community Asset Vouchers
           </p>
@@ -32,7 +32,7 @@ export default function CAVDashboard() {
           <div className="rounded-lg bg-white p-6 shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">CAV Balance</p>
+                <p className="text-sm text-gray-600">PXP Balance</p>
                 <p className="text-2xl font-bold text-gray-900">{MOCK_CAV_BALANCE}</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
@@ -72,7 +72,7 @@ export default function CAVDashboard() {
           <div className="border-b border-gray-200">
             <div className="flex">
               {[
-                { id: 'receive', label: 'Receive CAV', icon: '📥' },
+                { id: 'receive', label: 'Receive PXP', icon: '📥' },
                 { id: 'pay', label: 'Request Payment', icon: '💸' },
                 { id: 'share', label: 'Share Wallet', icon: '🤝' },
               ].map((tab) => (
@@ -97,9 +97,9 @@ export default function CAVDashboard() {
             {selectedTab === 'receive' && (
               <div className="space-y-6">
                 <div className="text-center">
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Receive CAV Payments</h3>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Receive PXP Payments</h3>
                   <p className="mb-6 text-gray-600">
-                    Share this QR code to receive CAV tokens at your wallet address
+                    Share this QR code to receive PXP tokens at your wallet address
                   </p>
                 </div>
 
@@ -107,7 +107,7 @@ export default function CAVDashboard() {
                   <CeloPaymentQRCode
                     address={MOCK_WALLET_ADDRESS}
                     tokenAddress={MOCK_CAV_TOKEN_ADDRESS}
-                    memo="Payment to CAV Community Member"
+                    memo="Payment to PXP Community Member"
                     size={250}
                     showCopyButton={true}
                     allowDownload={true}
@@ -118,7 +118,7 @@ export default function CAVDashboard() {
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                   <h4 className="mb-2 font-medium text-blue-900">📱 How to use:</h4>
                   <ul className="space-y-1 text-sm text-blue-800">
-                    <li>• Share this QR code with anyone who wants to send you CAV</li>
+                    <li>• Share this QR code with anyone who wants to send you PXP</li>
                     <li>• They can scan it with any Celo-compatible wallet</li>
                     <li>• Works with MetaMask, Valora, and other Web3 wallets</li>
                     <li>• No need to type long wallet addresses!</li>
@@ -130,7 +130,7 @@ export default function CAVDashboard() {
             {selectedTab === 'pay' && (
               <div className="space-y-6">
                 <div className="text-center">
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Request CAV Payment</h3>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Request PXP Payment</h3>
                   <p className="mb-6 text-gray-600">
                     Generate a QR code requesting a specific amount
                   </p>
@@ -140,7 +140,7 @@ export default function CAVDashboard() {
                   <div className="space-y-4">
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Amount (CAV)
+                        Amount (PXP)
                       </label>
                       <input
                         type="number"
@@ -179,7 +179,7 @@ export default function CAVDashboard() {
                         address={MOCK_WALLET_ADDRESS}
                         amount={paymentAmount}
                         tokenAddress={MOCK_CAV_TOKEN_ADDRESS}
-                        memo={paymentMemo || `Payment request for ${paymentAmount} CAV`}
+                        memo={paymentMemo || `Payment request for ${paymentAmount} PXP`}
                         size={220}
                         showCopyButton={true}
                         allowDownload={true}
@@ -237,7 +237,7 @@ export default function CAVDashboard() {
                   <h4 className="mb-2 font-medium text-green-900">🌐 Universal compatibility:</h4>
                   <ul className="space-y-1 text-sm text-green-800">
                     <li>• Works with any blockchain wallet or service</li>
-                    <li>• Can be used for any Celo token, not just CAV</li>
+                    <li>• Can be used for any Celo token, not just PXP</li>
                     <li>• Perfect for sharing in social media or messaging apps</li>
                     <li>• No payment amount specified - flexible for any transaction</li>
                   </ul>
@@ -253,7 +253,7 @@ export default function CAVDashboard() {
             <h4 className="mb-2 font-medium text-gray-900">🛠️ Development Info</h4>
             <div className="space-y-1 text-sm text-gray-700">
               <p>
-                <strong>CAV Token:</strong> {MOCK_CAV_TOKEN_ADDRESS}
+                <strong>PXP Token:</strong> {MOCK_CAV_TOKEN_ADDRESS}
               </p>
               <p>
                 <strong>Wallet:</strong> {MOCK_WALLET_ADDRESS}

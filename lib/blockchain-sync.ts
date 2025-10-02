@@ -1,6 +1,6 @@
 /**
  * Simplified Blockchain Event Processing
- * Only processes events from the CAV Rewards contract for venue verification and payments
+ * Only processes events from the PXP Rewards contract for venue verification and payments
  */
 
 import Web3 from 'web3'
@@ -46,7 +46,7 @@ export class BlockchainEventProcessor {
    * Listen for new blockchain events (real-time processing)
    */
   async listenForEvents() {
-    console.log('👂 Starting to listen for CAV Rewards contract events...')
+    console.log('👂 Starting to listen for PXP Rewards contract events...')
 
     try {
       // Listen for VenueVerified events

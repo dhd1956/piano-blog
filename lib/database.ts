@@ -261,7 +261,7 @@ export const UserService = {
   },
 
   /**
-   * Update user CAV balance (cached value)
+   * Update user PXP balance (cached value)
    */
   async updateCAVBalance(walletAddress: string, balance: number) {
     return prisma.user.update({

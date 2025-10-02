@@ -90,3 +90,4 @@ private-keys.txt
 .env.local
 
 /generated/prisma
+foundry-contracts/.env

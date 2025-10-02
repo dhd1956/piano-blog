@@ -239,7 +239,7 @@ export function useHybridWallet() {
     }
 
     if (state.capabilities.isMobile) {
-      return 'Perfect for mobile! Use QR codes to send and receive CAV payments easily.'
+      return 'Perfect for mobile! Use QR codes to send and receive PXP payments easily.'
     }
 
     return 'Welcome! You can use QR codes for payments or connect a Web3 wallet for advanced features.'
@@ -383,7 +383,7 @@ export function usePaymentPreferences() {
   // Load preferences from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('cav-payment-preferences')
+      const saved = localStorage.getItem('pxp-payment-preferences')
       if (saved) {
         setPreferences((prev) => ({ ...prev, ...JSON.parse(saved) }))
       }
@@ -399,7 +399,7 @@ export function usePaymentPreferences() {
 
     if (newPreferences.rememberChoice) {
       try {
-        localStorage.setItem('cav-payment-preferences', JSON.stringify(newPreferences))
+        localStorage.setItem('pxp-payment-preferences', JSON.stringify(newPreferences))
       } catch (error) {
         console.warn('Failed to save payment preferences:', error)
       }
@@ -416,7 +416,7 @@ export function usePaymentPreferences() {
         showQRByDefault: false,
         rememberChoice: true,
       })
-      localStorage.removeItem('cav-payment-preferences')
+      localStorage.removeItem('pxp-payment-preferences')
     },
   }
 }

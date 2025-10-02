@@ -79,8 +79,8 @@ model User {
   ensName        String?  // ENS domain name
   profileNFT     String?  // Profile picture NFT
 
-  // CAV-related fields (cached from blockchain)
-  totalCAVEarned Float    @default(0) // Total CAV earned (cached)
+  // PXP-related fields (cached from blockchain)
+  totalCAVEarned Float    @default(0) // Total PXP earned (cached)
   hasClaimedNewUserReward Boolean @default(false) // Cached from contract
   isAuthorizedVerifier   Boolean @default(false) // Cached from contract
 
@@ -143,7 +143,7 @@ model VenueVerification {
   @@index([verifierAddress])
 }
 
-// CAV payment tracking (blockchain transaction references)
+// PXP payment tracking (blockchain transaction references)
 model CAVPayment {
   id               Int         @id @default(autoincrement())
 
@@ -153,7 +153,7 @@ model CAVPayment {
   venueId          Int?        // Optional venue reference
 
   // Payment details
-  amount           Float       // Amount in CAV tokens
+  amount           Float       // Amount in PXP tokens
 
   // Blockchain tracking
   transactionHash  String      @unique // Blockchain transaction hash

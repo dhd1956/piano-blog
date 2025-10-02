@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import VenueDetailsView from '@/components/VenueDetailsView'
 import VenueEditForm from '@/components/VenueEditForm'
+import VenueQRCard from '@/components/qr/VenueQRCard'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
 import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
 
@@ -75,6 +76,7 @@ export default function VenueDetailsPage() {
   const [error, setError] = useState<string>('')
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showQRModal, setShowQRModal] = useState(false)
   const [permissions, setPermissions] = useState<PermissionCheck>({
     isBlogOwner: false,
     isVenueCurator: false,
@@ -395,7 +397,76 @@ export default function VenueDetailsPage() {
             isSubmitting={isSubmitting}
           />
         ) : (
-          <VenueDetailsView venue={venue} extendedData={extendedData} isLoading={loading} />
+          <>
+            <VenueDetailsView venue={venue} extendedData={extendedData} isLoading={loading} />
+
+            {/* Marketing Materials Section */}
+            <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  🎨 Marketing Materials
+                </h2>
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                >
+                  📱 Generate QR Code
+                </button>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-400">
+                Create custom QR codes for this venue that visitors can scan to view details and
+                leave tips. Perfect for table tents, posters, or business cards!
+              </p>
+            </div>
+          </>
+        )}
+
+        {/* QR Code Modal */}
+        {showQRModal && venue && (
+          <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+            <div className="max-h-screen w-full max-w-4xl overflow-y-auto rounded-lg bg-white dark:bg-gray-800">
+              <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  QR Code for {venue.name}
+                </h3>
+                <button
+                  onClick={() => setShowQRModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-6">
+                <VenueQRCard
+                  venueData={{
+                    id: venue.id,
+                    slug: `${venue.id}`, // TODO: Add slug field to venue
+                    name: venue.name,
+                    city: venue.city,
+                    address: venue.fullAddress,
+                    description: extendedData.venueDetails?.description,
+                    hasPiano: venue.hasPiano,
+                    pianoType: extendedData.musicalInfo?.pianoType,
+                    phone: extendedData.venueDetails?.contactInfo,
+                    website: extendedData.venueDetails?.website,
+                    socialLinks: extendedData.venueDetails?.socialMedia,
+                    submittedBy: venue.submittedBy,
+                  }}
+                />
+              </div>
+
+              <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+                <button
+                  onClick={() => setShowQRModal(false)}
+                  className="w-full rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Permission Debug (remove in production) */}

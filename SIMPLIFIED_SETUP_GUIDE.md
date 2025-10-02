@@ -7,7 +7,7 @@ The Piano Style Platform has been successfully converted to the simplified archi
 ### **Architecture Overview**
 
 - **PostgreSQL**: Handles all venue data, user profiles, reviews, analytics
-- **Blockchain**: Only handles CAV token transactions and rewards
+- **Blockchain**: Only handles PXP token transactions and rewards
 - **Performance**: Venue loading <100ms (vs 2-5 seconds before)
 
 ## 🏗️ What's Been Updated
@@ -24,11 +24,11 @@ The Piano Style Platform has been successfully converted to the simplified archi
 - ✅ Created `lib/database-simplified.ts` with PostgreSQL-only operations
 - ✅ Updated `/api/venues` routes to use simplified services
 - ✅ Converted blockchain sync to simple event processing
-- ✅ Updated payment components for direct CAV transfers
+- ✅ Updated payment components for direct PXP transfers
 
 ### 3. **Smart Contracts** ✅
 
-- ✅ Created simplified CAV rewards contract (`contracts/CAVRewards.sol`)
+- ✅ Created simplified PXP rewards contract (`contracts/CAVRewards.sol`)
 - ✅ Focus only on token rewards and payment tracking
 - ✅ Removed complex venue data storage from blockchain
 
@@ -83,7 +83,7 @@ yarn dev
 
 1. Visit `http://localhost:3000/venues` - Should load instantly with test venues
 2. Visit `http://localhost:3000/venues/submit` - Test venue submission
-3. Test CAV payments (requires wallet connection)
+3. Test PXP payments (requires wallet connection)
 
 ## 📊 Performance Comparison
 
@@ -112,7 +112,7 @@ yarn dev
 ✅ **Simplified Development**: No complex sync logic to maintain
 ✅ **Cost Effective**: Minimal blockchain gas usage
 ✅ **Progressive Enhancement**: Works without wallet, better with wallet
-✅ **Transparency**: CAV transactions still recorded on-chain
+✅ **Transparency**: PXP transactions still recorded on-chain
 
 ## 🚨 Ready for Testing
 

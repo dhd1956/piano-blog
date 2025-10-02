@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import QRCode from 'qrcode'
 
 export interface QRCodeGeneratorProps {
@@ -33,9 +34,9 @@ export interface QRCodeGeneratorProps {
 export interface CeloPaymentURIProps {
   /** Recipient wallet address */
   address: string
-  /** Amount in CAV tokens (will be converted to wei) */
+  /** Amount in PXP tokens (will be converted to wei) */
   amount?: string | number
-  /** CAV token contract address */
+  /** PXP token contract address */
   tokenAddress?: string
   /** Optional memo/description */
   memo?: string
@@ -190,6 +191,7 @@ export default function QRCodeGenerator({
     <div className="space-y-3">
       {/* QR Code Image */}
       <div className={`inline-block overflow-hidden rounded-lg shadow-md ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={qrCodeDataURL}
           alt={alt}
@@ -273,7 +275,7 @@ export function CeloPaymentQRCode({
         data={paymentURI}
         size={size}
         className={className}
-        alt={`Payment QR code for ${amount ? `${amount} CAV to ` : ''}${address.slice(0, 8)}...`}
+        alt={`Payment QR code for ${amount ? `${amount} PXP to ` : ''}${address.slice(0, 8)}...`}
         downloadFilename={`celo-payment-${address.slice(0, 8)}`}
         {...props}
       />
@@ -281,7 +283,7 @@ export function CeloPaymentQRCode({
       {showDetails && (
         <div className="space-y-1 px-2 text-center">
           {amount && (
-            <div className="text-sm font-medium text-gray-900 sm:text-base">💰 {amount} CAV</div>
+            <div className="text-sm font-medium text-gray-900 sm:text-base">💰 {amount} PXP</div>
           )}
           <div className="font-mono text-xs break-all text-gray-600 sm:text-sm">
             {address.slice(0, 6)}...{address.slice(-4)}

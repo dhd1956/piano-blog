@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { QuickCAVPayment } from '@/components/payments/UnifiedCAVPayment'
+import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
 
 interface Venue {
   id: number
@@ -230,10 +230,10 @@ export default function VenueList() {
                   </div>
                 </div>
 
-                {/* CAV Payment for verified venues */}
+                {/* PXP Payment for verified venues */}
                 {venue.verified && (
                   <div className="border-t border-gray-200 px-3 py-3 sm:px-6">
-                    <QuickCAVPayment
+                    <QuickPXPPayment
                       recipientAddress={venue.submittedBy}
                       recipientName={venue.name}
                       memo={`Payment to ${venue.name} - ${venue.city}`}

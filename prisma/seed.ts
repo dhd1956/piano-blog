@@ -254,8 +254,8 @@ async function main() {
     ],
   })
 
-  // Create sample CAV payments
-  console.log('💰 Creating CAV payment records...')
+  // Create sample PXP payments
+  console.log('💰 Creating PXP payment records...')
 
   await prisma.cAVPayment.createMany({
     data: [
@@ -358,7 +358,7 @@ async function main() {
         minVerifications: 2,
         maxVerifications: 3,
       },
-      description: 'CAV reward amounts and verification requirements',
+      description: 'PXP reward amounts and verification requirements',
     },
   })
 
@@ -384,7 +384,7 @@ async function main() {
   console.log(`- Created ${await prisma.venue.count()} venues`)
   console.log(`- Created ${await prisma.venueVerification.count()} verifications`)
   console.log(`- Created ${await prisma.venueReview.count()} reviews`)
-  console.log(`- Created ${await prisma.cAVPayment.count()} CAV payments`)
+  console.log(`- Created ${await prisma.cAVPayment.count()} PXP payments`)
   console.log(`- Created ${await prisma.venueAnalytics.count()} analytics records`)
   console.log(`- Created ${await prisma.appConfig.count()} app configurations`)
 }
