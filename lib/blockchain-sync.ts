@@ -5,7 +5,7 @@
 
 import Web3 from 'web3'
 import { BlockchainEventService, prisma } from './database-simplified'
-import { CAV_REWARDS_ADDRESS, CAV_REWARDS_ABI, CELO_TESTNET_RPC } from '@/utils/rewards-contract'
+import { PXP_REWARDS_ADDRESS, PXP_REWARDS_ABI, CELO_TESTNET_RPC } from '@/utils/rewards-contract'
 
 export class BlockchainEventProcessor {
   private web3: Web3
@@ -14,7 +14,7 @@ export class BlockchainEventProcessor {
 
   constructor() {
     this.web3 = new Web3(CELO_TESTNET_RPC)
-    this.contract = new this.web3.eth.Contract(CAV_REWARDS_ABI, CAV_REWARDS_ADDRESS)
+    this.contract = new this.web3.eth.Contract(PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS)
   }
 
   /**
