@@ -248,7 +248,8 @@ export function generateDeepLink(data: VenueQRData | UserProfileQRData): string 
       params.set('payment', data.payment.amount.toString())
     }
     return `pianostyle://venue/${data.data.slug}${params.toString() ? '?' + params.toString() : ''}`
-  } else if (data.type === 'user') {
+  } else {
+    // data.type === 'user'
     const params = new URLSearchParams()
     if (data.data.username) {
       params.set('username', data.data.username)
@@ -258,7 +259,6 @@ export function generateDeepLink(data: VenueQRData | UserProfileQRData): string 
     }
     return `pianostyle://user/${data.data.walletAddress}${params.toString() ? '?' + params.toString() : ''}`
   }
-  return data.url
 }
 
 export function parseDeepLink(url: string): DeepLinkFormat | null {

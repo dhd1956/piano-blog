@@ -256,8 +256,8 @@ export class PXPRewardsService {
 
     // Only create contracts if not in development mode with zero address
     if (!this.isDevelopment) {
-      this.rewardsContract = new this.web3.eth.Contract(PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS)
-      this.tokenContract = new this.web3.eth.Contract(ERC20_ABI, PXP_TOKEN_ADDRESS)
+      this.rewardsContract = new this.web3.eth.Contract(PXP_REWARDS_ABI as any, PXP_REWARDS_ADDRESS)
+      this.tokenContract = new this.web3.eth.Contract(ERC20_ABI as any, PXP_TOKEN_ADDRESS)
     }
   }
 

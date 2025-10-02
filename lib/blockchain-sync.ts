@@ -97,7 +97,7 @@ export class BlockchainEventProcessor {
 
     await BlockchainEventService.recordEvent({
       eventType: 'VenueVerified',
-      contractAddress: CAV_REWARDS_ADDRESS,
+      contractAddress: PXP_REWARDS_ADDRESS,
       transactionHash: event.transactionHash,
       blockNumber: event.blockNumber,
       blockTimestamp: new Date(), // Would be derived from block in production
@@ -113,7 +113,7 @@ export class BlockchainEventProcessor {
 
     await BlockchainEventService.recordEvent({
       eventType: 'PaymentTracked',
-      contractAddress: CAV_REWARDS_ADDRESS,
+      contractAddress: PXP_REWARDS_ADDRESS,
       transactionHash: event.transactionHash,
       blockNumber: event.blockNumber,
       blockTimestamp: new Date(), // Would be derived from block in production
@@ -129,7 +129,7 @@ export class BlockchainEventProcessor {
 
     await BlockchainEventService.recordEvent({
       eventType: 'NewUserRewarded',
-      contractAddress: CAV_REWARDS_ADDRESS,
+      contractAddress: PXP_REWARDS_ADDRESS,
       transactionHash: event.transactionHash,
       blockNumber: event.blockNumber,
       blockTimestamp: new Date(), // Would be derived from block in production

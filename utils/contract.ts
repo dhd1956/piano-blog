@@ -6,176 +6,196 @@
 import { Contract } from 'web3-eth-contract'
 import Web3 from 'web3'
 
-// Contract Configuration  
-export const VENUE_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2'
+// Contract Configuration
+export const VENUE_REGISTRY_ADDRESS =
+  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2'
 export const CELO_TESTNET_RPC = 'https://alfajores-forno.celo-testnet.org'
-export const CELO_TESTNET_RPC_BACKUP = 'https://celo-alfajores.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'
+export const CELO_TESTNET_RPC_BACKUP =
+  'https://celo-alfajores.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'
 export const CELO_TESTNET_RPC_LIST = [
   CELO_TESTNET_RPC,
   CELO_TESTNET_RPC_BACKUP,
-  'https://celo-alfajores.infura.io/v3/demo'
+  'https://celo-alfajores.infura.io/v3/demo',
 ]
 export const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
 
 // VenueRegistry V3 ABI - Actual Deployed Contract
 export const VENUE_REGISTRY_ABI = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    inputs: [],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
-    "inputs": [{"name": "venueId", "type": "uint256"}],
-    "name": "getVenueById",
-    "outputs": [{"name": "", "type": "tuple", "components": [
-      {"name": "name", "type": "string"},
-      {"name": "city", "type": "string"},
-      {"name": "contactInfo", "type": "string"},
-      {"name": "contactType", "type": "string"},
-      {"name": "ipfsHash", "type": "string"},
-      {"name": "submittedBy", "type": "address"},
-      {"name": "timestamp", "type": "uint32"},
-      {"name": "hasPiano", "type": "bool"},
-      {"name": "hasJamSession", "type": "bool"},
-      {"name": "verified", "type": "bool"},
-      {"name": "venueType", "type": "uint8"}
-    ]}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "venueCount",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{"name": "", "type": "address"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"name": "name", "type": "string"},
-      {"name": "city", "type": "string"},
-      {"name": "contactInfo", "type": "string"},
-      {"name": "contactType", "type": "string"},
-      {"name": "ipfsHash", "type": "string"},
-      {"name": "hasPiano", "type": "bool"},
-      {"name": "hasJamSession", "type": "bool"},
-      {"name": "venueType", "type": "uint8"}
+    inputs: [{ name: 'venueId', type: 'uint256' }],
+    name: 'getVenueById',
+    outputs: [
+      {
+        name: '',
+        type: 'tuple',
+        components: [
+          { name: 'name', type: 'string' },
+          { name: 'city', type: 'string' },
+          { name: 'contactInfo', type: 'string' },
+          { name: 'contactType', type: 'string' },
+          { name: 'ipfsHash', type: 'string' },
+          { name: 'submittedBy', type: 'address' },
+          { name: 'timestamp', type: 'uint32' },
+          { name: 'hasPiano', type: 'bool' },
+          { name: 'hasJamSession', type: 'bool' },
+          { name: 'verified', type: 'bool' },
+          { name: 'venueType', type: 'uint8' },
+        ],
+      },
     ],
-    "name": "submitVenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      {"name": "venueId", "type": "uint256"},
-      {"name": "newName", "type": "string"},
-      {"name": "newContactInfo", "type": "string"}
+    inputs: [],
+    name: 'venueCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'city', type: 'string' },
+      { name: 'contactInfo', type: 'string' },
+      { name: 'contactType', type: 'string' },
+      { name: 'ipfsHash', type: 'string' },
+      { name: 'hasPiano', type: 'bool' },
+      { name: 'hasJamSession', type: 'bool' },
+      { name: 'venueType', type: 'uint8' },
     ],
-    "name": "updateVenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'submitVenue',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      {"name": "venueId", "type": "uint256"},
-      {"name": "newIPFSHash", "type": "string"}
+    inputs: [
+      { name: 'venueId', type: 'uint256' },
+      { name: 'newName', type: 'string' },
+      { name: 'newContactInfo', type: 'string' },
     ],
-    "name": "updateIPFSHash",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'updateVenue',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      {"name": "venueId", "type": "uint256"},
-      {"name": "newName", "type": "string"},
-      {"name": "newContactInfo", "type": "string"},
-      {"name": "newIPFSHash", "type": "string"}
+    inputs: [
+      { name: 'venueId', type: 'uint256' },
+      { name: 'newIPFSHash', type: 'string' },
     ],
-    "name": "updateVenueWithIPFS",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'updateIPFSHash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      {"name": "venueId", "type": "uint256"},
-      {"name": "approved", "type": "bool"}
+    inputs: [
+      { name: 'venueId', type: 'uint256' },
+      { name: 'newName', type: 'string' },
+      { name: 'newContactInfo', type: 'string' },
+      { name: 'newIPFSHash', type: 'string' },
     ],
-    "name": "verifyVenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'updateVenueWithIPFS',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "getAllVenues",
-    "outputs": [{"name": "", "type": "tuple[]", "components": [
-      {"name": "name", "type": "string"},
-      {"name": "city", "type": "string"},
-      {"name": "contactInfo", "type": "string"},
-      {"name": "contactType", "type": "string"},
-      {"name": "ipfsHash", "type": "string"},
-      {"name": "submittedBy", "type": "address"},
-      {"name": "timestamp", "type": "uint32"},
-      {"name": "hasPiano", "type": "bool"},
-      {"name": "hasJamSession", "type": "bool"},
-      {"name": "verified", "type": "bool"},
-      {"name": "venueType", "type": "uint8"}
-    ]}],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [
+      { name: 'venueId', type: 'uint256' },
+      { name: 'approved', type: 'bool' },
+    ],
+    name: 'verifyVenue',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getAllVenues',
+    outputs: [
+      {
+        name: '',
+        type: 'tuple[]',
+        components: [
+          { name: 'name', type: 'string' },
+          { name: 'city', type: 'string' },
+          { name: 'contactInfo', type: 'string' },
+          { name: 'contactType', type: 'string' },
+          { name: 'ipfsHash', type: 'string' },
+          { name: 'submittedBy', type: 'address' },
+          { name: 'timestamp', type: 'uint32' },
+          { name: 'hasPiano', type: 'bool' },
+          { name: 'hasJamSession', type: 'bool' },
+          { name: 'verified', type: 'bool' },
+          { name: 'venueType', type: 'uint8' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 // Minimal ABI for read-only operations (matches deployed contract)
 export const VENUE_REGISTRY_READ_ABI = [
   {
-    "inputs": [{"name": "venueId", "type": "uint256"}],
-    "name": "getVenueById",
-    "outputs": [{"name": "", "type": "tuple", "components": [
-      {"name": "name", "type": "string"},
-      {"name": "city", "type": "string"},
-      {"name": "contactInfo", "type": "string"},
-      {"name": "hasPiano", "type": "bool"},
-      {"name": "verified", "type": "bool"},
-      {"name": "submittedBy", "type": "address"},
-      {"name": "timestamp", "type": "uint32"}
-    ]}],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [{ name: 'venueId', type: 'uint256' }],
+    name: 'getVenueById',
+    outputs: [
+      {
+        name: '',
+        type: 'tuple',
+        components: [
+          { name: 'name', type: 'string' },
+          { name: 'city', type: 'string' },
+          { name: 'contactInfo', type: 'string' },
+          { name: 'hasPiano', type: 'bool' },
+          { name: 'verified', type: 'bool' },
+          { name: 'submittedBy', type: 'address' },
+          { name: 'timestamp', type: 'uint32' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "venueCount",
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    inputs: [],
+    name: 'venueCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{"name": "", "type": "address"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    inputs: [],
+    name: 'owner',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
 // Contract factory functions
-export function createReadOnlyContract(web3: Web3): Contract {
+export function createReadOnlyContract(web3: Web3): any {
   return new web3.eth.Contract(VENUE_REGISTRY_READ_ABI as any, VENUE_REGISTRY_ADDRESS)
 }
 
-export function createFullContract(web3: Web3): Contract {
+export function createFullContract(web3: Web3): any {
   return new web3.eth.Contract(VENUE_REGISTRY_ABI as any, VENUE_REGISTRY_ADDRESS)
 }
 
@@ -185,7 +205,7 @@ export const GAS_ESTIMATES = {
   VERIFY_VENUE: 150000,
   UPDATE_VENUE_IPFS: 100000,
   REWARD_CONTRIBUTOR: 80000,
-  SET_BASE_REWARD: 60000
+  SET_BASE_REWARD: 60000,
 } as const
 
 // Transaction configuration
@@ -193,7 +213,7 @@ export const TX_CONFIG = {
   DEFAULT_GAS_LIMIT: 500000,
   DEFAULT_GAS_PRICE_MULTIPLIER: 1.2, // 20% buffer
   MAX_GAS_PRICE: '10000000000', // 10 Gwei in wei
-  CONFIRMATION_BLOCKS: 2
+  CONFIRMATION_BLOCKS: 2,
 } as const
 
 // Network configuration for Celo
@@ -203,10 +223,10 @@ export const CELO_NETWORK_CONFIG = {
   nativeCurrency: {
     name: 'CELO',
     symbol: 'CELO',
-    decimals: 18
+    decimals: 18,
   },
   rpcUrls: [CELO_TESTNET_RPC],
-  blockExplorerUrls: ['https://alfajores.celoscan.io/']
+  blockExplorerUrls: ['https://alfajores.celoscan.io/'],
 } as const
 
 // Utility functions for contract interactions
@@ -219,7 +239,7 @@ export async function switchToCeloNetwork(): Promise<boolean> {
     // Try to switch to Celo network
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: CELO_CHAIN_ID }]
+      params: [{ chainId: CELO_CHAIN_ID }],
     })
     return true
   } catch (error: any) {
@@ -228,7 +248,7 @@ export async function switchToCeloNetwork(): Promise<boolean> {
       try {
         await window.ethereum.request({
           method: 'wallet_addEthereumChain',
-          params: [CELO_NETWORK_CONFIG]
+          params: [CELO_NETWORK_CONFIG],
         })
         return true
       } catch (addError) {
@@ -265,16 +285,16 @@ export async function isOnCeloNetwork(): Promise<boolean> {
 export const EVENT_FILTERS = {
   VENUE_SUBMITTED: {
     address: VENUE_REGISTRY_ADDRESS,
-    topics: [Web3.utils.keccak256('VenueSubmitted(uint256,address,string,string,bytes32)')]
+    topics: [Web3.utils.keccak256('VenueSubmitted(uint256,address,string,string,bytes32)')],
   },
   VENUE_VERIFIED: {
     address: VENUE_REGISTRY_ADDRESS,
-    topics: [Web3.utils.keccak256('VenueVerified(uint256,address,bool,uint256)')]
+    topics: [Web3.utils.keccak256('VenueVerified(uint256,address,bool,uint256)')],
   },
   VENUE_UPDATED: {
     address: VENUE_REGISTRY_ADDRESS,
-    topics: [Web3.utils.keccak256('VenueUpdated(uint256,address,string)')]
-  }
+    topics: [Web3.utils.keccak256('VenueUpdated(uint256,address,string)')],
+  },
 } as const
 
 // Error handling types
@@ -300,7 +320,10 @@ export async function estimateGas(
     return Math.floor(gasEstimate * TX_CONFIG.DEFAULT_GAS_PRICE_MULTIPLIER)
   } catch (error) {
     console.error(`Gas estimation failed for ${method}:`, error)
-    return GAS_ESTIMATES[method.toUpperCase() as keyof typeof GAS_ESTIMATES] || TX_CONFIG.DEFAULT_GAS_LIMIT
+    return (
+      GAS_ESTIMATES[method.toUpperCase() as keyof typeof GAS_ESTIMATES] ||
+      TX_CONFIG.DEFAULT_GAS_LIMIT
+    )
   }
 }
 
@@ -321,7 +344,7 @@ export interface ContractMethods {
   getVenueById(venueId: number): Promise<any>
   venueCount(): Promise<number>
   owner(): Promise<string>
-  
+
   // Write methods (available in new contract)
   submitVenue(name: string, city: string, contactInfo: string, hasPiano: boolean): Promise<any>
   verifyVenue(venueId: number, approved: boolean): Promise<any>
@@ -337,5 +360,5 @@ export default {
   chainId: CELO_CHAIN_ID,
   gasEstimates: GAS_ESTIMATES,
   txConfig: TX_CONFIG,
-  networkConfig: CELO_NETWORK_CONFIG
+  networkConfig: CELO_NETWORK_CONFIG,
 }

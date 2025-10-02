@@ -83,7 +83,6 @@ export const VenueService = {
         _count: {
           select: {
             reviews: true,
-            payments: true,
           },
         },
       },
@@ -127,11 +126,6 @@ export const VenueService = {
           },
           orderBy: { createdAt: 'desc' },
         },
-        payments: {
-          where: { status: 'CONFIRMED' },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-        },
         analytics: {
           where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
           orderBy: { date: 'desc' },
@@ -174,28 +168,13 @@ export const VenueService = {
       counter++
     }
 
-    // Create venue with PENDING sync status
+    // Create venue
     return prisma.venue.create({
       data: {
         ...data,
         slug,
-        syncStatus: 'PENDING',
         tags: data.tags || [],
         amenities: data.amenities || [],
-      },
-    })
-  },
-
-  /**
-   * Update venue sync status after blockchain operation
-   */
-  async updateVenueSync(localId: number, blockchainId: number, transactionHash: string) {
-    return prisma.venue.update({
-      where: { id: localId },
-      data: {
-        blockchainId,
-        syncStatus: 'COMPLETED',
-        lastSynced: new Date(),
       },
     })
   },
@@ -215,7 +194,7 @@ export const VenueService = {
       where,
       include: {
         _count: {
-          select: { reviews: true, payments: true },
+          select: { reviews: true },
         },
       },
       orderBy: [
@@ -258,19 +237,6 @@ export const UserService = {
     }
 
     return user
-  },
-
-  /**
-   * Update user PXP balance (cached value)
-   */
-  async updateCAVBalance(walletAddress: string, balance: number) {
-    return prisma.user.update({
-      where: { walletAddress: walletAddress.toLowerCase() },
-      data: {
-        cavBalance: balance,
-        lastActive: new Date(),
-      },
-    })
   },
 }
 
@@ -320,55 +286,6 @@ export const AnalyticsService = {
         venueId,
         date: today,
         qrScans: 1,
-      },
-    })
-  },
-}
-
-/**
- * Sync queue management
- */
-export const SyncService = {
-  /**
-   * Add operation to sync queue
-   */
-  async addToQueue(operation: {
-    operation: string
-    entityType: string
-    entityId?: number
-    blockchainId?: number
-    payload: any
-  }) {
-    return prisma.syncQueue.create({
-      data: operation,
-    })
-  },
-
-  /**
-   * Get pending sync operations
-   */
-  async getPendingOperations(limit: number = 10) {
-    return prisma.syncQueue.findMany({
-      where: { status: 'PENDING' },
-      orderBy: { createdAt: 'asc' },
-      take: limit,
-    })
-  },
-
-  /**
-   * Update sync operation status
-   */
-  async updateSyncStatus(
-    id: number,
-    status: 'PROCESSING' | 'COMPLETED' | 'FAILED',
-    error?: string
-  ) {
-    return prisma.syncQueue.update({
-      where: { id },
-      data: {
-        status,
-        ...(error && { lastError: error }),
-        ...(status === 'COMPLETED' && { processedAt: new Date() }),
       },
     })
   },
