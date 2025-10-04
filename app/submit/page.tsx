@@ -216,7 +216,7 @@ export default function SubmitVenue() {
                 maxLength={64}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
                 placeholder="Jazz Cafe Toronto"
               />
             </div>
@@ -229,7 +229,7 @@ export default function SubmitVenue() {
                 maxLength={32}
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
                 placeholder="Toronto"
               />
             </div>
@@ -244,7 +244,7 @@ export default function SubmitVenue() {
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
               placeholder="456 Queen Street West, Toronto, ON"
             />
           </div>
@@ -259,7 +259,7 @@ export default function SubmitVenue() {
               required
               value={formData.contactInfo}
               onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
               placeholder="info@venue.com or (416) 555-0123 or www.venue.com"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -273,7 +273,7 @@ export default function SubmitVenue() {
             <select
               value={formData.venueType}
               onChange={(e) => setFormData({ ...formData, venueType: Number(e.target.value) })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
             >
               {VENUE_TYPES.map((type, index) => (
                 <option key={index} value={index}>
@@ -319,7 +319,7 @@ export default function SubmitVenue() {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
               placeholder="Tell us about this venue, the piano quality, atmosphere, special events, etc..."
             />
           </div>
