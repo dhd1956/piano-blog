@@ -6,7 +6,9 @@ import { useHybridWallet } from '@/hooks/useHybridWallet'
 interface VenueFormData {
   name: string
   city: string
-  contactInfo: string
+  email: string
+  phone: string
+  website: string
   hasPiano: boolean
   hasJamSession: boolean
   venueType: number
@@ -22,7 +24,9 @@ export default function SubmitVenue() {
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
     city: 'Toronto',
-    contactInfo: '',
+    email: '',
+    phone: '',
+    website: '',
     hasPiano: true,
     hasJamSession: false,
     venueType: 0,
@@ -57,8 +61,14 @@ export default function SubmitVenue() {
     e.preventDefault()
 
     // Validate required fields
-    if (!formData.name || !formData.city || !formData.contactInfo) {
+    if (!formData.name || !formData.city || !formData.address) {
       setError('Please fill in all required fields')
+      return
+    }
+
+    // Validate at least one contact method
+    if (!formData.email && !formData.phone && !formData.website) {
+      setError('Please provide at least one contact method (email, phone, or website)')
       return
     }
 
@@ -70,7 +80,9 @@ export default function SubmitVenue() {
       console.log('🚀 About to submit venue:', {
         name: formData.name,
         city: formData.city,
-        contactInfo: formData.contactInfo,
+        email: formData.email,
+        phone: formData.phone,
+        website: formData.website,
         hasPiano: formData.hasPiano,
         submittedBy: walletAddress || 'anonymous',
       })
@@ -82,7 +94,10 @@ export default function SubmitVenue() {
         body: JSON.stringify({
           name: formData.name,
           city: formData.city,
-          contactInfo: formData.contactInfo,
+          contactInfo: formData.email || formData.phone || formData.website || '',
+          email: formData.email,
+          phone: formData.phone,
+          website: formData.website,
           hasPiano: formData.hasPiano,
           hasJamSession: formData.hasJamSession,
           venueType: formData.venueType,
@@ -101,7 +116,9 @@ export default function SubmitVenue() {
         setFormData({
           name: '',
           city: 'Toronto',
-          contactInfo: '',
+          email: '',
+          phone: '',
+          website: '',
           hasPiano: true,
           hasJamSession: false,
           venueType: 0,
@@ -237,11 +254,10 @@ export default function SubmitVenue() {
 
           {/* Address */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Full Address (Optional)
-            </label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Full Address *</label>
             <input
               type="text"
+              required
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
@@ -249,22 +265,47 @@ export default function SubmitVenue() {
             />
           </div>
 
-          {/* Contact Info */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Contact Information *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.contactInfo}
-              onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-              placeholder="info@venue.com or (416) 555-0123 or www.venue.com"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Email, phone number, or website for the venue
-            </p>
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-900">
+              Contact Information (provide at least one)
+            </h3>
+
+            {/* Email */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                placeholder="info@venue.com"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                placeholder="(416) 555-0123"
+              />
+            </div>
+
+            {/* Website */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Website</label>
+              <input
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                placeholder="https://www.venue.com"
+              />
+            </div>
           </div>
 
           {/* Venue Type */}

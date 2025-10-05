@@ -242,13 +242,17 @@ export default function ProfilePage() {
 
         {/* Venues Discovered */}
         <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-          <div className="mb-2 text-4xl font-bold text-green-900">{venuesDiscovered}</div>
+          <div className="mb-2 text-4xl font-bold text-green-900">
+            {venuesDiscovered.toLocaleString()}
+          </div>
           <div className="text-sm text-green-700">Venues Discovered</div>
         </div>
 
         {/* Reviews */}
         <div className="rounded-lg border border-purple-200 bg-purple-50 p-6 text-center">
-          <div className="mb-2 text-4xl font-bold text-purple-900">{reviewCount}</div>
+          <div className="mb-2 text-4xl font-bold text-purple-900">
+            {reviewCount.toLocaleString()}
+          </div>
           <div className="text-sm text-purple-700">Reviews Written</div>
         </div>
       </div>

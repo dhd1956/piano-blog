@@ -31,16 +31,16 @@ export async function checkVenuePermissions(
     isBlogOwner: false,
     isVenueCurator: false,
     canEdit: false,
-    canUpdateCurator: false
+    canUpdateCurator: false,
   }
 
   if (!userAddress) return result
 
   const normalizedAddress = userAddress.toLowerCase()
-  
+
   // Check if user is blog owner
   result.isBlogOwner = isBlogOwner(normalizedAddress)
-  
+
   // Blog owner has all permissions
   if (result.isBlogOwner) {
     result.isVenueCurator = true
@@ -52,7 +52,7 @@ export async function checkVenuePermissions(
   // For client-side, we can't check contract state directly
   // This should be handled by the Web3Provider or useWallet hook
   console.log('Contract-based permission check should be handled by Web3Provider')
-  
+
   return result
 }
 
@@ -83,11 +83,9 @@ export async function checkCuratorPermissions(
  * Client-side permission check without blockchain call
  * Use this for immediate UI rendering, then call async functions for verification
  */
-export function getClientPermissions(
-  userAddress: string | undefined
-): { isBlogOwner: boolean } {
+export function getClientPermissions(userAddress: string | undefined): { isBlogOwner: boolean } {
   return {
-    isBlogOwner: isBlogOwner(userAddress)
+    isBlogOwner: isBlogOwner(userAddress),
   }
 }
 
@@ -96,6 +94,8 @@ export function getClientPermissions(
  */
 export function formatAddress(address: string): string {
   if (!address) return ''
+  // Handle short strings like "anonymous" - don't format if less than 15 chars
+  if (address.length < 15) return address
   return `${address.substring(0, 8)}...${address.substring(address.length - 6)}`
 }
 

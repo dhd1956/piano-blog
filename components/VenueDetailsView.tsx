@@ -162,7 +162,11 @@ function OperationalDetails({ extendedData }: { extendedData?: VenueMetadata }) 
   )
 }
 
-function VerificationDetails({ venue }: { venue: Venue }) {
+function VerificationDetails({ venue }: { venue: any }) {
+  // Handle date - might be submissionDate or createdAt
+  const submissionDate = venue.submissionDate || venue.createdAt
+  const dateStr = submissionDate ? new Date(submissionDate).toLocaleDateString() : 'Unknown'
+
   return (
     <div>
       <h3 className="mb-3 text-lg font-semibold text-gray-900">Verification Details</h3>
@@ -171,7 +175,7 @@ function VerificationDetails({ venue }: { venue: Venue }) {
           label="Submitted"
           value={
             <div>
-              <div>{venue.submissionDate.toLocaleDateString()}</div>
+              <div>{dateStr}</div>
               <div className="text-xs text-gray-500">by {formatAddress(venue.submittedBy)}</div>
             </div>
           }

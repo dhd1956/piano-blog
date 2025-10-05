@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { VenueService } from '@/lib/database'
 import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { VENUE_TYPES } from '@/types/venue'
 import Link from 'next/link'
 
 interface Venue {
@@ -15,6 +16,7 @@ interface Venue {
   contactInfo: string
   hasPiano: boolean
   hasJamSession: boolean
+  venueType: number
   verified: boolean
   description?: string | null
   address?: string | null
@@ -251,7 +253,7 @@ export default function HybridVenueList() {
           {/* Results Summary */}
           <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-600">
             <div>
-              Found {totalCount} venues
+              Found {totalCount.toLocaleString()} venues
               {searchQuery && ` matching "${searchQuery}"`}
             </div>
             <div className="flex items-center gap-4">
@@ -307,7 +309,7 @@ export default function HybridVenueList() {
                 {/* Venue Details */}
                 <div className="space-y-2 text-sm text-gray-600">
                   <p className="flex items-center gap-2">
-                    <span>📍</span> {venue.city}
+                    <span>📍</span> {venue.city} • {VENUE_TYPES[venue.venueType] || 'Cafe'}
                   </p>
                   {venue.address && (
                     <p className="flex items-center gap-2">
@@ -419,7 +421,9 @@ export default function HybridVenueList() {
               disabled={loading}
               className="rounded-md bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Loading...' : `Load More Venues (${venues.length} of ${totalCount})`}
+              {loading
+                ? 'Loading...'
+                : `Load More Venues (${venues.length.toLocaleString()} of ${totalCount.toLocaleString()})`}
             </button>
           </div>
         )}

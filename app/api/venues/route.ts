@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Validate required fields
-    const requiredFields = ['name', 'city', 'contactInfo', 'submittedBy']
+    const requiredFields = ['name', 'city', 'submittedBy']
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -74,6 +74,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate at least one contact method
+    if (!body.email && !body.phone && !body.website && !body.contactInfo) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Please provide at least one contact method (email, phone, or website)',
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
     // Create venue in PostgreSQL only
     const venue = await VenueService.createVenue({
       name: body.name,
@@ -83,6 +96,7 @@ export async function POST(request: NextRequest) {
       submittedBy: body.submittedBy.toLowerCase(),
       hasPiano: body.hasPiano || false,
       hasJamSession: body.hasJamSession || false,
+      venueType: body.venueType ?? 0,
       description: body.description,
       address: body.address,
       phone: body.phone,

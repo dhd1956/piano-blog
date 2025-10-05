@@ -149,6 +149,7 @@ export const VenueService = {
     submittedBy: string
     hasPiano?: boolean
     hasJamSession?: boolean
+    venueType?: number
     description?: string
     address?: string
     phone?: string
