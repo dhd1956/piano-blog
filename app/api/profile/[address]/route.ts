@@ -91,8 +91,24 @@ export async function PATCH(
     const { address } = await params
     const body = await request.json()
 
-    // TODO: Add authentication check here
-    // Ensure the requesting user owns this profile
+    // Authentication: Check if requester is profile owner OR blog owner (admin)
+    const requesterAddress = body.requesterAddress?.toLowerCase()
+    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+    const profileAddress = address.toLowerCase()
+
+    if (!requesterAddress) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    const isProfileOwner = requesterAddress === profileAddress
+    const isBlogOwner = requesterAddress === blogOwnerAddress
+
+    if (!isProfileOwner && !isBlogOwner) {
+      return NextResponse.json(
+        { error: 'Unauthorized: You can only edit your own profile' },
+        { status: 403 }
+      )
+    }
 
     // Update user profile
     const updatedUser = await prisma.user.update({

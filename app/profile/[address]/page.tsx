@@ -61,13 +61,19 @@ export default function ProfilePage() {
       setVenuesDiscovered(data.venuesDiscovered || 0)
       setReviewCount(data.reviewCount || 0)
 
-      // Check if this is the user's own profile
+      // Check if this is the user's own profile OR if user is blog owner (admin)
       if (typeof window !== 'undefined' && (window as any).ethereum) {
         const accounts = await (window as any).ethereum.request({
           method: 'eth_accounts',
         })
         if (accounts.length > 0) {
-          setIsOwnProfile(accounts[0].toLowerCase() === data.profile.walletAddress.toLowerCase())
+          const connectedAddress = accounts[0].toLowerCase()
+          const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+          const isProfileOwner = connectedAddress === data.profile.walletAddress.toLowerCase()
+          const isBlogOwner = connectedAddress === blogOwner
+
+          // Allow editing if it's own profile OR if user is blog owner
+          setIsOwnProfile(isProfileOwner || isBlogOwner)
         }
       }
     } catch (err: any) {
