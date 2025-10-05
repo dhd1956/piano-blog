@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { VenueService } from '@/lib/database'
 import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
-import { VENUE_TYPES } from '@/types/venue'
+import { VENUE_TYPES as VENUE_TYPE_LABELS } from '@/types/venue'
 import Link from 'next/link'
 
 interface Venue {
@@ -309,7 +309,7 @@ export default function HybridVenueList() {
                 {/* Venue Details */}
                 <div className="space-y-2 text-sm text-gray-600">
                   <p className="flex items-center gap-2">
-                    <span>📍</span> {venue.city} • {VENUE_TYPES[venue.venueType] || 'Cafe'}
+                    <span>📍</span> {venue.city} • {VENUE_TYPE_LABELS[venue.venueType] || 'Cafe'}
                   </p>
                   {venue.address && (
                     <p className="flex items-center gap-2">
