@@ -197,7 +197,7 @@ export default function HybridVenueList() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                 placeholder="Search by name, city, or tags..."
               />
             </div>
@@ -208,7 +208,7 @@ export default function HybridVenueList() {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as any)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
               >
                 <option value="all">All Venues</option>
                 <option value="verified">✅ Verified Only</option>
@@ -223,7 +223,7 @@ export default function HybridVenueList() {
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
               >
                 {CITIES.map((city) => (
                   <option key={city} value={city.toLowerCase()}>
@@ -239,7 +239,7 @@ export default function HybridVenueList() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
               >
                 <option value="createdAt">Latest Added</option>
                 <option value="name">Name A-Z</option>
