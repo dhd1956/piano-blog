@@ -7,30 +7,27 @@ import WalletConnection from '@/components/web3/WalletConnection'
 
 interface Venue {
   id: number
+  slug: string
   name: string
   city: string
   contactInfo: string
   hasPiano: boolean
-  hasJamSession: boolean
   verified: boolean
   submittedBy: string
-  timestamp: number
-  submissionDate: Date
+  description?: string
+  address?: string
+  phone?: string
+  amenities: string[]
+  tags: string[]
+  rating: number
+  reviewCount: number
+  createdAt: Date
 }
 
 const VENUE_TYPES = ['Cafe', 'Restaurant', 'Bar', 'Club', 'Community Center']
 
 export default function CuratorDashboard() {
-  const {
-    isConnected,
-    walletAddress,
-    getAllVenues,
-    updateVenue,
-    verifyVenue,
-    getCuratorNotes,
-    hasAnyPermissions,
-    connect,
-  } = useWallet()
+  const { isConnected, walletAddress, connect } = useWallet()
 
   const { isBlogOwner, isAuthorizedCurator, canAccessCurator } = usePermissions()
 
@@ -49,47 +46,81 @@ export default function CuratorDashboard() {
     name: '',
     contactInfo: '',
     hasPiano: false,
-    hasJamSession: false,
+    description: '',
+    address: '',
     updateNotes: '',
   })
 
-  // Load venues from blockchain
+  // Load venues from PostgreSQL (simplified for curator dashboard)
   const loadVenues = async () => {
     try {
       setLoading(true)
       setError('')
 
-      const result = await getAllVenues()
+      console.log('🔄 Loading venues from PostgreSQL...')
 
-      if (result.success && result.venues) {
-        setVenues(result.venues)
+      // Use simplified query for curator dashboard - no heavy relations
+      const response = await fetch('/api/venues?limit=100', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log('📡 Response status:', response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Failed to load venues: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log('📊 Received data:', {
+        success: data.success,
+        venueCount: data.venues?.length,
+        totalCount: data.totalCount,
+      })
+
+      if (data.success && data.venues) {
+        // Convert date strings to Date objects
+        const processedVenues = data.venues.map((venue: any) => ({
+          id: venue.id,
+          slug: venue.slug,
+          name: venue.name,
+          city: venue.city,
+          contactInfo: venue.contactInfo,
+          hasPiano: venue.hasPiano,
+          verified: venue.verified,
+          submittedBy: venue.submittedBy,
+          description: venue.description,
+          address: venue.address,
+          phone: venue.phone,
+          amenities: venue.amenities || [],
+          tags: venue.tags || [],
+          rating: venue.rating || 0,
+          reviewCount: venue.reviewCount || 0,
+          createdAt: new Date(venue.createdAt),
+        }))
+
+        console.log('✅ Processed venues:', processedVenues.length)
+        setVenues(processedVenues)
       } else {
-        setError(result.error || 'Failed to load venues')
+        console.warn('⚠️ No venues found or invalid response')
+        setError(data.error || 'No venues found')
+        setVenues([])
       }
     } catch (error: any) {
-      console.error('Error loading venues:', error)
+      console.error('❌ Error loading venues:', error)
       setError('Failed to load venues: ' + error.message)
+      setVenues([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Handle venue verification
+  // Handle venue verification (PostgreSQL)
   const handleVerifyVenue = async (venueId: number, approved: boolean) => {
-    console.log('🚀 Starting venue verification process...')
-    console.log('📊 Initial state check:', {
-      canAccessCurator,
-      isConnected,
-      walletAddress: walletAddress
-        ? `${walletAddress.substring(0, 8)}...${walletAddress.substring(-4)}`
-        : 'null',
-      venueId,
-      approved,
-      notesLength: verificationNotes.length,
-    })
-
     if (!canAccessCurator) {
-      console.error('❌ Authorization failed: User cannot access curator functions')
       setError('You are not authorized to verify venues')
       return
     }
@@ -98,68 +129,95 @@ export default function CuratorDashboard() {
       setError('')
       setLoading(true)
 
-      console.log('🎯 About to call verifyVenue with:', {
-        venueId,
-        approved,
-        notes: verificationNotes.substring(0, 50) + (verificationNotes.length > 50 ? '...' : ''),
-        fullNotesLength: verificationNotes.length,
+      console.log('🎯 Verifying venue:', { venueId, approved })
+
+      // Call PUT API to update verified status
+      const response = await fetch(`/api/venues/${venueId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          verified: approved,
+        }),
       })
 
-      // Check wallet connection state before verification
-      if (!isConnected || !walletAddress) {
-        console.error('❌ Pre-verification check failed:', {
-          isConnected,
-          hasWalletAddress: !!walletAddress,
-        })
-        setError('Wallet not connected. Please connect your wallet and try again.')
-        setLoading(false)
-        return
+      const result = await response.json()
+
+      if (!response.ok || !result.venue) {
+        throw new Error(result.message || result.error || 'Failed to verify venue')
       }
 
-      console.log('✅ Pre-verification checks passed, calling verifyVenue...')
-      const result = await verifyVenue(venueId, approved, verificationNotes)
+      console.log('✅ Venue verified successfully:', result)
+      setSuccessMessage(`Venue ${approved ? 'approved' : 'rejected'} successfully!`)
+      setSelectedVenue(null)
+      setVerificationNotes('')
 
-      console.log('🔄 Verify venue result:', {
-        success: result.success,
-        hasTransactionHash: !!result.transactionHash,
-        hasIpfsHash: !!result.ipfsHash,
-        error: result.error,
-        transactionHash: result.transactionHash
-          ? `${result.transactionHash.substring(0, 10)}...`
-          : 'none',
-        ipfsHash: result.ipfsHash ? `${result.ipfsHash.substring(0, 10)}...` : 'none',
-      })
-
-      if (result.success) {
-        let successMsg = `Venue ${approved ? 'approved' : 'rejected'} successfully!`
-        if (result.ipfsHash) {
-          successMsg += ` Curator notes saved to IPFS: ${result.ipfsHash.substring(0, 12)}...`
-        }
-        console.log('✅ Verification successful:', successMsg)
-        setSuccessMessage(successMsg)
-        setSelectedVenue(null)
-        setVerificationNotes('')
-        await loadVenues()
-      } else {
-        console.error('❌ Verification failed:', result.error)
-        setError(result.error || 'Failed to verify venue')
-      }
+      // Reload venues list
+      await loadVenues()
     } catch (error: any) {
-      console.error('❌ Exception during verification:', error)
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack?.substring(0, 200) + '...',
-      })
+      console.error('❌ Verification failed:', error)
       setError('Verification failed: ' + error.message)
     } finally {
       setLoading(false)
-      console.log('🏁 Verification process completed')
     }
   }
 
-  // Handle venue update
+  // Handle venue deletion
+  const handleDeleteVenue = async () => {
+    if (!selectedVenue || !canAccessCurator) {
+      setError('Not authorized to delete venues')
+      return
+    }
+
+    // Confirm deletion
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${selectedVenue.name}"? This action cannot be undone.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      setError('')
+      setLoading(true)
+
+      console.log('🗑️ Deleting venue:', {
+        venueId: selectedVenue.id,
+        name: selectedVenue.name,
+      })
+
+      // Call DELETE API with wallet authentication
+      const response = await fetch(`/api/venues/${selectedVenue.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress || '',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || result.error || 'Failed to delete venue')
+      }
+
+      console.log('✅ Venue deleted successfully:', result)
+      setSuccessMessage(`Venue "${selectedVenue.name}" deleted successfully`)
+      setSelectedVenue(null)
+
+      // Reload venues
+      await loadVenues()
+    } catch (error: any) {
+      console.error('Error deleting venue:', error)
+      setError('Delete failed: ' + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Handle venue update (PostgreSQL)
   const handleUpdateVenue = async () => {
     if (!selectedVenue || !canAccessCurator) {
       setError('Not authorized to update venues')
@@ -175,161 +233,47 @@ export default function CuratorDashboard() {
       setError('')
       setLoading(true)
 
-      console.log('🔧 Updating venue with notes:', {
+      console.log('🔧 Updating venue:', {
         venueId: selectedVenue.id,
         name: editForm.name,
         contactInfo: editForm.contactInfo,
-        updateNotes: editForm.updateNotes,
-        updateNotesLength: editForm.updateNotes.length,
+        hasPiano: editForm.hasPiano,
       })
 
-      // Save update notes to localStorage if provided
-      if (editForm.updateNotes && editForm.updateNotes.trim()) {
-        console.log('🔧 Saving update notes to localStorage...')
-        const updateMetadata = {
-          updateNotes: editForm.updateNotes.trim(),
-          updatedBy: walletAddress,
-          updateDate: new Date().toISOString(),
-          updateType: 'venue_edit',
-          changes: {
-            name:
-              editForm.name !== selectedVenue.name
-                ? { from: selectedVenue.name, to: editForm.name }
-                : null,
-            contactInfo:
-              editForm.contactInfo !== selectedVenue.contactInfo
-                ? { from: selectedVenue.contactInfo, to: editForm.contactInfo }
-                : null,
-            hasPiano:
-              editForm.hasPiano !== selectedVenue.hasPiano
-                ? { from: selectedVenue.hasPiano, to: editForm.hasPiano }
-                : null,
-            hasJamSession:
-              editForm.hasJamSession !== selectedVenue.hasJamSession
-                ? { from: selectedVenue.hasJamSession, to: editForm.hasJamSession }
-                : null,
-          },
-        }
-
-        const storageKey = `update_notes_${selectedVenue.id}`
-        const existingNotes = localStorage.getItem(storageKey)
-        let allNotes: any[] = []
-
-        if (existingNotes) {
-          allNotes = JSON.parse(existingNotes)
-        }
-
-        allNotes.push(updateMetadata)
-        localStorage.setItem(storageKey, JSON.stringify(allNotes))
-        console.log('✅ Update notes saved to localStorage')
-      }
-
-      // Handle piano status change (since contract doesn't support it)
-      if (editForm.hasPiano !== selectedVenue.hasPiano) {
-        console.log('🔧 Piano status changed, saving to localStorage...', {
-          venueId: selectedVenue.id,
-          from: selectedVenue.hasPiano,
-          to: editForm.hasPiano,
-        })
-
-        const pianoStorageKey = `venue_piano_${selectedVenue.id}`
-        const pianoUpdate = {
-          hasPiano: editForm.hasPiano,
-          updatedBy: walletAddress,
-          updateDate: new Date().toISOString(),
-          previousValue: selectedVenue.hasPiano,
-        }
-
-        localStorage.setItem(pianoStorageKey, JSON.stringify(pianoUpdate))
-        console.log('✅ Piano status saved to localStorage with key:', pianoStorageKey)
-        console.log('✅ Saved data:', pianoUpdate)
-
-        // Verify it was saved
-        const verification = localStorage.getItem(pianoStorageKey)
-        console.log('✅ Verification - data in localStorage:', verification)
-      } else {
-        console.log('ℹ️ No piano status change detected', {
-          venueId: selectedVenue.id,
-          editFormHasPiano: editForm.hasPiano,
-          selectedVenueHasPiano: selectedVenue.hasPiano,
-        })
-      }
-
-      // Handle jam session status change (since contract doesn't support it)
-      if (editForm.hasJamSession !== selectedVenue.hasJamSession) {
-        console.log('🔧 Jam session status changed, saving to localStorage...', {
-          venueId: selectedVenue.id,
-          from: selectedVenue.hasJamSession,
-          to: editForm.hasJamSession,
-        })
-
-        const jamSessionStorageKey = `venue_jam_session_${selectedVenue.id}`
-        const jamSessionUpdate = {
-          hasJamSession: editForm.hasJamSession,
-          updatedBy: walletAddress,
-          updateDate: new Date().toISOString(),
-          previousValue: selectedVenue.hasJamSession,
-        }
-
-        localStorage.setItem(jamSessionStorageKey, JSON.stringify(jamSessionUpdate))
-        console.log('✅ Jam session status saved to localStorage with key:', jamSessionStorageKey)
-        console.log('✅ Saved data:', jamSessionUpdate)
-
-        // Verify it was saved
-        const verification = localStorage.getItem(jamSessionStorageKey)
-        console.log('✅ Verification - data in localStorage:', verification)
-      } else {
-        console.log('ℹ️ No jam session status change detected', {
-          venueId: selectedVenue.id,
-          editFormHasJamSession: editForm.hasJamSession,
-          selectedVenueHasJamSession: selectedVenue.hasJamSession,
-        })
-      }
-
-      const result = await updateVenue(selectedVenue.id, editForm.name, editForm.contactInfo)
-
-      if (result.success) {
-        let successMsg = 'Venue updated successfully!'
-        const changes: string[] = []
-
-        if (editForm.updateNotes.trim()) {
-          changes.push('update notes saved')
-        }
-
-        if (editForm.hasPiano !== selectedVenue.hasPiano) {
-          changes.push(
-            `piano status changed to ${editForm.hasPiano ? 'available' : 'not available'}`
-          )
-        }
-
-        if (editForm.hasJamSession !== selectedVenue.hasJamSession) {
-          changes.push(
-            `jam session status changed to ${editForm.hasJamSession ? 'available' : 'not available'}`
-          )
-        }
-
-        if (changes.length > 0) {
-          successMsg += ' (' + changes.join(', ') + ')'
-        }
-
-        setSuccessMessage(successMsg)
-        setIsEditing(false)
-
-        // Update selectedVenue with the changes to reflect them immediately
-        const updatedVenue = {
-          ...selectedVenue,
+      // Call PUT API to update venue in PostgreSQL
+      const response = await fetch(`/api/venues/${selectedVenue.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           name: editForm.name,
           contactInfo: editForm.contactInfo,
           hasPiano: editForm.hasPiano,
-          hasJamSession: editForm.hasJamSession,
-        }
-        console.log('🔧 Updating selectedVenue state with changes:', updatedVenue)
-        setSelectedVenue(updatedVenue)
+          description: editForm.description,
+          address: editForm.address,
+        }),
+      })
 
-        await loadVenues()
-      } else {
-        setError(result.error || 'Failed to update venue')
+      const result = await response.json()
+
+      if (!response.ok || !result.venue) {
+        throw new Error(result.message || result.error || 'Failed to update venue')
       }
+
+      console.log('✅ Venue updated successfully:', result)
+      setSuccessMessage('Venue updated successfully!')
+      setIsEditing(false)
+
+      // Update selectedVenue with the changes
+      setSelectedVenue({
+        ...selectedVenue,
+        ...result.venue,
+        createdAt: new Date(result.venue.createdAt),
+      })
+
+      // Reload venues list
+      await loadVenues()
     } catch (error: any) {
       console.error('Error updating venue:', error)
       setError('Update failed: ' + error.message)
@@ -344,25 +288,15 @@ export default function CuratorDashboard() {
     setExistingCuratorNotes(null)
 
     try {
-      // Load curator verification notes
-      const result = await getCuratorNotes(venueId)
       let notes: any = null
 
-      if (result.success && result.notes) {
-        notes = { verification: result.notes }
-        console.log('📝 Loaded curator notes:', result.notes)
-      } else {
-        console.log('ℹ️ No curator notes found for venue', venueId)
-      }
-
-      // Also load update notes
+      // Load update notes from localStorage
       const updateStorageKey = `update_notes_${venueId}`
       const storedUpdateNotes = localStorage.getItem(updateStorageKey)
       if (storedUpdateNotes) {
         const updateNotes = JSON.parse(storedUpdateNotes)
         console.log('📝 Loaded update notes:', updateNotes.length, 'entries')
-        if (!notes) notes = {}
-        notes.updates = updateNotes
+        notes = { updates: updateNotes }
       }
 
       setExistingCuratorNotes(notes)
@@ -385,7 +319,8 @@ export default function CuratorDashboard() {
       name: venue.name,
       contactInfo: venue.contactInfo,
       hasPiano: venue.hasPiano,
-      hasJamSession: venue.hasJamSession || false,
+      description: venue.description || '',
+      address: venue.address || '',
       updateNotes: '',
     })
     setIsEditing(true)
@@ -501,6 +436,22 @@ export default function CuratorDashboard() {
           </div>
         </div>
 
+        {/* Debug: Permission Status */}
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="text-sm">
+            <div className="mb-2 font-semibold text-blue-900">🔍 Permission Debug:</div>
+            <div className="space-y-1 font-mono text-xs text-blue-800">
+              <div>Connected Wallet: {walletAddress || 'None'}</div>
+              <div>
+                Blog Owner Address: {process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS || 'Not Set'}
+              </div>
+              <div>Is Blog Owner: {isBlogOwner ? '✅ YES' : '❌ NO'}</div>
+              <div>Is Authorized Curator: {isAuthorizedCurator ? '✅ YES' : '❌ NO'}</div>
+              <div>Can Access Curator: {canAccessCurator ? '✅ YES' : '❌ NO'}</div>
+            </div>
+          </div>
+        </div>
+
         {/* Success/Error Messages */}
         {successMessage && (
           <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
@@ -540,8 +491,8 @@ export default function CuratorDashboard() {
             <div className="divide-y">
               {venues.map((venue) => (
                 <div key={venue.id} className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
                       <div className="mb-2 flex items-center gap-3">
                         <h3 className="text-lg font-semibold">{venue.name}</h3>
                         {venue.verified ? (
@@ -556,20 +507,32 @@ export default function CuratorDashboard() {
                       </div>
 
                       <div className="space-y-1 text-gray-600">
-                        <p>📍 {venue.city}</p>
-                        <p>📞 {venue.contactInfo}</p>
+                        <p className="break-words">📍 {venue.city}</p>
+                        <p className="break-words">📞 {venue.contactInfo}</p>
                         {venue.hasPiano && <p>🎹 Has Piano Available</p>}
-                        {venue.hasJamSession && <p>🎵 Hosts Jam Sessions</p>}
+                        {venue.description && (
+                          <p className="line-clamp-3 text-sm break-words">{venue.description}</p>
+                        )}
                       </div>
 
                       <div className="mt-2 text-sm text-gray-500">
-                        <p>Submitted: {venue.submissionDate.toLocaleDateString()}</p>
-                        <p>By: {venue.submittedBy.substring(0, 8)}...</p>
+                        <p>
+                          Submitted:{' '}
+                          {venue.createdAt instanceof Date && !isNaN(venue.createdAt.getTime())
+                            ? venue.createdAt.toLocaleDateString()
+                            : new Date(venue.createdAt).toLocaleDateString()}
+                        </p>
+                        <p className="break-all">By: {venue.submittedBy.substring(0, 8)}...</p>
                         <p>ID: {venue.id}</p>
+                        {venue.rating > 0 && (
+                          <p>
+                            ⭐ {venue.rating.toFixed(1)} ({venue.reviewCount} reviews)
+                          </p>
+                        )}
                       </div>
                     </div>
 
-                    <div className="ml-4 flex gap-2">
+                    <div className="flex shrink-0 gap-2 sm:ml-4">
                       <button
                         onClick={() => selectVenueForReview(venue)}
                         className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
@@ -653,31 +616,36 @@ export default function CuratorDashboard() {
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
-                        Jam Session Availability
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={editForm.hasJamSession}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm, hasJamSession: e.target.checked })
-                          }
-                          className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500"
-                        />
-                        <span className="text-sm text-gray-700">
-                          🎵 This venue hosts jam sessions
-                        </span>
-                      </div>
+                      <label className="mb-1 block text-sm font-medium">Description</label>
+                      <textarea
+                        value={editForm.description}
+                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                        className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                        rows={3}
+                        placeholder="Add venue description..."
+                      />
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Update Notes</label>
+                      <label className="mb-1 block text-sm font-medium">Address</label>
+                      <input
+                        type="text"
+                        value={editForm.address}
+                        onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                        className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Street address"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">
+                        Update Notes (optional)
+                      </label>
                       <textarea
                         value={editForm.updateNotes}
                         onChange={(e) => setEditForm({ ...editForm, updateNotes: e.target.value })}
                         className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                        rows={3}
+                        rows={2}
                         placeholder="Explain what changes were made..."
                       />
                     </div>
@@ -709,13 +677,28 @@ export default function CuratorDashboard() {
                         {selectedVenue.hasPiano && (
                           <p className="text-blue-600">🎹 Has Piano Available</p>
                         )}
-                        {selectedVenue.hasJamSession && (
-                          <p className="text-purple-600">🎵 Hosts Jam Sessions</p>
+                        {selectedVenue.description && (
+                          <p className="text-sm text-gray-600">{selectedVenue.description}</p>
+                        )}
+                        {selectedVenue.address && (
+                          <p className="text-sm text-gray-600">📮 {selectedVenue.address}</p>
                         )}
                         <div className="mt-2 text-sm text-gray-500">
-                          <p>Submitted: {selectedVenue.submissionDate.toLocaleDateString()}</p>
+                          <p>
+                            Submitted:{' '}
+                            {selectedVenue.createdAt instanceof Date &&
+                            !isNaN(selectedVenue.createdAt.getTime())
+                              ? selectedVenue.createdAt.toLocaleDateString()
+                              : new Date(selectedVenue.createdAt).toLocaleDateString()}
+                          </p>
                           <p>By: {selectedVenue.submittedBy}</p>
                           <p>Status: {selectedVenue.verified ? 'Verified' : 'Pending'}</p>
+                          {selectedVenue.rating > 0 && (
+                            <p>
+                              ⭐ {selectedVenue.rating.toFixed(1)} ({selectedVenue.reviewCount}{' '}
+                              reviews)
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -863,18 +846,20 @@ export default function CuratorDashboard() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {!selectedVenue.verified && (
                         <>
                           <button
                             onClick={() => handleVerifyVenue(selectedVenue.id, true)}
                             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                            disabled={loading}
                           >
                             ✓ Approve
                           </button>
                           <button
                             onClick={() => handleVerifyVenue(selectedVenue.id, false)}
                             className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+                            disabled={loading}
                           >
                             ✗ Reject
                           </button>
@@ -883,9 +868,19 @@ export default function CuratorDashboard() {
                       <button
                         onClick={() => startEditing(selectedVenue)}
                         className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                        disabled={loading}
                       >
                         ✏️ Edit Info
                       </button>
+                      {isBlogOwner && (
+                        <button
+                          onClick={handleDeleteVenue}
+                          className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+                          disabled={loading}
+                        >
+                          🗑️ Delete Venue
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

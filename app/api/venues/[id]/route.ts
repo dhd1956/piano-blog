@@ -125,19 +125,79 @@ export async function DELETE(
       )
     }
 
-    // Hard delete venue (simplified approach)
+    // Verify authentication - only blog owner can delete venues
+    const walletAddress = request.headers.get('x-wallet-address')
+    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
+
+    if (!walletAddress) {
+      return NextResponse.json(
+        {
+          error: 'Authentication required',
+          message: 'Wallet address not provided',
+        },
+        {
+          status: 401,
+        }
+      )
+    }
+
+    if (!blogOwnerAddress) {
+      return NextResponse.json(
+        {
+          error: 'Configuration error',
+          message: 'Blog owner address not configured',
+        },
+        {
+          status: 500,
+        }
+      )
+    }
+
+    // Check if the wallet address matches the blog owner
+    if (walletAddress.toLowerCase() !== blogOwnerAddress.toLowerCase()) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+          message: 'Only the blog owner can delete venues',
+        },
+        {
+          status: 403,
+        }
+      )
+    }
+
+    // Get venue before deletion to verify it exists
+    const existingVenue = await VenueService.getVenue(venueId)
+    if (!existingVenue) {
+      return NextResponse.json(
+        {
+          error: 'Venue not found',
+        },
+        {
+          status: 404,
+        }
+      )
+    }
+
+    // Hard delete venue
     await prisma.venue.delete({
       where: { id: venueId },
     })
 
     return NextResponse.json({
+      success: true,
       message: 'Venue deleted successfully',
+      deletedVenue: {
+        id: existingVenue.id,
+        name: existingVenue.name,
+      },
     })
   } catch (error: any) {
     console.error('Venue deletion error:', error)
 
     return NextResponse.json(
       {
+        success: false,
         error: 'Failed to delete venue',
         message: error.message,
       },

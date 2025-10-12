@@ -14,7 +14,7 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   })
 
 if (process.env.NODE_ENV !== 'production') {
@@ -38,6 +38,7 @@ export const VenueService = {
       offset?: number
       orderBy?: 'name' | 'rating' | 'createdAt'
       orderDirection?: 'asc' | 'desc'
+      includeRelations?: boolean // New option to control loading relations
     } = {}
   ) {
     const {
@@ -49,6 +50,7 @@ export const VenueService = {
       offset = 0,
       orderBy = 'createdAt',
       orderDirection = 'desc',
+      includeRelations = false,
     } = options
 
     const where: any = {}
@@ -68,29 +70,34 @@ export const VenueService = {
       ]
     }
 
-    // Execute query
+    // Build include object based on option
+    const include = includeRelations
+      ? {
+          reviews: {
+            include: {
+              user: {
+                select: { displayName: true, username: true, avatar: true },
+              },
+            },
+            orderBy: { createdAt: 'desc' as const },
+            take: 5,
+          },
+          verifications: {
+            orderBy: { timestamp: 'desc' as const },
+            take: 3,
+          },
+          analytics: {
+            where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+            orderBy: { date: 'desc' as const },
+            take: 30,
+          },
+        }
+      : undefined
+
+    // Execute query with or without relations
     const venues = await prisma.venue.findMany({
       where,
-      include: {
-        reviews: {
-          include: {
-            user: {
-              select: { displayName: true, username: true, avatar: true },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 5, // Latest 5 reviews
-        },
-        verifications: {
-          orderBy: { timestamp: 'desc' },
-          take: 3, // Latest 3 verifications
-        },
-        analytics: {
-          where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
-          orderBy: { date: 'desc' },
-          take: 30,
-        },
-      },
+      include,
       orderBy: { [orderBy]: orderDirection },
       take: limit,
       skip: offset,

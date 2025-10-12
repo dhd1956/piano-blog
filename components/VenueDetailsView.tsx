@@ -165,7 +165,12 @@ function OperationalDetails({ extendedData }: { extendedData?: VenueMetadata }) 
 function VerificationDetails({ venue }: { venue: any }) {
   // Handle date - might be submissionDate or createdAt
   const submissionDate = venue.submissionDate || venue.createdAt
-  const dateStr = submissionDate ? new Date(submissionDate).toLocaleDateString() : 'Unknown'
+
+  let dateStr = 'Unknown'
+  if (submissionDate) {
+    const dateObj = new Date(submissionDate)
+    dateStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : 'Unknown'
+  }
 
   return (
     <div>

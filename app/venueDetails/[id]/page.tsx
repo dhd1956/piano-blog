@@ -123,7 +123,7 @@ export default function VenueDetailsPage() {
           id: venueData.id,
           name: venueData.name,
           city: venueData.city,
-          fullAddress: venueData.fullAddress || '',
+          fullAddress: venueData.fullAddress || venueData.address || '',
           hasPiano: venueData.hasPiano,
           hasJamSession: venueData.hasJamSession || false,
           verified: venueData.verified,
@@ -134,11 +134,14 @@ export default function VenueDetailsPage() {
           submittedBy: venueData.submittedBy,
           verifiedBy: venueData.verifiedBy || '',
           lastUpdatedBy: venueData.lastUpdatedBy || venueData.submittedBy,
-          submissionDate: new Date(venueData.submissionDate),
-          verificationDate: venueData.verificationDate
-            ? new Date(venueData.verificationDate)
-            : undefined,
-          lastUpdatedDate: new Date(venueData.lastUpdatedDate || venueData.submissionDate),
+          submissionDate: new Date(venueData.createdAt || venueData.submissionDate),
+          verificationDate:
+            venueData.verifiedAt || venueData.verificationDate
+              ? new Date(venueData.verifiedAt || venueData.verificationDate)
+              : undefined,
+          lastUpdatedDate: new Date(
+            venueData.updatedAt || venueData.lastUpdatedDate || venueData.createdAt
+          ),
           curatorNotes: venueData.curatorNotes || '',
         }
 

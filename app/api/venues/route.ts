@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       hasJamSession: body.hasJamSession || false,
       venueType: body.venueType ?? 0,
       description: body.description,
-      address: body.address,
+      address: body.address || body.fullAddress, // Support both field names
       phone: body.phone,
       website: body.website,
       amenities: body.amenities || [],

@@ -265,7 +265,7 @@ export default function VenueList() {
           </div>
         )}
 
-        {/* Stats Footer */}
+        {/* Stats Footer - Fixed duplicate */}
         <div className="mt-12 rounded-lg bg-white p-6 shadow-sm">
           <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-4">
             <div>
@@ -285,8 +285,8 @@ export default function VenueList() {
               <div className="text-sm text-gray-600">With Piano</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-orange-600">{venues.length}</div>
-              <div className="text-sm text-gray-600">Total Venues</div>
+              <div className="text-2xl font-bold text-orange-600">{uniqueCities.length}</div>
+              <div className="text-sm text-gray-600">Cities</div>
             </div>
           </div>
         </div>

@@ -73,17 +73,38 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     }
   }
 
-  const updatePermissions = (address: string) => {
+  const updatePermissions = async (address: string) => {
     try {
+      // First, check blog owner locally
       const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
       const isBlogOwner = Boolean(
         BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
       )
-      const isAuthorizedCurator = isBlogOwner // Only owner can be curator in new contract
-      updateState({ isBlogOwner, isAuthorizedCurator })
+
+      // Then check database for curator status
+      const response = await fetch(`/api/auth/permissions?address=${encodeURIComponent(address)}`)
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.permissions) {
+          updateState({
+            isBlogOwner: data.permissions.isBlogOwner,
+            isAuthorizedCurator: data.permissions.isAuthorizedCurator,
+          })
+          return
+        }
+      }
+
+      // Fallback to local check only if API fails
+      updateState({ isBlogOwner, isAuthorizedCurator: isBlogOwner })
     } catch (error) {
       console.warn('Permission update failed:', error)
-      updateState({ isBlogOwner: false, isAuthorizedCurator: false })
+      // Fallback to local blog owner check
+      const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+      const isBlogOwner = Boolean(
+        BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
+      )
+      updateState({ isBlogOwner, isAuthorizedCurator: isBlogOwner })
     }
   }
 
@@ -129,7 +150,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
         error: null,
       })
 
-      updatePermissions(address)
+      await updatePermissions(address)
       return true
     } catch (error: any) {
       console.error('Connection failed:', error)
@@ -237,13 +258,13 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.ethereum) return
 
-    const handleAccountsChanged = (accounts: string[]) => {
+    const handleAccountsChanged = async (accounts: string[]) => {
       try {
         if (accounts.length === 0) {
           disconnect()
         } else if (accounts[0] !== state.walletAddress) {
           updateState({ walletAddress: accounts[0] })
-          updatePermissions(accounts[0])
+          await updatePermissions(accounts[0])
         }
       } catch (error) {
         console.warn('Account change handler failed:', error)
