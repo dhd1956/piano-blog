@@ -72,6 +72,21 @@ export default function SubmitVenue() {
       return
     }
 
+    // Validate email format if provided
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email.trim())) {
+        setError('Please enter a valid email address')
+        return
+      }
+    }
+
+    // Auto-add https:// to website if missing protocol
+    let websiteUrl = formData.website.trim()
+    if (websiteUrl && !websiteUrl.match(/^https?:\/\//i)) {
+      websiteUrl = `https://${websiteUrl}`
+    }
+
     setIsSubmitting(true)
     setSubmitStatus('Submitting venue...')
     setError('')
@@ -82,7 +97,7 @@ export default function SubmitVenue() {
         city: formData.city,
         email: formData.email,
         phone: formData.phone,
-        website: formData.website,
+        website: websiteUrl,
         hasPiano: formData.hasPiano,
         submittedBy: walletAddress || 'anonymous',
       })
@@ -94,10 +109,10 @@ export default function SubmitVenue() {
         body: JSON.stringify({
           name: formData.name,
           city: formData.city,
-          contactInfo: formData.email || formData.phone || formData.website || '',
+          contactInfo: formData.email || formData.phone || websiteUrl || '',
           email: formData.email,
           phone: formData.phone,
-          website: formData.website,
+          website: websiteUrl,
           hasPiano: formData.hasPiano,
           hasJamSession: formData.hasJamSession,
           venueType: formData.venueType,
@@ -277,10 +292,13 @@ export default function SubmitVenue() {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value.trim() })}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
                 placeholder="info@venue.com"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Must be a valid email format (e.g., name@domain.com)
+              </p>
             </div>
 
             {/* Phone */}
@@ -289,9 +307,26 @@ export default function SubmitVenue() {
               <input
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  // Remove all non-digit characters
+                  const digits = e.target.value.replace(/\D/g, '')
+                  // Format as (XXX) XXX-XXXX for North American numbers
+                  let formatted = digits
+                  if (digits.length >= 1) {
+                    formatted = digits.slice(0, 10)
+                    if (digits.length <= 3) {
+                      formatted = `(${digits}`
+                    } else if (digits.length <= 6) {
+                      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+                    } else {
+                      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+                    }
+                  }
+                  setFormData({ ...formData, phone: formatted })
+                }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
                 placeholder="(416) 555-0123"
+                maxLength={14}
               />
             </div>
 
@@ -299,12 +334,15 @@ export default function SubmitVenue() {
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Website</label>
               <input
-                type="url"
+                type="text"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-                placeholder="https://www.venue.com"
+                placeholder="venue.com or https://www.venue.com"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                https:// will be added automatically if not provided
+              </p>
             </div>
           </div>
 

@@ -35,6 +35,11 @@ model Venue {
   tags         String[] // Searchable tags
   priceRange   String?  // Price range indicator
 
+  // Operational details (curator-editable)
+  operatingHours Json?  // Operating hours by day
+  accessibility  Json?  // Accessibility features
+  ambiance       Json?  // Ambiance/atmosphere tags
+
   // Ratings and reviews (PostgreSQL-only)
   rating       Float?   @default(0) // Average rating
   reviewCount  Int      @default(0) // Number of reviews

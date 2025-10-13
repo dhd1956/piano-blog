@@ -49,6 +49,23 @@ export default function CuratorDashboard() {
     description: '',
     address: '',
     updateNotes: '',
+    // Operational details
+    operatingHours: {
+      monday: { open: '09:00', close: '17:00', closed: false },
+      tuesday: { open: '09:00', close: '17:00', closed: false },
+      wednesday: { open: '09:00', close: '17:00', closed: false },
+      thursday: { open: '09:00', close: '17:00', closed: false },
+      friday: { open: '09:00', close: '17:00', closed: false },
+      saturday: { open: '10:00', close: '16:00', closed: false },
+      sunday: { open: '', close: '', closed: true },
+    },
+    accessibility: {
+      wheelchairAccessible: false,
+      elevatorAccess: false,
+      accessibleParking: false,
+      accessibleRestroom: false,
+    },
+    ambiance: [] as string[],
   })
 
   // Load venues from PostgreSQL (simplified for curator dashboard)
@@ -252,6 +269,9 @@ export default function CuratorDashboard() {
           hasPiano: editForm.hasPiano,
           description: editForm.description,
           address: editForm.address,
+          operatingHours: editForm.operatingHours,
+          accessibility: editForm.accessibility,
+          ambiance: editForm.ambiance,
         }),
       })
 
@@ -322,6 +342,22 @@ export default function CuratorDashboard() {
       description: venue.description || '',
       address: venue.address || '',
       updateNotes: '',
+      operatingHours: (venue as any).operatingHours || {
+        monday: { open: '09:00', close: '17:00', closed: false },
+        tuesday: { open: '09:00', close: '17:00', closed: false },
+        wednesday: { open: '09:00', close: '17:00', closed: false },
+        thursday: { open: '09:00', close: '17:00', closed: false },
+        friday: { open: '09:00', close: '17:00', closed: false },
+        saturday: { open: '10:00', close: '16:00', closed: false },
+        sunday: { open: '', close: '', closed: true },
+      },
+      accessibility: (venue as any).accessibility || {
+        wheelchairAccessible: false,
+        elevatorAccess: false,
+        accessibleParking: false,
+        accessibleRestroom: false,
+      },
+      ambiance: (venue as any).ambiance || [],
     })
     setIsEditing(true)
   }
@@ -635,6 +671,203 @@ export default function CuratorDashboard() {
                         className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
                         placeholder="Street address"
                       />
+                    </div>
+
+                    {/* Operational Details Section */}
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <h4 className="mb-3 text-sm font-semibold text-gray-900">
+                        Operational Details (Optional)
+                      </h4>
+
+                      {/* Operating Hours */}
+                      <div className="mb-4">
+                        <label className="mb-2 block text-sm font-medium">Operating Hours</label>
+                        <div className="space-y-2">
+                          {[
+                            'monday',
+                            'tuesday',
+                            'wednesday',
+                            'thursday',
+                            'friday',
+                            'saturday',
+                            'sunday',
+                          ].map((day) => (
+                            <div key={day} className="flex items-center gap-2">
+                              <span className="w-24 text-sm capitalize">{day}:</span>
+                              <input
+                                type="checkbox"
+                                checked={!editForm.operatingHours[day].closed}
+                                onChange={(e) =>
+                                  setEditForm({
+                                    ...editForm,
+                                    operatingHours: {
+                                      ...editForm.operatingHours,
+                                      [day]: {
+                                        ...editForm.operatingHours[day],
+                                        closed: !e.target.checked,
+                                      },
+                                    },
+                                  })
+                                }
+                                className="h-4 w-4"
+                              />
+                              <span className="text-sm">Open</span>
+                              {!editForm.operatingHours[day].closed && (
+                                <>
+                                  <input
+                                    type="time"
+                                    value={editForm.operatingHours[day].open}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        operatingHours: {
+                                          ...editForm.operatingHours,
+                                          [day]: {
+                                            ...editForm.operatingHours[day],
+                                            open: e.target.value,
+                                          },
+                                        },
+                                      })
+                                    }
+                                    className="rounded border px-2 py-1 text-sm"
+                                  />
+                                  <span className="text-sm">to</span>
+                                  <input
+                                    type="time"
+                                    value={editForm.operatingHours[day].close}
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        operatingHours: {
+                                          ...editForm.operatingHours,
+                                          [day]: {
+                                            ...editForm.operatingHours[day],
+                                            close: e.target.value,
+                                          },
+                                        },
+                                      })
+                                    }
+                                    className="rounded border px-2 py-1 text-sm"
+                                  />
+                                </>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Accessibility Features */}
+                      <div className="mb-4">
+                        <label className="mb-2 block text-sm font-medium">
+                          Accessibility Features
+                        </label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={editForm.accessibility.wheelchairAccessible}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  accessibility: {
+                                    ...editForm.accessibility,
+                                    wheelchairAccessible: e.target.checked,
+                                  },
+                                })
+                              }
+                              className="h-4 w-4"
+                            />
+                            <span className="text-sm">Wheelchair Accessible</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={editForm.accessibility.elevatorAccess}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  accessibility: {
+                                    ...editForm.accessibility,
+                                    elevatorAccess: e.target.checked,
+                                  },
+                                })
+                              }
+                              className="h-4 w-4"
+                            />
+                            <span className="text-sm">Elevator Access</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={editForm.accessibility.accessibleParking}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  accessibility: {
+                                    ...editForm.accessibility,
+                                    accessibleParking: e.target.checked,
+                                  },
+                                })
+                              }
+                              className="h-4 w-4"
+                            />
+                            <span className="text-sm">Accessible Parking</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={editForm.accessibility.accessibleRestroom}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  accessibility: {
+                                    ...editForm.accessibility,
+                                    accessibleRestroom: e.target.checked,
+                                  },
+                                })
+                              }
+                              className="h-4 w-4"
+                            />
+                            <span className="text-sm">Accessible Restroom</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Ambiance Tags */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium">Ambiance</label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            'cozy',
+                            'elegant',
+                            'casual',
+                            'modern',
+                            'intimate',
+                            'spacious',
+                            'quiet',
+                            'lively',
+                          ].map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => {
+                                const currentAmbiance = editForm.ambiance || []
+                                const newAmbiance = currentAmbiance.includes(tag)
+                                  ? currentAmbiance.filter((t) => t !== tag)
+                                  : [...currentAmbiance, tag]
+                                setEditForm({ ...editForm, ambiance: newAmbiance })
+                              }}
+                              className={`rounded-full px-3 py-1 text-sm ${
+                                (editForm.ambiance || []).includes(tag)
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
                     <div>
