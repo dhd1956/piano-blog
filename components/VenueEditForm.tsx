@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { Venue, VenueUpdateForm, VENUE_TYPES, PIANO_TYPES, PIANO_CONDITIONS } from '@/types/venue'
+import {
+  Venue,
+  VenueMetadata,
+  VenueUpdateForm,
+  VENUE_TYPES,
+  PIANO_TYPES,
+  PIANO_CONDITIONS,
+} from '@/types/venue'
 import { PermissionCheck } from '@/utils/permissions'
 
 interface VenueEditFormProps {
   venue: Venue
+  extendedData?: VenueMetadata
   permissions: PermissionCheck
   onSave: (updatedData: VenueUpdateForm) => Promise<void>
   onCancel: () => void
@@ -12,6 +20,7 @@ interface VenueEditFormProps {
 
 export default function VenueEditForm({
   venue,
+  extendedData,
   permissions,
   onSave,
   onCancel,
@@ -24,10 +33,29 @@ export default function VenueEditForm({
     venueType: venue.venueType,
     contactType: venue.contactType,
     contactInfo: venue.contactInfo,
-    description: '',
+    description: extendedData?.venueDetails?.description || '',
+    website: extendedData?.venueDetails?.website || '',
     hasPiano: venue.hasPiano,
     hasJamSession: venue.hasJamSession,
-    curatorNotes: venue.curatorNotes || '',
+    pianoType: extendedData?.musicalInfo?.pianoType || '',
+    pianoCondition: extendedData?.musicalInfo?.pianoCondition || '',
+    pianoBrand: extendedData?.musicalInfo?.pianoBrand || '',
+    lastTuned: extendedData?.musicalInfo?.lastTuned || '',
+    jamSchedule: extendedData?.musicalInfo?.jamSchedule || '',
+    jamFrequency: extendedData?.musicalInfo?.jamFrequency || '',
+    jamGenres: extendedData?.musicalInfo?.jamGenres || [],
+    operatingHours: extendedData?.operationalInfo?.operatingHours?.notes || '',
+    wheelchairAccessible:
+      extendedData?.operationalInfo?.accessibility?.wheelchairAccessible || false,
+    parkingAvailable: extendedData?.operationalInfo?.accessibility?.parkingAvailable || false,
+    publicTransportNear: extendedData?.operationalInfo?.accessibility?.publicTransportNear || false,
+    specialNotes: extendedData?.operationalInfo?.ambiance?.atmosphere || '',
+    facebook: extendedData?.venueDetails?.socialMedia?.facebook || '',
+    instagram: extendedData?.venueDetails?.socialMedia?.instagram || '',
+    twitter: extendedData?.venueDetails?.socialMedia?.twitter || '',
+    curatorNotes: extendedData?.curatorInfo?.curatorNotes || venue.curatorNotes || '',
+    curatorRating: extendedData?.curatorInfo?.curatorRating,
+    followUpNeeded: extendedData?.curatorInfo?.followUpNeeded || false,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})

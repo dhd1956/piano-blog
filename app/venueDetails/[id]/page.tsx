@@ -393,6 +393,7 @@ export default function VenueDetailsPage() {
         {isEditing && permissions.canEdit ? (
           <VenueEditForm
             venue={venue}
+            extendedData={extendedData}
             permissions={permissions}
             onSave={updateVenue}
             onCancel={() => setIsEditing(false)}
