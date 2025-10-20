@@ -290,25 +290,19 @@ export default function VenueDetailsPage() {
       if (result.venue) {
         console.log('✅ Venue updated successfully!')
 
-        // Reload venue data
-        await loadVenueData()
-
-        // Exit edit mode
+        // Exit edit mode and navigate back immediately
         setIsEditing(false)
+        setIsSubmitting(false)
 
-        // Show success message and navigate back after a short delay
-        alert('✅ Venue updated successfully!')
-        setTimeout(() => {
-          router.push('/venues')
-        }, 500)
+        // Navigate back to venues list
+        router.push('/venues')
       } else {
         throw new Error(result.error || 'Update failed')
       }
     } catch (error) {
       console.error('Error updating venue:', error)
-      throw error
-    } finally {
       setIsSubmitting(false)
+      alert(`Failed to update venue: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
