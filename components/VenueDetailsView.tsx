@@ -38,7 +38,7 @@ export default function VenueDetailsView({
           {venue.verified && <CAVPaymentSection venue={venue} />}
           <MusicalInformation venue={venue} extendedData={extendedData} />
           <CuratorNotes venue={venue} extendedData={extendedData} />
-          <ContactInformation venue={venue} />
+          <ContactInformation venue={venue} extendedData={extendedData} />
         </div>
       </div>
 
@@ -108,12 +108,16 @@ function ExtendedInformation({ extendedData }: { extendedData?: VenueMetadata })
 
   return (
     <div>
-      <h3 className="mb-3 text-lg font-semibold text-gray-900">About This Venue</h3>
-      <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+      <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+        About This Venue
+      </h3>
+      <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         {details.description && (
           <div>
-            <span className="font-medium text-gray-600">Description:</span>
-            <p className="mt-1 text-sm leading-relaxed text-gray-900">{details.description}</p>
+            <span className="font-medium text-gray-600 dark:text-gray-400">Description:</span>
+            <p className="mt-1 text-sm leading-relaxed break-words text-gray-900 dark:text-gray-100">
+              {details.description}
+            </p>
           </div>
         )}
         {details.website && (
@@ -124,7 +128,7 @@ function ExtendedInformation({ extendedData }: { extendedData?: VenueMetadata })
                 href={details.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 underline hover:text-blue-800"
+                className="break-all text-blue-600 underline hover:text-blue-800"
               >
                 {details.website}
               </a>
@@ -145,8 +149,10 @@ function OperationalDetails({ extendedData }: { extendedData?: VenueMetadata }) 
 
   return (
     <div>
-      <h3 className="mb-3 text-lg font-semibold text-gray-900">Operational Details</h3>
-      <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+      <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+        Operational Details
+      </h3>
+      <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         {operational.operatingHours && (
           <div>
             <span className="font-medium text-gray-600">Operating Hours:</span>
@@ -174,8 +180,10 @@ function VerificationDetails({ venue }: { venue: any }) {
 
   return (
     <div>
-      <h3 className="mb-3 text-lg font-semibold text-gray-900">Verification Details</h3>
-      <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+      <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+        Verification Details
+      </h3>
+      <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         <InfoRow
           label="Submitted"
           value={
@@ -210,8 +218,10 @@ function MusicalInformation({
 
   return (
     <div>
-      <h3 className="mb-3 text-lg font-semibold text-gray-900">Musical Information</h3>
-      <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+      <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+        Musical Information
+      </h3>
+      <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         <div className="flex gap-2">
           {venue.hasPiano && (
             <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">🎹 Piano</span>
@@ -322,21 +332,88 @@ function CuratorNotes({ venue, extendedData }: { venue: Venue; extendedData?: Ve
   )
 }
 
-function ContactInformation({ venue }: { venue: Venue }) {
-  if (!venue.contactInfo) return null
+function ContactInformation({
+  venue,
+  extendedData,
+}: {
+  venue: Venue
+  extendedData?: VenueMetadata
+}) {
+  // Get contact information from different sources
+  const email = venue.contactType === 'email' ? venue.contactInfo : null
+  const phone =
+    extendedData?.venueDetails?.phone || (venue.contactType === 'phone' ? venue.contactInfo : null)
+  const website = extendedData?.venueDetails?.website
+  const otherContact =
+    venue.contactType !== 'email' &&
+    venue.contactType !== 'phone' &&
+    venue.contactType !== 'website'
+      ? venue.contactInfo
+      : null
+
+  // If no contact information at all, don't render the section
+  if (!email && !phone && !website && !otherContact) return null
 
   return (
     <div>
-      <h3 className="mb-3 text-lg font-semibold text-gray-900">Contact Information</h3>
-      <div className="rounded-lg bg-gray-50 p-4">
-        <InfoRow
-          label={
-            venue.contactType
-              ? venue.contactType.charAt(0).toUpperCase() + venue.contactType.slice(1)
-              : 'Contact Info'
-          }
-          value={venue.contactInfo}
-        />
+      <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+        Contact Information
+      </h3>
+      <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+        {/* Email */}
+        {email && (
+          <InfoRow
+            label="Email"
+            value={
+              <a
+                href={`mailto:${email}`}
+                className="break-all text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {email}
+              </a>
+            }
+          />
+        )}
+
+        {/* Phone number */}
+        {phone && (
+          <InfoRow
+            label="Phone"
+            value={
+              <a
+                href={`tel:${phone}`}
+                className="break-all text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {phone}
+              </a>
+            }
+          />
+        )}
+
+        {/* Website */}
+        {website && (
+          <InfoRow
+            label="Website"
+            value={
+              <a
+                href={website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {website}
+              </a>
+            }
+          />
+        )}
+
+        {/* Other contact type */}
+        {otherContact && (
+          <InfoRow
+            label={venue.contactType.charAt(0).toUpperCase() + venue.contactType.slice(1)}
+            value={otherContact}
+          />
+        )}
       </div>
     </div>
   )
@@ -357,11 +434,13 @@ function VenueMetaFooter({ venue }: { venue: Venue }) {
 // Helper components
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between">
-      <span className="mr-3 min-w-0 flex-shrink-0 font-medium text-gray-600 dark:text-gray-400">
+    <div className="flex items-start justify-between gap-2">
+      <span className="mr-1 flex-shrink-0 font-medium text-gray-600 dark:text-gray-400">
         {label}:
       </span>
-      <span className="min-w-0 text-right text-gray-900 dark:text-gray-100">{value}</span>
+      <span className="min-w-0 flex-1 text-right break-words text-gray-900 dark:text-gray-100">
+        {value}
+      </span>
     </div>
   )
 }

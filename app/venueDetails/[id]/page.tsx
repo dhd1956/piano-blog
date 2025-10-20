@@ -150,7 +150,7 @@ export default function VenueDetailsPage() {
         console.log('🔍 Venue loaded from database:', processedVenue.name)
 
         // Load extended data from venue metadata if available
-        if (venueData.description || venueData.website) {
+        if (venueData.description || venueData.website || venueData.phone) {
           setExtendedData({
             venueDetails: {
               fullName: venueData.name,
@@ -159,6 +159,7 @@ export default function VenueDetailsPage() {
               city: venueData.city,
               contactInfo: venueData.contactInfo,
               contactType: venueData.contactType,
+              phone: venueData.phone || '',
               website: venueData.website || '',
               socialMedia: {
                 facebook: venueData.facebook,

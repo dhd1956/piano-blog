@@ -56,6 +56,7 @@ export interface VenueMetadata {
     city: string
     contactInfo?: string
     contactType?: string
+    phone?: string
     website?: string
     socialMedia?: {
       facebook?: string

@@ -164,6 +164,39 @@ export const VenueService = {
     amenities?: string[]
     tags?: string[]
   }) {
+    // Check for duplicate venue by name and city
+    const existingVenue = await prisma.venue.findFirst({
+      where: {
+        name: { equals: data.name, mode: 'insensitive' },
+        city: { equals: data.city, mode: 'insensitive' },
+      },
+    })
+
+    if (existingVenue) {
+      const error: any = new Error(
+        `A venue named "${data.name}" in ${data.city} already exists. If this is a different location, please add a distinguishing detail to the name (e.g., "${data.name} - Downtown").`
+      )
+      error.code = 'DUPLICATE_VENUE'
+      error.existingVenueId = existingVenue.id
+      throw error
+    }
+
+    // Check for similar venues (optional warning)
+    const similarVenues = await prisma.venue.findMany({
+      where: {
+        OR: [
+          {
+            name: { contains: data.name, mode: 'insensitive' },
+            city: { equals: data.city, mode: 'insensitive' },
+          },
+          {
+            address: data.address ? { contains: data.address, mode: 'insensitive' } : undefined,
+          },
+        ],
+      },
+      take: 3,
+    })
+
     // Generate slug
     const baseSlug = data.name
       .toLowerCase()
@@ -183,20 +216,59 @@ export const VenueService = {
     let venueHash: string | undefined
     try {
       venueHash = await pxpService.generateVenueHash(data.name, data.city, data.submittedBy)
-    } catch (error) {
+
+      // Check if venue hash already exists
+      const existingHash = await prisma.venue.findUnique({
+        where: { venueHash },
+      })
+
+      if (existingHash) {
+        const error: any = new Error(
+          `This venue has already been submitted. The combination of venue name, city, and your address creates a unique identifier that matches an existing venue.`
+        )
+        error.code = 'DUPLICATE_VENUE_HASH'
+        error.existingVenueId = existingHash.id
+        throw error
+      }
+    } catch (error: any) {
+      if (error.code === 'DUPLICATE_VENUE_HASH') {
+        throw error
+      }
       console.warn('Could not generate venue hash:', error)
     }
 
     // Create venue immediately in PostgreSQL
-    return prisma.venue.create({
-      data: {
-        ...data,
-        slug,
-        venueHash,
-        tags: data.tags || [],
-        amenities: data.amenities || [],
-      },
-    })
+    try {
+      return await prisma.venue.create({
+        data: {
+          ...data,
+          slug,
+          venueHash,
+          tags: data.tags || [],
+          amenities: data.amenities || [],
+        },
+      })
+    } catch (error: any) {
+      // Handle Prisma unique constraint errors
+      if (error.code === 'P2002') {
+        const target = error.meta?.target
+        if (target?.includes('slug')) {
+          const detailError: any = new Error(
+            `A venue with a similar name already exists. Please try a slightly different name.`
+          )
+          detailError.code = 'DUPLICATE_SLUG'
+          throw detailError
+        }
+        if (target?.includes('venueHash')) {
+          const detailError: any = new Error(
+            `This venue has already been submitted by you. Please check the venues list.`
+          )
+          detailError.code = 'DUPLICATE_VENUE_HASH'
+          throw detailError
+        }
+      }
+      throw error
+    }
   },
 
   /**

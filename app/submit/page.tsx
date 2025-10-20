@@ -23,7 +23,7 @@ export default function SubmitVenue() {
 
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
-    city: 'Toronto',
+    city: '',
     email: '',
     phone: '',
     website: '',
@@ -130,7 +130,7 @@ export default function SubmitVenue() {
         // Reset form
         setFormData({
           name: '',
-          city: 'Toronto',
+          city: '',
           email: '',
           phone: '',
           website: '',
@@ -145,8 +145,37 @@ export default function SubmitVenue() {
         fetchVenueCount()
       } else {
         const errorResult = await response.json()
-        console.error('❌ Venue submission failed:', errorResult.error)
-        setError(errorResult.error || 'Failed to submit venue')
+        console.error('❌ Venue submission failed:', errorResult)
+
+        // Handle duplicate venue errors with helpful messages
+        if (errorResult.errorCode === 'DUPLICATE_VENUE') {
+          if (errorResult.existingVenueId) {
+            setError(
+              `${errorResult.error || 'Duplicate venue detected.'} View the existing venue at /venueDetails/${errorResult.existingVenueId}`
+            )
+          } else {
+            setError(errorResult.error || 'A venue with this name already exists in this city.')
+          }
+        } else if (errorResult.errorCode === 'DUPLICATE_VENUE_HASH') {
+          if (errorResult.existingVenueId) {
+            setError(
+              `${errorResult.error || 'You have already submitted this venue.'} View it at /venueDetails/${errorResult.existingVenueId}`
+            )
+          } else {
+            setError(
+              errorResult.error || 'This venue has already been submitted with your wallet address.'
+            )
+          }
+        } else if (errorResult.errorCode === 'DUPLICATE_SLUG') {
+          setError(
+            errorResult.error ||
+              'A venue with a very similar name already exists. Please try adding more details to make it unique (e.g., street name, neighborhood).'
+          )
+        } else {
+          // Generic error
+          setError(errorResult.error || 'Failed to submit venue. Please try again.')
+        }
+
         setSubmitStatus('')
       }
     } catch (error: any) {

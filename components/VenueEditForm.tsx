@@ -116,7 +116,7 @@ export default function VenueEditForm({
               type="text"
               value={formData.city}
               onChange={(e) => handleInputChange('city', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               maxLength={32}
               placeholder="Toronto"
             />
@@ -129,7 +129,7 @@ export default function VenueEditForm({
             type="text"
             value={formData.fullAddress}
             onChange={(e) => handleInputChange('fullAddress', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             placeholder="456 Queen Street West, Toronto, ON M5V 2A8"
           />
         </FormField>
@@ -139,7 +139,7 @@ export default function VenueEditForm({
           <select
             value={formData.venueType}
             onChange={(e) => handleInputChange('venueType', parseInt(e.target.value))}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {VENUE_TYPES.map((type, index) => (
               <option key={index} value={index}>
@@ -155,7 +155,7 @@ export default function VenueEditForm({
             <select
               value={formData.contactType}
               onChange={(e) => handleInputChange('contactType', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             >
               <option value="email">Email</option>
               <option value="phone">Phone</option>
@@ -169,7 +169,7 @@ export default function VenueEditForm({
               type="text"
               value={formData.contactInfo || ''}
               onChange={(e) => handleInputChange('contactInfo', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               placeholder="manager@venue.com"
             />
           </FormField>
@@ -177,16 +177,16 @@ export default function VenueEditForm({
 
         {/* Features */}
         <div>
-          <h3 className="mb-3 text-lg font-semibold text-gray-900">Features</h3>
+          <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">Features</h3>
           <div className="space-y-3">
             <label className="flex items-center">
               <input
                 type="checkbox"
                 checked={formData.hasPiano}
                 onChange={(e) => handleInputChange('hasPiano', e.target.checked)}
-                className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
               />
-              <span className="text-gray-700">🎹 Has Piano Available</span>
+              <span className="text-gray-700 dark:text-gray-300">🎹 Has Piano Available</span>
             </label>
 
             <label className="flex items-center">
@@ -194,19 +194,19 @@ export default function VenueEditForm({
                 type="checkbox"
                 checked={formData.hasJamSession}
                 onChange={(e) => handleInputChange('hasJamSession', e.target.checked)}
-                className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
               />
-              <span className="text-gray-700">🎵 Hosts Jam Sessions</span>
+              <span className="text-gray-700 dark:text-gray-300">🎵 Hosts Jam Sessions</span>
             </label>
           </div>
         </div>
 
         {/* Advanced Options Toggle */}
-        <div className="border-t pt-6">
+        <div className="border-t border-gray-200 pt-6 dark:border-gray-700">
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 font-medium text-blue-600 hover:text-blue-800"
+            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-2 font-medium"
           >
             {showAdvanced ? '▼' : '▶'} Advanced Options
           </button>
@@ -214,7 +214,7 @@ export default function VenueEditForm({
 
         {/* Advanced Options */}
         {showAdvanced && (
-          <div className="space-y-6 border-t pt-6">
+          <div className="space-y-6 border-t border-gray-200 pt-6 dark:border-gray-700">
             {/* Piano Details */}
             {formData.hasPiano && (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -222,7 +222,7 @@ export default function VenueEditForm({
                   <select
                     value={formData.pianoType || ''}
                     onChange={(e) => handleInputChange('pianoType', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                    className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   >
                     <option value="">Select Type</option>
                     {PIANO_TYPES.map((type) => (
@@ -237,7 +237,7 @@ export default function VenueEditForm({
                   <select
                     value={formData.pianoCondition || ''}
                     onChange={(e) => handleInputChange('pianoCondition', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                    className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   >
                     <option value="">Select Condition</option>
                     {PIANO_CONDITIONS.map((condition) => (
@@ -257,7 +257,7 @@ export default function VenueEditForm({
                   value={formData.jamSchedule || ''}
                   onChange={(e) => handleInputChange('jamSchedule', e.target.value)}
                   rows={2}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="e.g., Every Friday 8-11 PM, Open mic nights"
                 />
               </FormField>
@@ -269,7 +269,7 @@ export default function VenueEditForm({
                 value={formData.operatingHours || ''}
                 onChange={(e) => handleInputChange('operatingHours', e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Mon-Thu: 7 AM - 11 PM, Fri-Sat: 7 AM - 12 AM, Sun: 8 AM - 10 PM"
               />
             </FormField>
@@ -280,7 +280,7 @@ export default function VenueEditForm({
                 type="url"
                 value={formData.website || ''}
                 onChange={(e) => handleInputChange('website', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="https://www.venue.com"
               />
             </FormField>
@@ -292,7 +292,7 @@ export default function VenueEditForm({
                   type="url"
                   value={formData.facebook || ''}
                   onChange={(e) => handleInputChange('facebook', e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="Facebook URL"
                 />
               </FormField>
@@ -302,7 +302,7 @@ export default function VenueEditForm({
                   type="url"
                   value={formData.instagram || ''}
                   onChange={(e) => handleInputChange('instagram', e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="Instagram URL"
                 />
               </FormField>
@@ -312,7 +312,7 @@ export default function VenueEditForm({
                   type="url"
                   value={formData.twitter || ''}
                   onChange={(e) => handleInputChange('twitter', e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="Twitter URL"
                 />
               </FormField>
@@ -320,16 +320,16 @@ export default function VenueEditForm({
 
             {/* Accessibility Options */}
             <div>
-              <h4 className="mb-3 font-medium text-gray-900">Accessibility</h4>
+              <h4 className="mb-3 font-medium text-gray-900 dark:text-gray-100">Accessibility</h4>
               <div className="space-y-3">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={formData.wheelchairAccessible || false}
                     onChange={(e) => handleInputChange('wheelchairAccessible', e.target.checked)}
-                    className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                   />
-                  <span className="text-gray-700">♿ Wheelchair Accessible</span>
+                  <span className="text-gray-700 dark:text-gray-300">♿ Wheelchair Accessible</span>
                 </label>
 
                 <label className="flex items-center">
@@ -337,9 +337,9 @@ export default function VenueEditForm({
                     type="checkbox"
                     checked={formData.parkingAvailable || false}
                     onChange={(e) => handleInputChange('parkingAvailable', e.target.checked)}
-                    className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                   />
-                  <span className="text-gray-700">🅿️ Parking Available</span>
+                  <span className="text-gray-700 dark:text-gray-300">🅿️ Parking Available</span>
                 </label>
 
                 <label className="flex items-center">
@@ -347,9 +347,9 @@ export default function VenueEditForm({
                     type="checkbox"
                     checked={formData.publicTransportNear || false}
                     onChange={(e) => handleInputChange('publicTransportNear', e.target.checked)}
-                    className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                    className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                   />
-                  <span className="text-gray-700">🚇 Near Public Transport</span>
+                  <span className="text-gray-700 dark:text-gray-300">🚇 Near Public Transport</span>
                 </label>
               </div>
             </div>
@@ -360,7 +360,7 @@ export default function VenueEditForm({
                 value={formData.specialNotes || ''}
                 onChange={(e) => handleInputChange('specialNotes', e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Any special instructions, rules, or notes about this venue..."
               />
             </FormField>
@@ -369,15 +369,17 @@ export default function VenueEditForm({
 
         {/* Curator-Only Section */}
         {(permissions.isBlogOwner || permissions.isVenueCurator) && (
-          <div className="rounded-lg border-t bg-amber-50 p-4 pt-6">
-            <h3 className="mb-3 text-lg font-semibold text-gray-900">Curator Section</h3>
+          <div className="rounded-lg border-t border-gray-200 bg-amber-50 p-4 pt-6 dark:border-gray-700 dark:bg-amber-900/20">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Curator Section
+            </h3>
 
             <FormField label="Curator Notes">
               <textarea
                 value={formData.curatorNotes || venue.curatorNotes}
                 onChange={(e) => handleInputChange('curatorNotes', e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Internal notes for curators and venue management..."
               />
             </FormField>
@@ -388,7 +390,7 @@ export default function VenueEditForm({
                   <select
                     value={formData.curatorRating || ''}
                     onChange={(e) => handleInputChange('curatorRating', parseInt(e.target.value))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                    className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   >
                     <option value="">No Rating</option>
                     <option value={5}>⭐⭐⭐⭐⭐ Excellent</option>
@@ -405,9 +407,9 @@ export default function VenueEditForm({
                       type="checkbox"
                       checked={formData.followUpNeeded || false}
                       onChange={(e) => handleInputChange('followUpNeeded', e.target.checked)}
-                      className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                      className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                     />
-                    <span className="text-gray-700">Follow-up Required</span>
+                    <span className="text-gray-700 dark:text-gray-300">Follow-up Required</span>
                   </label>
                 </div>
               </div>
@@ -416,7 +418,7 @@ export default function VenueEditForm({
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-4 border-t pt-6">
+        <div className="flex justify-end gap-4 border-t border-gray-200 pt-6 dark:border-gray-700">
           <button
             type="button"
             onClick={onCancel}

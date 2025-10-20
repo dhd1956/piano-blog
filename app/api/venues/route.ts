@@ -118,10 +118,55 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Venue submission error:', error)
 
+    // Handle duplicate venue errors with specific messages
+    if (error.code === 'DUPLICATE_VENUE' || error.code === 'DUPLICATE_VENUE_HASH') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+          errorCode: error.code,
+          existingVenueId: error.existingVenueId,
+        },
+        {
+          status: 409, // Conflict
+        }
+      )
+    }
+
+    if (error.code === 'DUPLICATE_SLUG') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+          errorCode: error.code,
+        },
+        {
+          status: 409, // Conflict
+        }
+      )
+    }
+
+    // Handle Prisma unique constraint violations
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'This venue appears to be a duplicate. A venue with the same name or details already exists.',
+          errorCode: 'DUPLICATE_VENUE',
+          details: error.message,
+        },
+        {
+          status: 409,
+        }
+      )
+    }
+
+    // Generic error
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to submit venue',
+        error: 'Failed to submit venue. Please try again.',
         details: error.message,
       },
       {

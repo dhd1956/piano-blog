@@ -111,7 +111,34 @@ export default function SubmitVenue() {
           tags: [],
         })
       } else {
-        setError(data.error || 'Failed to submit venue')
+        // Handle duplicate venue errors with helpful messages
+        if (data.errorCode === 'DUPLICATE_VENUE') {
+          if (data.existingVenueId) {
+            setError(
+              `${data.error || 'Duplicate venue detected.'} View the existing venue at /venueDetails/${data.existingVenueId}`
+            )
+          } else {
+            setError(data.error || 'A venue with this name already exists in this city.')
+          }
+        } else if (data.errorCode === 'DUPLICATE_VENUE_HASH') {
+          if (data.existingVenueId) {
+            setError(
+              `${data.error || 'You have already submitted this venue.'} View it at /venueDetails/${data.existingVenueId}`
+            )
+          } else {
+            setError(
+              data.error || 'This venue has already been submitted with your wallet address.'
+            )
+          }
+        } else if (data.errorCode === 'DUPLICATE_SLUG') {
+          setError(
+            data.error ||
+              'A venue with a very similar name already exists. Please try adding more details to make it unique (e.g., street name, neighborhood).'
+          )
+        } else {
+          // Generic error
+          setError(data.error || 'Failed to submit venue. Please try again.')
+        }
       }
     } catch (error: any) {
       console.error('Submission error:', error)
