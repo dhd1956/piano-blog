@@ -295,6 +295,9 @@ export default function VenueDetailsPage() {
 
         // Exit edit mode
         setIsEditing(false)
+
+        // Show success message
+        alert('✅ Venue updated successfully! Changes will appear on the venue list.')
       } else {
         throw new Error(result.error || 'Update failed')
       }

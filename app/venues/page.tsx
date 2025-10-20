@@ -82,6 +82,21 @@ export default function VenueList() {
     loadVenues()
   }, [])
 
+  // Reload venues when page becomes visible (e.g., when navigating back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadVenues()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-900">
