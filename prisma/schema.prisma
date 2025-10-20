@@ -35,10 +35,30 @@ model Venue {
   tags         String[] // Searchable tags
   priceRange   String?  // Price range indicator
 
+  // Piano-specific fields
+  pianoType      String?  // Grand, Upright, Digital, etc.
+  pianoCondition String?  // Excellent, Good, Fair, Needs Tuning
+  pianoBrand     String?  // Yamaha, Steinway, etc.
+  lastTuned      String?  // Date or description of last tuning
+
+  // Jam session fields
+  jamSchedule    String?  // Description of jam session schedule
+  jamFrequency   String?  // Weekly, Monthly, etc.
+  jamGenres      String[] // Array of music genres
+
   // Operational details (curator-editable)
-  operatingHours Json?  // Operating hours by day
-  accessibility  Json?  // Accessibility features
-  ambiance       Json?  // Ambiance/atmosphere tags
+  operatingHours       String?  @db.Text // Operating hours description
+  wheelchairAccessible Boolean  @default(false)
+  parkingAvailable     Boolean  @default(false)
+  publicTransportNear  Boolean  @default(false)
+  specialNotes         String?  @db.Text // Special notes/atmosphere
+  accessibility        Json?    // Additional accessibility features
+  ambiance             Json?    // Ambiance/atmosphere tags
+
+  // Curator fields
+  curatorNotes   String?  @db.Text // Internal curator notes
+  curatorRating  Int?     // 1-5 curator rating
+  followUpNeeded Boolean  @default(false) // Flag for follow-up needed
 
   // Ratings and reviews (PostgreSQL-only)
   rating       Float?   @default(0) // Average rating

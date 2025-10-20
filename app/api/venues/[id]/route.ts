@@ -89,6 +89,31 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.website !== undefined) updateData.website = body.website
     if (body.phone !== undefined) updateData.phone = body.phone
 
+    // Piano-specific fields
+    if (body.pianoType !== undefined) updateData.pianoType = body.pianoType
+    if (body.pianoCondition !== undefined) updateData.pianoCondition = body.pianoCondition
+    if (body.pianoBrand !== undefined) updateData.pianoBrand = body.pianoBrand
+    if (body.lastTuned !== undefined) updateData.lastTuned = body.lastTuned
+
+    // Jam session fields
+    if (body.jamSchedule !== undefined) updateData.jamSchedule = body.jamSchedule
+    if (body.jamFrequency !== undefined) updateData.jamFrequency = body.jamFrequency
+    if (body.jamGenres !== undefined) updateData.jamGenres = body.jamGenres
+
+    // Operational details
+    if (body.operatingHours !== undefined) updateData.operatingHours = body.operatingHours
+    if (body.wheelchairAccessible !== undefined)
+      updateData.wheelchairAccessible = body.wheelchairAccessible
+    if (body.parkingAvailable !== undefined) updateData.parkingAvailable = body.parkingAvailable
+    if (body.publicTransportNear !== undefined)
+      updateData.publicTransportNear = body.publicTransportNear
+    if (body.specialNotes !== undefined) updateData.specialNotes = body.specialNotes
+
+    // Curator fields
+    if (body.curatorNotes !== undefined) updateData.curatorNotes = body.curatorNotes
+    if (body.curatorRating !== undefined) updateData.curatorRating = body.curatorRating
+    if (body.followUpNeeded !== undefined) updateData.followUpNeeded = body.followUpNeeded
+
     // Social media - combine into socialLinks JSON
     const socialLinks: any = {}
     if (body.facebook !== undefined) socialLinks.facebook = body.facebook
@@ -97,30 +122,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (Object.keys(socialLinks).length > 0) {
       updateData.socialLinks = socialLinks
     }
-
-    // Operational info - combine into operatingHours JSON
-    if (body.operatingHours !== undefined) {
-      updateData.operatingHours = { notes: body.operatingHours }
-    }
-
-    // Accessibility - combine into accessibility JSON
-    const accessibility: any = {}
-    if (body.wheelchairAccessible !== undefined)
-      accessibility.wheelchairAccessible = body.wheelchairAccessible
-    if (body.parkingAvailable !== undefined) accessibility.parkingAvailable = body.parkingAvailable
-    if (body.publicTransportNear !== undefined)
-      accessibility.publicTransportNear = body.publicTransportNear
-    if (Object.keys(accessibility).length > 0) {
-      updateData.accessibility = accessibility
-    }
-
-    // Special notes -> ambiance
-    if (body.specialNotes !== undefined) {
-      updateData.ambiance = { atmosphere: body.specialNotes }
-    }
-
-    // Note: Piano/Jam/Curator fields are not in the simplified schema
-    // They would need to be added to schema or stored in a separate table
 
     // Update venue
     const updatedVenue = await prisma.venue.update({
