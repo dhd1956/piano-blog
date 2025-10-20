@@ -78,13 +78,54 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    // Update venue (this would require authentication in production)
+    // Map frontend fields to database schema
+    const updateData: any = {}
+
+    // Basic fields
+    if (body.name !== undefined) updateData.name = body.name
+    if (body.description !== undefined) updateData.description = body.description
+    if (body.fullAddress !== undefined) updateData.address = body.fullAddress // Map fullAddress -> address
+    if (body.contactInfo !== undefined) updateData.contactInfo = body.contactInfo
+    if (body.website !== undefined) updateData.website = body.website
+    if (body.phone !== undefined) updateData.phone = body.phone
+
+    // Social media - combine into socialLinks JSON
+    const socialLinks: any = {}
+    if (body.facebook !== undefined) socialLinks.facebook = body.facebook
+    if (body.instagram !== undefined) socialLinks.instagram = body.instagram
+    if (body.twitter !== undefined) socialLinks.twitter = body.twitter
+    if (Object.keys(socialLinks).length > 0) {
+      updateData.socialLinks = socialLinks
+    }
+
+    // Operational info - combine into operatingHours JSON
+    if (body.operatingHours !== undefined) {
+      updateData.operatingHours = { notes: body.operatingHours }
+    }
+
+    // Accessibility - combine into accessibility JSON
+    const accessibility: any = {}
+    if (body.wheelchairAccessible !== undefined)
+      accessibility.wheelchairAccessible = body.wheelchairAccessible
+    if (body.parkingAvailable !== undefined) accessibility.parkingAvailable = body.parkingAvailable
+    if (body.publicTransportNear !== undefined)
+      accessibility.publicTransportNear = body.publicTransportNear
+    if (Object.keys(accessibility).length > 0) {
+      updateData.accessibility = accessibility
+    }
+
+    // Special notes -> ambiance
+    if (body.specialNotes !== undefined) {
+      updateData.ambiance = { atmosphere: body.specialNotes }
+    }
+
+    // Note: Piano/Jam/Curator fields are not in the simplified schema
+    // They would need to be added to schema or stored in a separate table
+
+    // Update venue
     const updatedVenue = await prisma.venue.update({
       where: { id: venueId },
-      data: {
-        ...body,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     })
 
     return NextResponse.json({
