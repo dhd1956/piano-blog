@@ -164,7 +164,7 @@ export interface VenueSubmissionForm {
   lastTuned?: string
   jamSchedule?: string
   jamFrequency?: string
-  jamGenres?: string
+  jamGenres?: string[]
   operatingHours?: string
   specialNotes?: string
 

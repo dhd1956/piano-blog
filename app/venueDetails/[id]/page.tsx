@@ -149,64 +149,62 @@ export default function VenueDetailsPage() {
 
         console.log('🔍 Venue loaded from database:', processedVenue.name)
 
-        // Load extended data from venue metadata if available
-        if (venueData.description || venueData.website || venueData.phone) {
-          setExtendedData({
-            venueDetails: {
-              fullName: venueData.name,
-              description: venueData.description || '',
-              fullAddress: venueData.fullAddress || '',
-              city: venueData.city,
-              contactInfo: venueData.contactInfo,
-              contactType: venueData.contactType,
-              phone: venueData.phone || '',
-              website: venueData.website || '',
-              socialMedia: {
-                facebook: venueData.facebook,
-                instagram: venueData.instagram,
-                twitter: venueData.twitter,
-              },
+        // Always load extended data (not just when description/website/phone exist)
+        setExtendedData({
+          venueDetails: {
+            fullName: venueData.name,
+            description: venueData.description || '',
+            fullAddress: venueData.fullAddress || '',
+            city: venueData.city,
+            contactInfo: venueData.contactInfo,
+            contactType: venueData.contactType,
+            phone: venueData.phone || '',
+            website: venueData.website || '',
+            socialMedia: {
+              facebook: venueData.facebook,
+              instagram: venueData.instagram,
+              twitter: venueData.twitter,
             },
-            musicalInfo: {
-              hasPiano: venueData.hasPiano,
-              hasJamSession: venueData.hasJamSession || false,
-              pianoType: venueData.pianoType,
-              pianoCondition: venueData.pianoCondition,
-              pianoBrand: venueData.pianoBrand,
-              lastTuned: venueData.lastTuned,
-              jamSchedule: venueData.jamSchedule,
-              jamFrequency: venueData.jamFrequency,
-              jamGenres: venueData.jamGenres || [],
+          },
+          musicalInfo: {
+            hasPiano: venueData.hasPiano,
+            hasJamSession: venueData.hasJamSession || false,
+            pianoType: venueData.pianoType,
+            pianoCondition: venueData.pianoCondition,
+            pianoBrand: venueData.pianoBrand,
+            lastTuned: venueData.lastTuned,
+            jamSchedule: venueData.jamSchedule,
+            jamFrequency: venueData.jamFrequency,
+            jamGenres: venueData.jamGenres || [],
+          },
+          operationalInfo: {
+            operatingHours: venueData.operatingHours
+              ? {
+                  notes: venueData.operatingHours,
+                }
+              : undefined,
+            accessibility: {
+              wheelchairAccessible: venueData.wheelchairAccessible || false,
+              parkingAvailable: venueData.parkingAvailable || false,
+              publicTransportNear: venueData.publicTransportNear || false,
             },
-            operationalInfo: {
-              operatingHours: venueData.operatingHours
-                ? {
-                    notes: venueData.operatingHours,
-                  }
-                : undefined,
-              accessibility: {
-                wheelchairAccessible: venueData.wheelchairAccessible || false,
-                parkingAvailable: venueData.parkingAvailable || false,
-                publicTransportNear: venueData.publicTransportNear || false,
-              },
-              ambiance: {
-                atmosphere: venueData.specialNotes || undefined,
-              },
+            ambiance: {
+              atmosphere: venueData.specialNotes || undefined,
             },
-            submissionInfo: {
-              submittedBy: venueData.submittedBy,
-              submissionDate: venueData.submissionDate,
-              verified: venueData.verified,
-              version: 1,
-              lastUpdated: venueData.lastUpdatedDate || venueData.submissionDate,
-            },
-            curatorInfo: {
-              curatorNotes: venueData.curatorNotes || '',
-              curatorRating: venueData.curatorRating,
-              followUpNeeded: venueData.followUpNeeded || false,
-            },
-          })
-        }
+          },
+          submissionInfo: {
+            submittedBy: venueData.submittedBy,
+            submissionDate: venueData.submissionDate,
+            verified: venueData.verified,
+            version: 1,
+            lastUpdated: venueData.lastUpdatedDate || venueData.submissionDate,
+          },
+          curatorInfo: {
+            curatorNotes: venueData.curatorNotes || '',
+            curatorRating: venueData.curatorRating,
+            followUpNeeded: venueData.followUpNeeded || false,
+          },
+        })
       } else {
         setError(result.error || 'Venue not found')
       }
