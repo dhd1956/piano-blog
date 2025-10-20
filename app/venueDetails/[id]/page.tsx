@@ -296,8 +296,11 @@ export default function VenueDetailsPage() {
         // Exit edit mode
         setIsEditing(false)
 
-        // Show success message
-        alert('✅ Venue updated successfully! Changes will appear on the venue list.')
+        // Show success message and navigate back after a short delay
+        alert('✅ Venue updated successfully!')
+        setTimeout(() => {
+          router.push('/venues')
+        }, 500)
       } else {
         throw new Error(result.error || 'Update failed')
       }
