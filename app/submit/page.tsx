@@ -38,6 +38,7 @@ export default function SubmitVenue() {
   const [submitStatus, setSubmitStatus] = useState<string>('')
   const [venueCount, setVenueCount] = useState<number>(0)
   const [error, setError] = useState<string>('')
+  const [emailError, setEmailError] = useState<string>('')
 
   // Fetch current venue count from PostgreSQL API
   const fetchVenueCount = async () => {
@@ -76,10 +77,20 @@ export default function SubmitVenue() {
     if (formData.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(formData.email.trim())) {
-        setError('Please enter a valid email address')
+        setEmailError(
+          'Invalid email format. Please enter a valid email address (e.g., info@venue.com)'
+        )
+        setError('❌ Email validation failed: Please check the email address format')
+        // Scroll to email field
+        document
+          .getElementById('email-field')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         return
       }
     }
+
+    // Clear email error if validation passes
+    setEmailError('')
 
     // Auto-add https:// to website if missing protocol
     let websiteUrl = formData.website.trim()
@@ -316,18 +327,31 @@ export default function SubmitVenue() {
             </h3>
 
             {/* Email */}
-            <div>
+            <div id="email-field">
               <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
               <input
-                type="email"
+                type="text"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value.trim() })}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value })
+                  // Clear email error when user types
+                  if (emailError) setEmailError('')
+                }}
+                className={`w-full rounded-lg border px-3 py-2 text-base text-gray-900 focus:ring-2 ${
+                  emailError
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 bg-white focus:ring-blue-500'
+                }`}
                 placeholder="info@venue.com"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Must be a valid email format (e.g., name@domain.com)
-              </p>
+              {emailError && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {emailError}</p>
+              )}
+              {!emailError && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Must be a valid email format (e.g., name@domain.com)
+                </p>
+              )}
             </div>
 
             {/* Phone */}
