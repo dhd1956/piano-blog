@@ -85,7 +85,8 @@ export default function VenueList() {
   // Reload venues when page becomes visible (e.g., when navigating back)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      // Only reload if page was hidden and is now visible
+      if (document.visibilityState === 'visible' && !loading) {
         loadVenues()
       }
     }
@@ -95,7 +96,7 @@ export default function VenueList() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [])
+  }, [loading])
 
   if (loading) {
     return (
