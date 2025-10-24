@@ -39,6 +39,11 @@ export default function SubmitVenue() {
   const [venueCount, setVenueCount] = useState<number>(0)
   const [error, setError] = useState<string>('')
   const [emailError, setEmailError] = useState<string>('')
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string
+    city?: string
+    address?: string
+  }>({})
 
   // Fetch current venue count from PostgreSQL API
   const fetchVenueCount = async () => {
@@ -61,9 +66,32 @@ export default function SubmitVenue() {
   const handleSubmitVenue = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate required fields
-    if (!formData.name || !formData.city || !formData.address) {
-      setError('Please fill in all required fields')
+    // Clear previous errors
+    setFieldErrors({})
+    setEmailError('')
+    setError('')
+
+    // Validate required fields with specific error messages
+    const errors: { name?: string; city?: string; address?: string } = {}
+
+    if (!formData.name || !formData.name.trim()) {
+      errors.name = 'Venue name is required'
+    }
+    if (!formData.city || !formData.city.trim()) {
+      errors.city = 'City is required'
+    }
+    if (!formData.address || !formData.address.trim()) {
+      errors.address = 'Full address is required'
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      setError('❌ Please fill in all required fields (marked with *)')
+      // Scroll to first error field
+      const firstErrorField = Object.keys(errors)[0]
+      document
+        .getElementById(`${firstErrorField}-field`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
 
@@ -280,44 +308,71 @@ export default function SubmitVenue() {
         <form onSubmit={handleSubmitVenue} className="space-y-6">
           {/* Basic Info */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
+            <div id="name-field">
               <label className="mb-2 block text-sm font-medium text-gray-700">Venue Name *</label>
               <input
                 type="text"
-                required
                 maxLength={64}
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-                placeholder="Jazz Cafe Toronto"
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value })
+                  if (fieldErrors.name) setFieldErrors({ ...fieldErrors, name: undefined })
+                }}
+                className={`w-full rounded-lg border px-3 py-2 text-base text-gray-900 focus:ring-2 ${
+                  fieldErrors.name
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 bg-white focus:ring-blue-500'
+                }`}
+                placeholder="e.g., Jazz Cafe Toronto"
               />
+              {fieldErrors.name && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.name}</p>
+              )}
             </div>
 
-            <div>
+            <div id="city-field">
               <label className="mb-2 block text-sm font-medium text-gray-700">City *</label>
               <input
                 type="text"
-                required
                 maxLength={32}
                 value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-                placeholder="Toronto"
+                onChange={(e) => {
+                  setFormData({ ...formData, city: e.target.value })
+                  if (fieldErrors.city) setFieldErrors({ ...fieldErrors, city: undefined })
+                }}
+                className={`w-full rounded-lg border px-3 py-2 text-base text-gray-900 focus:ring-2 ${
+                  fieldErrors.city
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 bg-white focus:ring-blue-500'
+                }`}
+                placeholder="e.g., Toronto"
               />
+              {fieldErrors.city && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.city}</p>
+              )}
             </div>
           </div>
 
           {/* Address */}
-          <div>
+          <div id="address-field">
             <label className="mb-2 block text-sm font-medium text-gray-700">Full Address *</label>
             <input
               type="text"
-              required
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-              placeholder="456 Queen Street West, Toronto, ON"
+              onChange={(e) => {
+                setFormData({ ...formData, address: e.target.value })
+                if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: undefined })
+              }}
+              className={`w-full rounded-lg border px-3 py-2 text-base text-gray-900 focus:ring-2 ${
+                fieldErrors.address
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                  : 'border-gray-300 bg-white focus:ring-blue-500'
+              }`}
+              placeholder="e.g., 456 Queen Street West, Toronto, ON M5V 2A8"
             />
+            {fieldErrors.address && (
+              <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.address}</p>
+            )}
           </div>
 
           {/* Contact Information */}
