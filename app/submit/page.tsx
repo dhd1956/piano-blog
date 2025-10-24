@@ -39,6 +39,7 @@ export default function SubmitVenue() {
   const [venueCount, setVenueCount] = useState<number>(0)
   const [error, setError] = useState<string>('')
   const [emailError, setEmailError] = useState<string>('')
+  const [phoneError, setPhoneError] = useState<string>('')
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string
     city?: string
@@ -69,6 +70,7 @@ export default function SubmitVenue() {
     // Clear previous errors
     setFieldErrors({})
     setEmailError('')
+    setPhoneError('')
     setError('')
 
     // Validate required fields with specific error messages
@@ -120,6 +122,22 @@ export default function SubmitVenue() {
     // Clear email error if validation passes
     setEmailError('')
 
+    // Validate phone number if provided (international: 7-15 digits)
+    if (formData.phone) {
+      const digits = formData.phone.replace(/\D/g, '')
+      if (digits.length > 0 && (digits.length < 7 || digits.length > 15)) {
+        setPhoneError('Please enter a valid phone number (7-15 digits)')
+        setError('❌ Phone validation failed: Phone number must be between 7 and 15 digits')
+        document
+          .getElementById('phone-field')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        return
+      }
+    }
+
+    // Clear phone error if validation passes
+    setPhoneError('')
+
     // Auto-add https:// to website if missing protocol
     let websiteUrl = formData.website.trim()
     if (websiteUrl && !websiteUrl.match(/^https?:\/\//i)) {
@@ -165,6 +183,13 @@ export default function SubmitVenue() {
         const result = await response.json()
         setSubmitStatus(`✅ Venue submitted successfully! ID: ${result.venue?.id}`)
         console.log('✅ Venue submitted to database:', result.venue)
+
+        // Scroll to success message
+        setTimeout(() => {
+          document
+            .getElementById('success-message')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
 
         // Reset form
         setFormData({
@@ -294,6 +319,7 @@ export default function SubmitVenue() {
         {/* Success Display */}
         {submitStatus && (
           <div
+            id="success-message"
             className={`mb-6 rounded-lg p-4 ${
               submitStatus.includes('✅')
                 ? 'border border-green-200 bg-green-50 text-green-800'
@@ -410,32 +436,34 @@ export default function SubmitVenue() {
             </div>
 
             {/* Phone */}
-            <div>
+            <div id="phone-field">
               <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => {
-                  // Remove all non-digit characters
-                  const digits = e.target.value.replace(/\D/g, '')
-                  // Format as (XXX) XXX-XXXX for North American numbers
-                  let formatted = digits
-                  if (digits.length >= 1) {
-                    formatted = digits.slice(0, 10)
-                    if (digits.length <= 3) {
-                      formatted = `(${digits}`
-                    } else if (digits.length <= 6) {
-                      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`
-                    } else {
-                      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
-                    }
-                  }
-                  setFormData({ ...formData, phone: formatted })
+                  // Allow digits, spaces, dashes, parentheses, and plus sign for international numbers
+                  const cleaned = e.target.value.replace(/[^\d\s\-()+ ]/g, '')
+                  setFormData({ ...formData, phone: cleaned })
+                  // Clear phone error when user types
+                  if (phoneError) setPhoneError('')
                 }}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-                placeholder="(416) 555-0123"
-                maxLength={14}
+                className={`w-full rounded-lg border px-3 py-2 text-base text-gray-900 focus:ring-2 ${
+                  phoneError
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 bg-white focus:ring-blue-500'
+                }`}
+                placeholder="+1 416 555 0123 or (416) 555-0123"
+                maxLength={20}
               />
+              {phoneError && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {phoneError}</p>
+              )}
+              {!phoneError && (
+                <p className="mt-1 text-xs text-gray-500">
+                  International format accepted (7-15 digits)
+                </p>
+              )}
             </div>
 
             {/* Website */}
