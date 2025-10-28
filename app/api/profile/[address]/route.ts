@@ -39,11 +39,13 @@ export async function GET(
     }
 
     // Count venues discovered (venues submitted by this user)
-    const venuesDiscovered = await prisma.venue.count({
-      where: {
-        submittedBy: { equals: user.walletAddress, mode: 'insensitive' },
-      },
-    })
+    const venuesDiscovered = user.walletAddress
+      ? await prisma.venue.count({
+          where: {
+            submittedBy: { equals: user.walletAddress, mode: 'insensitive' },
+          },
+        })
+      : 0
 
     // Get review count
     const reviewCount = user.reviews.length

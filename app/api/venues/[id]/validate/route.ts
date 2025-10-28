@@ -20,9 +20,10 @@ const validationSchema = z.object({
  * POST /api/venues/[id]/validate
  * Submit a validation vote for a venue
  */
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const venueId = parseInt(params.id)
+    const { id } = await params
+    const venueId = parseInt(id)
 
     if (isNaN(venueId)) {
       return NextResponse.json(
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         {
           success: false,
           error: 'Validation failed',
-          details: validation.error.errors,
+          details: validation.error.issues,
         },
         { status: 400 }
       )
@@ -247,9 +248,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
  * GET /api/venues/[id]/validate
  * Get validation status for a venue
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const venueId = parseInt(params.id)
+    const { id } = await params
+    const venueId = parseInt(id)
 
     if (isNaN(venueId)) {
       return NextResponse.json(

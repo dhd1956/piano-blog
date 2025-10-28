@@ -22,9 +22,10 @@ const updateUserSchema = z.object({
  * GET /api/admin/users/[id]
  * Get single user details
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const userId = parseInt(params.id)
+    const { id } = await params
+    const userId = parseInt(id)
 
     if (isNaN(userId)) {
       return NextResponse.json(
@@ -107,9 +108,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  * PUT /api/admin/users/[id]
  * Update user (Blog owner only)
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const userId = parseInt(params.id)
+    const { id } = await params
+    const userId = parseInt(id)
 
     if (isNaN(userId)) {
       return NextResponse.json(
@@ -147,7 +149,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         {
           success: false,
           error: 'Validation failed',
-          details: validation.error.errors,
+          details: validation.error.issues,
         },
         { status: 400 }
       )
@@ -215,9 +217,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/admin/users/[id]
  * Delete user (Blog owner only)
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const userId = parseInt(params.id)
+    const { id } = await params
+    const userId = parseInt(id)
 
     if (isNaN(userId)) {
       return NextResponse.json(

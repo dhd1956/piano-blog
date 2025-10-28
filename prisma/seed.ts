@@ -57,7 +57,7 @@ async function main() {
       city: 'San Francisco',
       contactInfo: 'contact@pianoparadise.com',
       contactType: 'email',
-      submittedBy: user1.walletAddress,
+      submittedBy: user1.walletAddress!,
       hasPiano: true,
       hasJamSession: false,
       verified: true,
@@ -91,7 +91,7 @@ async function main() {
       city: 'New York',
       contactInfo: 'info@melodylounge.com',
       contactType: 'email',
-      submittedBy: user2.walletAddress,
+      submittedBy: user2.walletAddress!,
       hasPiano: true,
       hasJamSession: true,
       verified: true,
@@ -125,7 +125,7 @@ async function main() {
       city: 'Austin',
       contactInfo: 'admin@austincc.org',
       contactType: 'email',
-      submittedBy: user1.walletAddress,
+      submittedBy: user1.walletAddress!,
       hasPiano: true,
       hasJamSession: false,
       verified: false,
@@ -153,7 +153,7 @@ async function main() {
       city: 'Chicago',
       contactInfo: '(312) 555-0987',
       contactType: 'phone',
-      submittedBy: user2.walletAddress,
+      submittedBy: user2.walletAddress!,
       hasPiano: true,
       hasJamSession: true,
       verified: true,
@@ -186,7 +186,7 @@ async function main() {
     data: [
       {
         venueId: venue1.id,
-        verifierAddress: user2.walletAddress,
+        verifierAddress: user2.walletAddress!,
         approved: true,
         notes:
           'Excellent venue with high-quality grand piano. Staff is very accommodating to musicians.',
@@ -196,7 +196,7 @@ async function main() {
       },
       {
         venueId: venue2.id,
-        verifierAddress: user1.walletAddress,
+        verifierAddress: user1.walletAddress!,
         approved: true,
         notes:
           'Great atmosphere for jazz. Piano is well-maintained. Jam sessions are well-organized.',
@@ -206,7 +206,7 @@ async function main() {
       },
       {
         venueId: venue4.id,
-        verifierAddress: user1.walletAddress,
+        verifierAddress: user1.walletAddress!,
         approved: true,
         notes: 'Upscale restaurant with beautiful piano. Perfect for special occasions.',
         rating: 5,
@@ -262,8 +262,8 @@ async function main() {
       {
         venueId: venue1.id,
         amount: 25.0,
-        fromAddress: user2.walletAddress,
-        toAddress: user1.walletAddress, // venue owner
+        fromAddress: user2.walletAddress!,
+        toAddress: user1.walletAddress!, // venue owner
         transactionHash: '0xpayment123abc',
         blockNumber: 12345681,
         blockTimestamp: new Date('2024-01-15T14:30:00Z'),
@@ -275,8 +275,8 @@ async function main() {
       {
         venueId: venue2.id,
         amount: 15.0,
-        fromAddress: user1.walletAddress,
-        toAddress: user2.walletAddress, // venue owner
+        fromAddress: user1.walletAddress!,
+        toAddress: user2.walletAddress!, // venue owner
         transactionHash: '0xpayment456def',
         blockNumber: 12345682,
         blockTimestamp: new Date('2024-01-16T19:45:00Z'),

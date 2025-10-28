@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
             success: false,
             error: 'Validation failed',
             message: 'Invalid wallet address format',
-            details: validation.error.errors,
+            details: validation.error.issues,
           },
           { status: 400 }
         )
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Validation failed',
           message: 'Invalid username or password format',
-          details: validation.error.errors,
+          details: validation.error.issues,
         },
         { status: 400 }
       )

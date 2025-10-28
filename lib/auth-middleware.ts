@@ -150,7 +150,8 @@ export const can = {
   createVenue(user: AuthUser | null): boolean {
     // Anonymous users can create venues
     if (!user) return true
-    return [UserRole.SCOUT, UserRole.BLOG_OWNER].includes(user.role)
+    const allowedRoles: UserRole[] = [UserRole.SCOUT, UserRole.BLOG_OWNER]
+    return allowedRoles.includes(user.role)
   },
 
   /**
@@ -165,7 +166,8 @@ export const can = {
    */
   updateVenue(user: AuthUser | null): boolean {
     if (!user) return false
-    return [UserRole.CURATOR, UserRole.BLOG_OWNER].includes(user.role)
+    const allowedRoles: UserRole[] = [UserRole.CURATOR, UserRole.BLOG_OWNER]
+    return allowedRoles.includes(user.role)
   },
 
   /**
@@ -181,7 +183,8 @@ export const can = {
    */
   validateVenue(user: AuthUser | null): boolean {
     if (!user) return false
-    return [UserRole.VALIDATOR, UserRole.BLOG_OWNER].includes(user.role)
+    const allowedRoles: UserRole[] = [UserRole.VALIDATOR, UserRole.BLOG_OWNER]
+    return allowedRoles.includes(user.role)
   },
 
   /**

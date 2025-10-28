@@ -29,6 +29,7 @@ export interface SessionPayload {
   walletAddress: string | null
   role: UserRole
   exp: number
+  [key: string]: any // Add index signature for JWT compatibility
 }
 
 /**
