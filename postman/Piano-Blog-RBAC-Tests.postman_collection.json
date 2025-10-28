@@ -1,0 +1,629 @@
+{
+  "info": {
+    "name": "Piano Blog RBAC Tests",
+    "description": "Comprehensive RBAC testing for Piano Blog API - Tests all user roles and permissions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "curator_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "validator1_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "validator2_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "validator3_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scout_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "blog_owner_wallet",
+      "value": "0xe8985AEDF83E2a58fEf53B45db2d9556CD5F453A",
+      "type": "string"
+    },
+    {
+      "key": "test_venue_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication",
+      "item": [
+        {
+          "name": "Login as Curator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.collectionVariables.set(\"curator_token\", jsonData.token);",
+                  "});",
+                  "",
+                  "pm.test(\"User role is CURATOR\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.role).to.eql(\"CURATOR\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"curator\",\n  \"password\": \"curator123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Validator 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"validator1_token\", jsonData.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"validator1\",\n  \"password\": \"validator1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Validator 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"validator2_token\", jsonData.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"validator2\",\n  \"password\": \"validator2\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Validator 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"validator3_token\", jsonData.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"validator3\",\n  \"password\": \"validator3\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Scout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"scout_token\", jsonData.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"scout\",\n  \"password\": \"scout123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Scout Tests (Create Venues Only)",
+      "item": [
+        {
+          "name": "Scout - Create Venue (Should Succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "pm.test(\"Venue created\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    if (jsonData.venue && jsonData.venue.id) {",
+                  "        pm.collectionVariables.set(\"test_venue_id\", jsonData.venue.id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{scout_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Venue for RBAC\",\n  \"city\": \"Toronto\",\n  \"address\": \"123 Test St\",\n  \"contactInfo\": \"test@venue.com\",\n  \"hasPiano\": true,\n  \"description\": \"Test venue for role testing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues"]
+            }
+          }
+        },
+        {
+          "name": "Scout - Read All Venues (Should Succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Can read venues\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{scout_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/venues",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues"]
+            }
+          }
+        },
+        {
+          "name": "Scout - Update Venue (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Access denied\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{scout_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Scout - Delete Venue (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{scout_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Validator Tests (3-of-3 Approval)",
+      "item": [
+        {
+          "name": "Validator 1 - Approve Venue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Validation submitted\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{validator1_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true,\n  \"notes\": \"Validator 1 approves\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Validator 2 - Approve Venue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{validator2_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true,\n  \"notes\": \"Validator 2 approves\",\n  \"rating\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Validator 3 - Approve Venue (Auto-Verify)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Venue auto-verified\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.venue.verified).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include(\"automatically verified\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{validator3_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true,\n  \"notes\": \"Validator 3 approves - should auto-verify\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Get Validation Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"3 approvals recorded\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.validationStatus.approved).to.eql(3);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Curator Tests (Edit Only)",
+      "item": [
+        {
+          "name": "Curator - Update Venue (Should Succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Venue updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{curator_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated by curator\",\n  \"curatorNotes\": \"Curator has reviewed this venue\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Curator - Delete Venue (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{curator_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Curator - Validate Venue (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{curator_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues/{{test_venue_id}}/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues", "{{test_venue_id}}", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Anonymous Tests",
+      "item": [
+        {
+          "name": "Anonymous - Create Venue (Should Succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "pm.test(\"Anonymous can create venue\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Anonymous Venue\",\n  \"city\": \"Montreal\",\n  \"address\": \"456 Anonymous Ave\",\n  \"contactInfo\": \"anon@venue.com\",\n  \"hasPiano\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/venues",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues"]
+            }
+          }
+        },
+        {
+          "name": "Anonymous - Read Venues (Should Succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/venues",
+              "host": ["{{base_url}}"],
+              "path": ["api", "venues"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

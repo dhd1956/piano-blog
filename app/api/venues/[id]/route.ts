@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { VenueService, AnalyticsService, prisma } from '@/lib/database-simplified'
+import { requireRole, can } from '@/lib/auth-middleware'
+import { UserRole } from '@prisma/client'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -50,6 +52,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Require CURATOR or BLOG_OWNER role
+    const authResult = await requireRole(request as any, [UserRole.CURATOR, UserRole.BLOG_OWNER])
+    if (authResult instanceof NextResponse) {
+      return authResult
+    }
+
+    const { user } = authResult
+
     const { id } = await params
     const venueId = parseInt(id)
     const body = await request.json()
@@ -153,6 +163,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require BLOG_OWNER role only
+    const authResult = await requireRole(request as any, [UserRole.BLOG_OWNER])
+    if (authResult instanceof NextResponse) {
+      return authResult
+    }
+
+    const { user } = authResult
+
     const { id } = await params
     const venueId = parseInt(id)
 
@@ -163,47 +181,6 @@ export async function DELETE(
         },
         {
           status: 400,
-        }
-      )
-    }
-
-    // Verify authentication - only blog owner can delete venues
-    const walletAddress = request.headers.get('x-wallet-address')
-    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
-
-    if (!walletAddress) {
-      return NextResponse.json(
-        {
-          error: 'Authentication required',
-          message: 'Wallet address not provided',
-        },
-        {
-          status: 401,
-        }
-      )
-    }
-
-    if (!blogOwnerAddress) {
-      return NextResponse.json(
-        {
-          error: 'Configuration error',
-          message: 'Blog owner address not configured',
-        },
-        {
-          status: 500,
-        }
-      )
-    }
-
-    // Check if the wallet address matches the blog owner
-    if (walletAddress.toLowerCase() !== blogOwnerAddress.toLowerCase()) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Only the blog owner can delete venues',
-        },
-        {
-          status: 403,
         }
       )
     }

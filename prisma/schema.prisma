@@ -81,6 +81,7 @@ model Venue {
   // Relations
   reviews      VenueReview[]
   verifications VenueVerification[]
+  validations  VenueValidation[]
   analytics    VenueAnalytics[]
 
   // Indexes for performance
@@ -92,13 +93,19 @@ model Venue {
   @@index([name, city])  // For text search
 }
 
-// User profiles linked by wallet address
+// User profiles - supports both wallet and username/password auth
 model User {
   id             Int      @id @default(autoincrement())
-  walletAddress  String   @unique @db.VarChar(42) // Ethereum address format
+  walletAddress  String?  @unique @db.VarChar(42) // Ethereum address format (nullable for username/password users)
+
+  // Authentication fields
+  username       String?  @unique // For username/password auth
+  passwordHash   String?  // bcrypt hash for username/password auth
+  role           UserRole @default(SCOUT) // User role for RBAC
+  createdBy      String?  // Admin wallet/username who created this user
+  isActive       Boolean  @default(true) // Account active status
 
   // Profile information
-  username       String?  @unique
   displayName    String?
   email          String?  @unique
   bio            String?  @db.Text
@@ -137,11 +144,14 @@ model User {
 
   // Relations
   reviews        VenueReview[]
+  sessions       Session[]
+  validations    VenueValidation[]
 
   @@index([walletAddress])
   @@index([username])
   @@index([profileSlug])
   @@index([totalCAVEarned])
+  @@index([role])
 }
 
 // User reviews (PostgreSQL-only for performance)
@@ -189,6 +199,42 @@ model VenueVerification {
 
   @@index([venueId, approved])
   @@index([verifierAddress])
+}
+
+// Multi-signature venue validation system (3 validators required)
+model VenueValidation {
+  id          Int      @id @default(autoincrement())
+  venue       Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId     Int
+  validator   User     @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+  validatorId Int
+
+  // Validation decision
+  approved    Boolean  // true = approve, false = reject
+  notes       String?  @db.Text // Validator notes
+  rating      Int?     // 1-5 star rating from validator
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([venueId, validatorId]) // Each validator can only vote once per venue
+  @@index([venueId, approved])
+  @@index([validatorId])
+}
+
+// Session management for username/password auth
+model Session {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  token     String   @unique // JWT token
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
 }
 
 // PXP payment tracking (blockchain transaction references)
@@ -298,5 +344,13 @@ enum VenueType {
   LIBRARY
   SCHOOL
   OTHER
+}
+
+// User roles for RBAC
+enum UserRole {
+  BLOG_OWNER  // Full CRUD, instant verification
+  CURATOR     // Edit venues, no verification power
+  VALIDATOR   // Vote to verify venues (3 required)
+  SCOUT       // Create venues, read all (default role)
 }
 
