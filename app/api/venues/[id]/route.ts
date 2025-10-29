@@ -124,6 +124,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.curatorRating !== undefined) updateData.curatorRating = body.curatorRating
     if (body.followUpNeeded !== undefined) updateData.followUpNeeded = body.followUpNeeded
 
+    // Verification status (only curators and blog owner can change)
+    if (body.verified !== undefined) {
+      updateData.verified = body.verified
+      if (body.verified === true) {
+        // Approved: set verifiedAt, clear rejection fields
+        updateData.verifiedAt = new Date()
+        updateData.rejectedAt = null
+        updateData.rejectedBy = null
+        updateData.rejectionReason = null
+      } else if (body.verified === false) {
+        // Rejected: require rejection reason
+        if (!body.rejectionReason) {
+          return NextResponse.json(
+            {
+              error: 'Rejection reason is required when rejecting a venue',
+            },
+            {
+              status: 400,
+            }
+          )
+        }
+        // Set rejection fields
+        updateData.rejectedAt = new Date()
+        updateData.rejectedBy = user.walletAddress
+        updateData.rejectionReason = body.rejectionReason
+        updateData.verifiedAt = null
+      }
+    }
+
     // Social media - combine into socialLinks JSON
     const socialLinks: any = {}
     if (body.facebook !== undefined) socialLinks.facebook = body.facebook

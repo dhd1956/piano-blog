@@ -143,6 +143,10 @@ export default function VenueDetailsPage() {
             venueData.updatedAt || venueData.lastUpdatedDate || venueData.createdAt
           ),
           curatorNotes: venueData.curatorNotes || '',
+          // Rejection tracking
+          rejectedAt: venueData.rejectedAt ? new Date(venueData.rejectedAt) : null,
+          rejectedBy: venueData.rejectedBy || null,
+          rejectionReason: venueData.rejectionReason || null,
         }
 
         setVenue(processedVenue)
@@ -245,8 +249,12 @@ export default function VenueDetailsPage() {
     try {
       console.log('🔄 Updating venue with data:', updateData)
 
-      // Send update to simplified PostgreSQL API
-      const response = await fetch(`/api/venues/${venue.id}`, {
+      // Send update to simplified PostgreSQL API with wallet authentication
+      const apiUrl = walletAddress
+        ? `/api/venues/${venue.id}?address=${walletAddress}`
+        : `/api/venues/${venue.id}`
+
+      const response = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

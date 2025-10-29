@@ -213,6 +213,21 @@ export default function VenueEditForm({
           </select>
         </FormField>
 
+        {/* Description */}
+        <FormField label="About This Venue">
+          <textarea
+            value={formData.description || ''}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            rows={4}
+            maxLength={500}
+            placeholder="Describe the venue, its atmosphere, what makes it special..."
+          />
+          <div className="mt-1 text-right text-xs text-gray-500">
+            {formData.description?.length || 0}/500 characters
+          </div>
+        </FormField>
+
         {/* Contact Information */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField label="Contact Type">

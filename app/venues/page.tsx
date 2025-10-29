@@ -208,6 +208,10 @@ export default function VenueList() {
                       <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900 dark:text-green-200">
                         ✓ Verified
                       </span>
+                    ) : (venue as any).rejectedAt ? (
+                      <span className="rounded-full bg-red-100 px-2 py-1 text-xs text-red-800 dark:bg-red-900 dark:text-red-200">
+                        ✗ Rejected
+                      </span>
                     ) : (
                       <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                         Pending

@@ -44,6 +44,10 @@ export interface Venue {
   verificationDate?: Date
   lastUpdatedDate?: Date
   curatorNotes: string
+  // Rejection tracking
+  rejectedAt?: Date | null
+  rejectedBy?: string | null
+  rejectionReason?: string | null
 }
 
 // Extended venue metadata stored on IPFS

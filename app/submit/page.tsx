@@ -404,8 +404,11 @@ export default function SubmitVenue() {
           {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-900">
-              Contact Information (provide at least one)
+              Venue Contact Information (provide at least one)
             </h3>
+            <p className="text-xs text-gray-600">
+              How can people contact this venue? Provide the venue's public contact details.
+            </p>
 
             {/* Email */}
             <div id="email-field">

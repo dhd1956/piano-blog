@@ -142,20 +142,27 @@ export default function CuratorDashboard() {
       return
     }
 
+    // Require rejection reason when rejecting
+    if (!approved && !verificationNotes.trim()) {
+      setError('Please provide a reason for rejecting this venue')
+      return
+    }
+
     try {
       setError('')
       setLoading(true)
 
-      console.log('🎯 Verifying venue:', { venueId, approved })
+      console.log('🎯 Verifying venue:', { venueId, approved, walletAddress })
 
-      // Call PUT API to update verified status
-      const response = await fetch(`/api/venues/${venueId}`, {
+      // Call PUT API to update verified status with wallet auth
+      const response = await fetch(`/api/venues/${venueId}?address=${walletAddress}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           verified: approved,
+          rejectionReason: !approved ? verificationNotes : undefined, // Only send for rejections
         }),
       })
 
@@ -257,8 +264,8 @@ export default function CuratorDashboard() {
         hasPiano: editForm.hasPiano,
       })
 
-      // Call PUT API to update venue in PostgreSQL
-      const response = await fetch(`/api/venues/${selectedVenue.id}`, {
+      // Call PUT API to update venue in PostgreSQL with wallet authentication
+      const response = await fetch(`/api/venues/${selectedVenue.id}?address=${walletAddress}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1058,6 +1065,11 @@ export default function CuratorDashboard() {
                     <div>
                       <label className="mb-1 block text-sm font-medium">
                         {existingCuratorNotes ? 'Add Additional Notes' : 'Curator Notes'}
+                        {!selectedVenue.verified && (
+                          <span className="ml-2 text-xs text-red-600">
+                            * Required when rejecting
+                          </span>
+                        )}
                       </label>
                       <textarea
                         value={verificationNotes}
@@ -1066,14 +1078,19 @@ export default function CuratorDashboard() {
                         rows={3}
                         placeholder={
                           existingCuratorNotes
-                            ? 'Add additional verification notes (optional)...'
-                            : 'Add verification notes (optional)...'
+                            ? 'Add additional verification notes (required for rejection)...'
+                            : 'Add verification notes (required for rejection, optional for approval)...'
                         }
                       />
                       {existingCuratorNotes && (
                         <p className="mt-1 text-xs text-gray-500">
                           Note: Previous curator notes are preserved above. These will be added as
                           additional notes.
+                        </p>
+                      )}
+                      {!selectedVenue.verified && (
+                        <p className="mt-1 text-xs text-red-600">
+                          You must provide a reason if you reject this venue.
                         </p>
                       )}
                     </div>

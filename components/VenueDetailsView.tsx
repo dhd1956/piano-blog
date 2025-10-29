@@ -58,6 +58,10 @@ function VenueHeader({ venue }: { venue: Venue }) {
             <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
               ✓ Verified
             </span>
+          ) : (venue as any).rejectedAt ? (
+            <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
+              ✗ Rejected
+            </span>
           ) : (
             <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
               Pending Verification
@@ -114,26 +118,10 @@ function ExtendedInformation({ extendedData }: { extendedData?: VenueMetadata })
       <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         {details.description && (
           <div>
-            <span className="font-medium text-gray-600 dark:text-gray-400">Description:</span>
-            <p className="mt-1 text-sm leading-relaxed break-words text-gray-900 dark:text-gray-100">
+            <p className="text-sm leading-relaxed break-words text-gray-900 dark:text-gray-100">
               {details.description}
             </p>
           </div>
-        )}
-        {details.website && (
-          <InfoRow
-            label="Website"
-            value={
-              <a
-                href={details.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="break-all text-blue-600 underline hover:text-blue-800"
-              >
-                {details.website}
-              </a>
-            }
-          />
         )}
         {details.socialMedia && Object.keys(details.socialMedia).length > 0 && (
           <SocialMediaLinks socialMedia={details.socialMedia} />
@@ -178,6 +166,15 @@ function VerificationDetails({ venue }: { venue: any }) {
     dateStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : 'Unknown'
   }
 
+  // Determine status
+  const isRejected = venue.rejectedAt !== null && venue.rejectedAt !== undefined
+  const statusText = venue.verified ? 'Verified' : isRejected ? 'Rejected' : 'Pending Verification'
+  const statusColor = venue.verified
+    ? 'text-green-600'
+    : isRejected
+      ? 'text-red-600'
+      : 'text-yellow-600'
+
   return (
     <div>
       <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -194,15 +191,28 @@ function VerificationDetails({ venue }: { venue: any }) {
           }
         />
 
-        <InfoRow
-          label="Status"
-          value={
-            <span className={venue.verified ? 'text-green-600' : 'text-yellow-600'}>
-              {venue.verified ? 'Verified' : 'Pending Verification'}
-            </span>
-          }
-        />
+        <InfoRow label="Status" value={<span className={statusColor}>{statusText}</span>} />
+
+        {/* Show rejection details if rejected */}
+        {isRejected && venue.rejectedAt && (
+          <>
+            <InfoRow label="Rejected On" value={new Date(venue.rejectedAt).toLocaleDateString()} />
+            {venue.rejectedBy && (
+              <InfoRow label="Rejected By" value={formatAddress(venue.rejectedBy)} />
+            )}
+          </>
+        )}
       </div>
+
+      {/* Rejection Reason Section */}
+      {isRejected && venue.rejectionReason && (
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-900/20">
+          <h4 className="mb-2 font-semibold text-red-900 dark:text-red-200">Rejection Reason</h4>
+          <p className="text-sm leading-relaxed text-red-800 dark:text-red-300">
+            {venue.rejectionReason}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
@@ -340,6 +350,7 @@ function ContactInformation({
   extendedData?: VenueMetadata
 }) {
   // Get contact information from different sources
+  const address = venue.fullAddress || extendedData?.venueDetails?.fullAddress
   const email = venue.contactType === 'email' ? venue.contactInfo : null
   const phone =
     extendedData?.venueDetails?.phone || (venue.contactType === 'phone' ? venue.contactInfo : null)
@@ -352,7 +363,7 @@ function ContactInformation({
       : null
 
   // If no contact information at all, don't render the section
-  if (!email && !phone && !website && !otherContact) return null
+  if (!address && !email && !phone && !website && !otherContact) return null
 
   return (
     <div>
@@ -360,6 +371,14 @@ function ContactInformation({
         Contact Information
       </h3>
       <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+        {/* Address */}
+        {address && (
+          <InfoRow
+            label="Address"
+            value={<span className="break-all text-gray-900 dark:text-gray-100">{address}</span>}
+          />
+        )}
+
         {/* Email */}
         {email && (
           <InfoRow

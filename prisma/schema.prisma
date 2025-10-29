@@ -47,7 +47,7 @@ model Venue {
   jamGenres      String[] // Array of music genres
 
   // Operational details (curator-editable)
-  operatingHours       String?  @db.Text // Operating hours description
+  operatingHours       Json?    // Operating hours structured data
   wheelchairAccessible Boolean  @default(false)
   parkingAvailable     Boolean  @default(false)
   publicTransportNear  Boolean  @default(false)
@@ -68,6 +68,11 @@ model Venue {
   verified     Boolean  @default(false) // Manually updated from blockchain events
   verifiedAt   DateTime? // When verification was completed
   venueHash    String?  @unique // Hash used for blockchain verification
+
+  // Rejection tracking
+  rejectedAt     DateTime? // When venue was rejected by curator
+  rejectedBy     String?   // Wallet address of curator who rejected
+  rejectionReason String?  @db.Text // Required reason for rejection
 
   // QR Code settings
   qrCodeGenerated Boolean  @default(false) // Whether QR code has been generated
