@@ -118,7 +118,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       updateState({ status: 'connecting', error: null })
 
       const accounts = await safeCall(
-        () => window.ethereum.request({ method: 'eth_requestAccounts' }),
+        () => window.ethereum!.request({ method: 'eth_requestAccounts' }),
         []
       )
 
@@ -128,12 +128,15 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       }
 
       const address = accounts[0]
-      const chainId = await safeCall(() => window.ethereum.request({ method: 'eth_chainId' }), null)
+      const chainId = await safeCall(
+        () => window.ethereum!.request({ method: 'eth_chainId' }),
+        null
+      )
 
       console.log('🔧 Creating Web3 instance with window.ethereum:', !!window.ethereum)
       console.log('🔧 MetaMask detected:', !!window.ethereum?.isMetaMask)
 
-      const web3 = new Web3(window.ethereum)
+      const web3 = new Web3(window.ethereum as any)
       console.log('🔧 Web3 instance created:', !!web3)
       console.log('🔧 Web3 provider:', web3.currentProvider)
 
@@ -184,7 +187,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     try {
       updateState({ networkStatus: 'switching' })
 
-      await window.ethereum.request({
+      await window.ethereum!.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: CELO_CHAIN_ID }],
       })
@@ -199,7 +202,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       if (error.code === 4902) {
         try {
-          await window.ethereum.request({
+          await window.ethereum!.request({
             method: 'wallet_addEthereumChain',
             params: [CELO_NETWORK_CONFIG],
           })
@@ -224,7 +227,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
   const refreshConnection = async () => {
     if (state.isConnected && state.walletAddress) {
       const chainId = await safeCall(
-        () => window.ethereum.request({ method: 'eth_chainId' }),
+        () => window.ethereum!.request({ method: 'eth_chainId' }),
         state.chainId
       )
 
@@ -283,13 +286,13 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       }
     }
 
-    window.ethereum.on('accountsChanged', handleAccountsChanged)
-    window.ethereum.on('chainChanged', handleChainChanged)
+    window.ethereum?.on?.('accountsChanged', handleAccountsChanged)
+    window.ethereum?.on?.('chainChanged', handleChainChanged)
 
     return () => {
       try {
-        window.ethereum?.removeListener('accountsChanged', handleAccountsChanged)
-        window.ethereum?.removeListener('chainChanged', handleChainChanged)
+        window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged)
+        window.ethereum?.removeListener?.('chainChanged', handleChainChanged)
       } catch (error) {
         console.warn('Failed to remove event listeners:', error)
       }
@@ -304,7 +307,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       try {
         if (typeof window !== 'undefined' && window.ethereum) {
           const accounts = await safeCall(
-            () => window.ethereum.request({ method: 'eth_accounts' }),
+            () => window.ethereum!.request({ method: 'eth_accounts' }),
             []
           )
 

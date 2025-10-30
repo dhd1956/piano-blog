@@ -65,7 +65,7 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
   const createWeb3Instance = (): Web3 | null => {
     try {
       if (typeof window !== 'undefined' && window.ethereum) {
-        return new Web3(window.ethereum)
+        return new Web3(window.ethereum as any)
       }
     } catch (error) {
       console.warn('Failed to create Web3 instance:', error)
@@ -232,12 +232,12 @@ export function SafeWeb3Provider({ children }: Web3ProviderProps) {
       })
     }
 
-    window.ethereum.on('accountsChanged', handleAccountsChanged)
-    window.ethereum.on('chainChanged', handleChainChanged)
+    window.ethereum?.on?.('accountsChanged', handleAccountsChanged)
+    window.ethereum?.on?.('chainChanged', handleChainChanged)
 
     return () => {
-      window.ethereum?.removeListener('accountsChanged', handleAccountsChanged)
-      window.ethereum?.removeListener('chainChanged', handleChainChanged)
+      window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged)
+      window.ethereum?.removeListener?.('chainChanged', handleChainChanged)
     }
   }, [state.walletAddress])
 

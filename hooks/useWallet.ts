@@ -195,7 +195,7 @@ export function useWallet() {
         )
 
         // Try a simple test transaction first - just estimateGas without sending
-        const directWeb3 = new Web3(window.ethereum)
+        const directWeb3 = new Web3(window.ethereum as any)
         const directContract = createFullContract(directWeb3)
 
         console.log('🔧 Testing gas estimation with direct web3...')

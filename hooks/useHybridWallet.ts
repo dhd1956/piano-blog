@@ -81,15 +81,13 @@ export function useHybridWallet() {
     }
 
     // Add event listeners
-    window.ethereum.on('accountsChanged', handleAccountsChanged)
-    window.ethereum.on('chainChanged', handleChainChanged)
+    window.ethereum?.on?.('accountsChanged', handleAccountsChanged)
+    window.ethereum?.on?.('chainChanged', handleChainChanged)
 
     // Cleanup listeners on unmount
     return () => {
-      if (window.ethereum.removeListener) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
-        window.ethereum.removeListener('chainChanged', handleChainChanged)
-      }
+      window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged)
+      window.ethereum?.removeListener?.('chainChanged', handleChainChanged)
     }
   }, [walletAddress])
 
@@ -151,11 +149,11 @@ export function useHybridWallet() {
         // Web3 wallet detection
         hasMetaMask: Boolean(typeof window !== 'undefined' && window.ethereum?.isMetaMask),
         hasWalletConnect: Boolean(
-          typeof window !== 'undefined' && window.ethereum?.isWalletConnect
+          typeof window !== 'undefined' && (window.ethereum as any)?.isWalletConnect
         ),
-        hasValora: Boolean(typeof window !== 'undefined' && window.ethereum?.isValora),
+        hasValora: Boolean(typeof window !== 'undefined' && (window.ethereum as any)?.isValora),
         hasCoinbaseWallet: Boolean(
-          typeof window !== 'undefined' && window.ethereum?.isCoinbaseWallet
+          typeof window !== 'undefined' && (window.ethereum as any)?.isCoinbaseWallet
         ),
 
         // Device capabilities

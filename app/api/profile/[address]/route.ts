@@ -38,7 +38,7 @@ export async function GET(
 
     // If no user found and address looks like a wallet address (starts with 0x), create user
     if (!user && address.toLowerCase().startsWith('0x')) {
-      user = await UserService.findOrCreateUser(address)
+      await UserService.findOrCreateUser(address)
 
       // Fetch full user data with relations after creation
       user = await prisma.user.findUnique({

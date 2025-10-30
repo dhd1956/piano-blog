@@ -98,7 +98,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   // Initialize Web3 instance
   const initializeWeb3 = () => {
     if (typeof window !== 'undefined' && window.ethereum) {
-      return new Web3(window.ethereum)
+      return new Web3(window.ethereum as any)
     }
     return null
   }
@@ -367,16 +367,14 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       disconnect()
     }
 
-    window.ethereum.on('accountsChanged', handleAccountsChanged)
-    window.ethereum.on('chainChanged', handleChainChanged)
-    window.ethereum.on('disconnect', handleDisconnect)
+    window.ethereum?.on?.('accountsChanged', handleAccountsChanged)
+    window.ethereum?.on?.('chainChanged', handleChainChanged)
+    window.ethereum?.on?.('disconnect', handleDisconnect)
 
     return () => {
-      if (window.ethereum?.removeListener) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
-        window.ethereum.removeListener('chainChanged', handleChainChanged)
-        window.ethereum.removeListener('disconnect', handleDisconnect)
-      }
+      window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged)
+      window.ethereum?.removeListener?.('chainChanged', handleChainChanged)
+      window.ethereum?.removeListener?.('disconnect', handleDisconnect)
     }
   }, [state.isConnected, state.walletAddress])
 
