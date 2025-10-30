@@ -8,9 +8,10 @@ const prisma = new PrismaClient()
  *
  * WPB-211: RSVP to an event
  */
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     const body = await request.json()
 
     if (isNaN(eventId)) {
@@ -148,9 +149,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
  *
  * Update RSVP status (for organizer approval)
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     const body = await request.json()
 
     if (isNaN(eventId)) {
@@ -227,9 +229,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
  *
  * Cancel RSVP
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     const { searchParams } = new URL(request.url)
     const userAddress = searchParams.get('userAddress')
 

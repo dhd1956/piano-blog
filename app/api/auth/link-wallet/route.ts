@@ -80,7 +80,12 @@ export async function POST(request: NextRequest) {
     })
 
     // 6. Mint accumulated PXP to wallet (Option A)
-    let mintingResult = null
+    let mintingResult: {
+      success: boolean
+      amount?: number
+      message?: string
+      error?: string
+    } | null = null
     if (updatedUser.totalCAVEarned > 0) {
       try {
         // TODO: Integrate with your PXP token contract to mint tokens

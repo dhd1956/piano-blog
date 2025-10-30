@@ -8,9 +8,10 @@ const prisma = new PrismaClient()
  *
  * Get event details including RSVPs
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
 
     if (isNaN(eventId)) {
       return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 })
@@ -95,9 +96,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  *
  * Update event details (organizer only)
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     const body = await request.json()
 
     if (isNaN(eventId)) {
@@ -190,9 +192,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
  *
  * Cancel event (organizer only)
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     const { searchParams } = new URL(request.url)
     const requesterAddress = searchParams.get('requesterAddress')
     const cancellationReason = searchParams.get('reason')
