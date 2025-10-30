@@ -68,6 +68,25 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   OTHER: '📌 Event',
 }
 
+// Helper functions for date formatting
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([])
   const [pagination, setPagination] = useState<PaginationMeta | null>(null)
@@ -105,24 +124,6 @@ export default function EventsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    })
   }
 
   if (loading && events.length === 0) {
