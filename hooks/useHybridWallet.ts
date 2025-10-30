@@ -57,6 +57,42 @@ export function useHybridWallet() {
     checkExistingConnection()
   }, [])
 
+  // Listen for MetaMask account changes and disconnection
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.ethereum) return
+
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        // User disconnected their wallet
+        console.log('Wallet disconnected')
+        setWalletAddress(null)
+        setIsConnected(false)
+      } else if (accounts[0] !== walletAddress) {
+        // User switched to a different account
+        console.log('Wallet account changed to:', accounts[0])
+        setWalletAddress(accounts[0])
+        setIsConnected(true)
+      }
+    }
+
+    const handleChainChanged = () => {
+      // Reload the page when chain changes (recommended by MetaMask)
+      window.location.reload()
+    }
+
+    // Add event listeners
+    window.ethereum.on('accountsChanged', handleAccountsChanged)
+    window.ethereum.on('chainChanged', handleChainChanged)
+
+    // Cleanup listeners on unmount
+    return () => {
+      if (window.ethereum.removeListener) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
+        window.ethereum.removeListener('chainChanged', handleChainChanged)
+      }
+    }
+  }, [walletAddress])
+
   // Check for existing wallet connection
   const checkExistingConnection = async () => {
     if (typeof window !== 'undefined' && window.ethereum) {

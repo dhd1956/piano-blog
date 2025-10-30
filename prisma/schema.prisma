@@ -88,6 +88,7 @@ model Venue {
   verifications VenueVerification[]
   validations  VenueValidation[]
   analytics    VenueAnalytics[]
+  events       Event[] // Events hosted at this venue
 
   // Indexes for performance
   @@index([city, verified])
@@ -148,9 +149,12 @@ model User {
   lastActive     DateTime @default(now())
 
   // Relations
-  reviews        VenueReview[]
-  sessions       Session[]
-  validations    VenueValidation[]
+  reviews         VenueReview[]
+  sessions        Session[]
+  validations     VenueValidation[]
+  musicianProfile MusicianProfile? // One-to-one relation with musician profile
+  organizedEvents Event[]          @relation("OrganizedEvents") // Events created by this user
+  rsvps           EventRSVP[]      @relation("EventRSVPs") // Events this user RSVPed to
 
   @@index([walletAddress])
   @@index([username])
@@ -337,6 +341,156 @@ enum PaymentStatus {
   PENDING
   CONFIRMED
   FAILED
+}
+
+// Musician profile for marketing in the community
+model MusicianProfile {
+  id                  Int      @id @default(autoincrement())
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              Int      @unique
+
+  // WPB-109: Instruments
+  instruments         String[] // Array of instrument names (e.g., ["Piano", "Guitar", "Drums"])
+
+  // WPB-110: Musical styles & genres
+  musicalStyles       String[] // e.g., ["Jazz", "Classical", "Blues"]
+  genres              String[] // Sub-genres
+
+  // WPB-111: Experience level
+  experienceLevel     String?  // "Beginner", "Intermediate", "Advanced", "Professional"
+  yearsPlaying        Int?     // Years of experience
+
+  // WPB-112: Availability
+  availableForGigs    Boolean  @default(false)
+  availableForCollab  Boolean  @default(false)
+  availabilityNotes   String?  @db.Text
+
+  // WPB-113: Performance portfolio
+  recordingLinks      String[] // YouTube, SoundCloud, etc.
+  socialMedia         Json?    // {youtube: "", instagram: "", tiktok: "", etc.}
+
+  // WPB-114: Repertoire
+  repertoire          String[] // List of songs/pieces they know
+
+  // Metadata
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// WPB-208: Events System
+model Event {
+  id              Int      @id @default(autoincrement())
+
+  // Event organizer (creator)
+  organizer       User     @relation("OrganizedEvents", fields: [organizerId], references: [id], onDelete: Cascade)
+  organizerId     Int
+
+  // Event details
+  title           String
+  description     String   @db.Text
+  eventType       EventType // Jam Session, Gig, Concert, Meetup, etc.
+
+  // Location
+  venue           Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  venueId         Int?     // Optional - link to verified venue
+  customLocation  String?  // For events not at registered venues
+  address         String?  // Physical address
+  latitude        Float?   // For map display
+  longitude       Float?   // For map display
+
+  // Scheduling
+  startDate       DateTime
+  endDate         DateTime
+  timezone        String   @default("America/New_York")
+
+  // Event settings
+  maxAttendees    Int?     // null = unlimited
+  requireApproval Boolean  @default(false) // Organizer must approve RSVPs
+  isPublic        Boolean  @default(true)  // Public or private event
+  isFree          Boolean  @default(true)
+  price           Float?   // Price in USD if not free
+
+  // Rich content
+  coverImage      String?  // Event banner/poster
+  genres          String[] // Music genres for the event
+  tags            String[] // Searchable tags
+
+  // External links
+  externalLink    String?  // Eventbrite, Bandsintown, etc.
+  streamingLink   String?  // For virtual/hybrid events
+
+  // Status
+  status          EventStatus @default(UPCOMING)
+  cancelledAt     DateTime?
+  cancellationReason String? @db.Text
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  rsvps           EventRSVP[]
+
+  @@index([organizerId])
+  @@index([venueId])
+  @@index([startDate, status])
+  @@index([eventType, status])
+  @@index([isPublic, status])
+}
+
+// WPB-211: Event RSVP system
+model EventRSVP {
+  id          Int      @id @default(autoincrement())
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     Int
+  user        User     @relation("EventRSVPs", fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+
+  // RSVP status
+  status      RSVPStatus @default(PENDING)
+
+  // Additional info
+  attendeeCount Int     @default(1) // For "+1" guests
+  notes         String? @db.Text    // Special requests/notes
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  respondedAt DateTime? // When status changed from PENDING
+
+  @@unique([eventId, userId]) // One RSVP per user per event
+  @@index([eventId, status])
+  @@index([userId])
+}
+
+enum EventType {
+  JAM_SESSION
+  GIG
+  CONCERT
+  RECITAL
+  OPEN_MIC
+  WORKSHOP
+  MASTERCLASS
+  REHEARSAL
+  MEETUP
+  OTHER
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum RSVPStatus {
+  PENDING      // Waiting for organizer approval (if required)
+  CONFIRMED    // Attending
+  DECLINED     // Not attending
+  MAYBE        // Tentative
+  WAITLIST     // On waitlist (when event is full)
 }
 
 enum VenueType {

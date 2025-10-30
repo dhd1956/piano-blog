@@ -351,9 +351,20 @@ function ContactInformation({
 }) {
   // Get contact information from different sources
   const address = venue.fullAddress || extendedData?.venueDetails?.fullAddress
+
+  // Determine email - only from contactInfo if contactType is 'email'
   const email = venue.contactType === 'email' ? venue.contactInfo : null
-  const phone =
-    extendedData?.venueDetails?.phone || (venue.contactType === 'phone' ? venue.contactInfo : null)
+
+  // Determine phone - from contactInfo if contactType is 'phone', otherwise from extended data
+  // BUT: if contactType is 'email' and contactInfo looks like a phone, don't show it as phone
+  let phone: string | null = null
+  if (venue.contactType === 'phone') {
+    phone = venue.contactInfo
+  } else if (venue.contactType !== 'email') {
+    // Only use extended data phone if contactType is not email
+    phone = extendedData?.venueDetails?.phone || null
+  }
+
   const website = extendedData?.venueDetails?.website
   const otherContact =
     venue.contactType !== 'email' &&

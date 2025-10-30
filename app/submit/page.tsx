@@ -19,7 +19,7 @@ interface VenueFormData {
 const VENUE_TYPES = ['Cafe', 'Restaurant', 'Bar', 'Club', 'Community Center']
 
 export default function SubmitVenue() {
-  const { isConnected, walletAddress, connectWallet } = useHybridWallet()
+  const { isConnected, walletAddress, connectWallet, disconnectWallet } = useHybridWallet()
 
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
@@ -72,6 +72,26 @@ export default function SubmitVenue() {
     setEmailError('')
     setPhoneError('')
     setError('')
+
+    // Re-check wallet connection status before submitting
+    let currentWalletAddress = walletAddress
+    if (isConnected && typeof window !== 'undefined' && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+        if (accounts.length === 0) {
+          // Wallet was disconnected but React state hasn't updated yet
+          console.log('Wallet disconnected - submitting as anonymous')
+          currentWalletAddress = null
+        } else {
+          currentWalletAddress = accounts[0]
+        }
+      } catch (error) {
+        console.error('Error checking wallet:', error)
+        currentWalletAddress = null
+      }
+    } else {
+      currentWalletAddress = null
+    }
 
     // Validate required fields with specific error messages
     const errors: { name?: string; city?: string; address?: string } = {}
@@ -156,7 +176,7 @@ export default function SubmitVenue() {
         phone: formData.phone,
         website: websiteUrl,
         hasPiano: formData.hasPiano,
-        submittedBy: walletAddress || 'anonymous',
+        submittedBy: currentWalletAddress || 'anonymous',
       })
 
       // Submit to PostgreSQL API
@@ -175,7 +195,7 @@ export default function SubmitVenue() {
           venueType: formData.venueType,
           description: formData.description,
           fullAddress: formData.address,
-          submittedBy: walletAddress || 'anonymous',
+          submittedBy: currentWalletAddress || 'anonymous',
         }),
       })
 
@@ -296,9 +316,15 @@ export default function SubmitVenue() {
               <p className="mb-2 text-green-800">
                 ✅ Wallet Connected - You'll get credit for this submission
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="mb-3 text-sm text-gray-600">
                 Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
               </p>
+              <button
+                onClick={disconnectWallet}
+                className="rounded-lg bg-gray-600 px-4 py-2 text-sm text-white hover:bg-gray-700"
+              >
+                Disconnect Wallet
+              </button>
             </div>
           )}
         </div>

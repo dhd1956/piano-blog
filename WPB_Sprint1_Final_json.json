@@ -1,0 +1,2089 @@
+{
+  "issues": [
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10587",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10587",
+      "key": "WPB-146",
+      "fields": {
+        "statuscategorychangedate": "2025-10-29T13:51:44.999-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As the Blog Owner, I want the capability to validate a Venue by myself without having to have 2 other community members to vouch for it so that I don’t have to wait while building up the community in that particular city."
+                }
+              ]
+            },
+            {
+              "type": "paragraph"
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Although it takes 3 community members to validate a Venue, the blog owner alone can be enough to verify a Venue. "
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-29T13:51:44.980-0400",
+        "workratio": -1,
+        "summary": "The blog owner can verify a Venue",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-146/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": null,
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-10-25T11:07:55.394-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i000lj:0r",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-146/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10587/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-29T13:51:45.431-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10218",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10218",
+      "key": "WPB-55",
+      "fields": {
+        "statuscategorychangedate": "2025-10-19T21:20:49.165-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10171",
+          "key": "WPB-15",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10171",
+          "fields": {
+            "summary": "User Onboarding and Identity Management",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a crypto user,",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " I want to connect my MetaMask wallet so that I can use a familiar interface."
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-19T21:20:49.136-0400",
+        "workratio": -1,
+        "summary": "Provide MetaMask integration",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-55/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": null,
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-09-18T10:58:13.183-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i000lj:4",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-55/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10218/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-19T21:20:49.595-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10214",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10214",
+      "key": "WPB-51",
+      "fields": {
+        "statuscategorychangedate": "2025-10-28T13:20:54.921-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10174",
+          "key": "WPB-18",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10174",
+          "fields": {
+            "summary": "Venues Discovery & Content Management",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a venue scout,",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " I want the system to check for duplicate venues so that I don't waste my time submitting a known location. After venue name input, the system should look for duplicates and display them together with the addresses so the scout can see if this is a duplicate and abandon the submission. The system does not save the typed name."
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-28T13:20:54.888-0400",
+        "workratio": -1,
+        "summary": "Ensure unique Venue submissions",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-51/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": null,
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-09-18T10:53:17.756-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i0018e:",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-51/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10214/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-28T13:20:55.432-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10200",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10200",
+      "key": "WPB-37",
+      "fields": {
+        "statuscategorychangedate": "2025-10-29T14:58:47.403-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10176",
+          "key": "WPB-20",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10176",
+          "fields": {
+            "summary": "Economic System & Payments",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a verifier,",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " I want to approve or reject a venue so that the community can decide its status."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Acceptance Criteria:"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If all good and owner wants the jams, APPROVE and check that status is APPROVED."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If REJECT status REJECTED ( 1. Owner does not want jams. 2. Owner might want jams in the future. 3. The owner might change - keep the address PLEASE, THINK HOW TO DOCUMENT IT )"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If EDITed and APPROVEd, all the changes saved correctly and status APPROVED."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "If venue does nor exist, DELETE. It disappears from the system."
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-29T14:58:47.372-0400",
+        "workratio": -1,
+        "summary": "Provide ability to APPROVE or REJECT or EDIT or DELETE a venue",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-37/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": "2025-10-29T12:51:51.392-0400",
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-09-18T10:35:54.652-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i000lj:0v",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-37/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10200/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-29T14:58:47.908-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10198",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10198",
+      "key": "WPB-35",
+      "fields": {
+        "statuscategorychangedate": "2025-10-29T12:52:45.395-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10174",
+          "key": "WPB-18",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10174",
+          "fields": {
+            "summary": "Venues Discovery & Content Management",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a verifier,",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " I want to review and verify submitted venues so that I can help ensure quality."
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-29T12:52:45.364-0400",
+        "workratio": -1,
+        "summary": "Verify submitted venues",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-35/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": "2025-10-29T12:52:34.901-0400",
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-09-18T10:25:00.119-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i000lj:0i",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-35/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10198/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-29T12:52:45.950-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10194",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10194",
+      "key": "WPB-31",
+      "fields": {
+        "statuscategorychangedate": "2025-10-23T14:31:18.297-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10171",
+          "key": "WPB-15",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10171",
+          "fields": {
+            "summary": "User Onboarding and Identity Management",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a new user,",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " I want to immediately access the venue discovery feature so that I can contribute to the community right away by locating pianos with venues."
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-23T14:31:18.278-0400",
+        "workratio": -1,
+        "summary": "Provide immediate access to Venue Discovery",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-31/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": null,
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-09-18T10:16:55.713-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i0017x:",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-31/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10194/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-23T14:31:18.828-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10191",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10191",
+      "key": "WPB-28",
+      "fields": {
+        "statuscategorychangedate": "2025-10-16T16:21:45.932-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10171",
+          "key": "WPB-15",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10171",
+          "fields": {
+            "summary": "User Onboarding and Identity Management",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a new user,",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " I want to connect my crypto wallet so that I can participate in the community."
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-16T16:21:45.898-0400",
+        "workratio": -1,
+        "summary": "Connect by Crypto Wallet",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-28/watchers",
+          "watchCount": 1,
+          "isWatching": true
+        },
+        "lastViewed": null,
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "created": "2025-09-18T10:03:24.115-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=6151e19d7a6be4007189beb8",
+          "accountId": "6151e19d7a6be4007189beb8",
+          "emailAddress": "davehdavies@gmail.com",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/8ca845301d65f126bf90ef597cba8b33?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDD-0.png"
+          },
+          "displayName": "David Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i0017v:",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-28/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10191/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-16T16:21:46.449-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    },
+    {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10158",
+      "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10158",
+      "key": "WPB-2",
+      "fields": {
+        "statuscategorychangedate": "2025-10-17T10:31:46.772-0400",
+        "issuetype": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10052",
+          "id": "10052",
+          "description": "Created by Jira Agile - do not edit or delete. Issue type for a user story.",
+          "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+          "name": "Story",
+          "subtask": false,
+          "avatarId": 10315,
+          "entityId": "52b4c24f-25dd-492b-940f-4ba76248817b",
+          "hierarchyLevel": 0
+        },
+        "parent": {
+          "id": "10174",
+          "key": "WPB-18",
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10174",
+          "fields": {
+            "summary": "Venues Discovery & Content Management",
+            "status": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/status/10045",
+              "description": "",
+              "iconUrl": "https://maldavies14.atlassian.net/",
+              "name": "To Do",
+              "id": "10045",
+              "statusCategory": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/2",
+                "id": 2,
+                "key": "new",
+                "colorName": "blue-gray",
+                "name": "To Do"
+              }
+            },
+            "priority": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+              "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+              "name": "Medium",
+              "id": "3"
+            },
+            "issuetype": {
+              "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10053",
+              "id": "10053",
+              "description": "A collection of related bugs, stories, and tasks.",
+              "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10307?size=medium",
+              "name": "Epic",
+              "subtask": false,
+              "avatarId": 10307,
+              "entityId": "6175b710-9a59-4ab6-8b7d-c534b7d282f7",
+              "hierarchyLevel": 1
+            }
+          }
+        },
+        "components": [],
+        "timespent": null,
+        "timeoriginalestimate": null,
+        "project": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/project/10039",
+          "id": "10039",
+          "key": "WPB",
+          "name": "WEB3 Piano Blog",
+          "projectTypeKey": "software",
+          "simplified": true,
+          "avatarUrls": {
+            "48x48": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402",
+            "24x24": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=small",
+            "16x16": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=xsmall",
+            "32x32": "https://maldavies14.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10402?size=medium"
+          }
+        },
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "As a community member, I notice an acoustic piano in a location that looks like a good place for jam sessions and would like an easy way of reporting it for a possible reward."
+                }
+              ]
+            },
+            {
+              "type": "bulletList",
+              "content": [
+                {
+                  "type": "listItem",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Community member discovers new piano venue (café, bar, music space)"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "listItem",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Submits venue details with location, contact info, piano availability"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "listItem",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "User's wallet address recorded as the \"venue scout\""
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "listItem",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "System sets the Venue status as ‘pending verification’ queue"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "listItem",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "50 PXP reward is PENDING - conditional on successful verification"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "listItem",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "No immediate payment to prevent spam submissions"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "paragraph"
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Acceptance Criteria:"
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "When a venue has not already been reported, a single community member can report a given venue."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Question: if the user is only using phone number, are they able to be marked as the ‘venue scout’?"
+                }
+              ]
+            }
+          ]
+        },
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "statusCategory": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Done"
+        },
+        "resolution": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/resolution/10000",
+          "id": "10000",
+          "description": "Work has been completed on this issue.",
+          "name": "Done"
+        },
+        "timetracking": {},
+        "customfield_10015": null,
+        "security": null,
+        "attachment": [],
+        "aggregatetimeestimate": null,
+        "resolutiondate": "2025-10-17T10:31:46.755-0400",
+        "workratio": -1,
+        "summary": "Piano Venue Discovery",
+        "issuerestriction": {
+          "issuerestrictions": {},
+          "shouldDisplay": true
+        },
+        "watches": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-2/watchers",
+          "watchCount": 1,
+          "isWatching": false
+        },
+        "lastViewed": "2025-10-29T15:04:05.902-0400",
+        "creator": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=712020%3A2198b567-32e6-47cc-b45c-7d50c406e05e",
+          "accountId": "712020:2198b567-32e6-47cc-b45c-7d50c406e05e",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png"
+          },
+          "displayName": "Malgorzata Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "subtasks": [
+          {
+            "id": "10180",
+            "key": "WPB-23",
+            "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10180",
+            "fields": {
+              "summary": "QA: Modify to set as 'pending review' rather than getting reward right away as soon as a Venue Registration is created",
+              "status": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+                "description": "",
+                "iconUrl": "https://maldavies14.atlassian.net/",
+                "name": "Done",
+                "id": "10047",
+                "statusCategory": {
+                  "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+                  "id": 3,
+                  "key": "done",
+                  "colorName": "green",
+                  "name": "Done"
+                }
+              },
+              "priority": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+                "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+                "name": "Medium",
+                "id": "3"
+              },
+              "issuetype": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10054",
+                "id": "10054",
+                "description": "Subtasks track small pieces of work that are part of a larger task.",
+                "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+                "name": "Subtask",
+                "subtask": true,
+                "avatarId": 10316,
+                "entityId": "b9e29772-64e7-4654-9652-54046fd8d3e3",
+                "hierarchyLevel": -1
+              }
+            }
+          },
+          {
+            "id": "10182",
+            "key": "WPB-24",
+            "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10182",
+            "fields": {
+              "summary": "QA n Submit a Piano Venue, the submit button was pressed and the wallet connected. I got the following error: Error:   Internal JSON-RPC error.",
+              "status": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+                "description": "",
+                "iconUrl": "https://maldavies14.atlassian.net/",
+                "name": "Done",
+                "id": "10047",
+                "statusCategory": {
+                  "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+                  "id": 3,
+                  "key": "done",
+                  "colorName": "green",
+                  "name": "Done"
+                }
+              },
+              "priority": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+                "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+                "name": "Medium",
+                "id": "3"
+              },
+              "issuetype": {
+                "self": "https://maldavies14.atlassian.net/rest/api/3/issuetype/10054",
+                "id": "10054",
+                "description": "Subtasks track small pieces of work that are part of a larger task.",
+                "iconUrl": "https://maldavies14.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10316?size=medium",
+                "name": "Subtask",
+                "subtask": true,
+                "avatarId": 10316,
+                "entityId": "b9e29772-64e7-4654-9652-54046fd8d3e3",
+                "hierarchyLevel": -1
+              }
+            }
+          }
+        ],
+        "created": "2025-09-11T18:53:57.600-0400",
+        "customfield_10020": [
+          {
+            "id": 2,
+            "name": "WPB Sprint 1",
+            "state": "closed",
+            "boardId": 5,
+            "goal": "To be able to create, search and verify venues To provide a reward to the scouts",
+            "startDate": "2025-09-13T21:41:49.109Z",
+            "endDate": "2025-10-11T21:41:16.000Z",
+            "completeDate": "2025-10-29T19:04:58.671Z"
+          }
+        ],
+        "customfield_10021": null,
+        "reporter": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/user?accountId=712020%3A2198b567-32e6-47cc-b45c-7d50c406e05e",
+          "accountId": "712020:2198b567-32e6-47cc-b45c-7d50c406e05e",
+          "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png",
+            "24x24": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png",
+            "16x16": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png",
+            "32x32": "https://secure.gravatar.com/avatar/0f1f56be027d2aae0324204fa70da049?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMD-0.png"
+          },
+          "displayName": "Malgorzata Davies",
+          "active": true,
+          "timeZone": "America/Toronto",
+          "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+          "progress": 0,
+          "total": 0
+        },
+        "priority": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/priority/3",
+          "iconUrl": "https://maldavies14.atlassian.net/images/icons/priorities/medium_new.svg",
+          "name": "Medium",
+          "id": "3"
+        },
+        "customfield_10001": null,
+        "labels": [],
+        "customfield_10016": null,
+        "environment": null,
+        "customfield_10019": "0|i000lj:",
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "duedate": null,
+        "progress": {
+          "progress": 0,
+          "total": 0
+        },
+        "issuelinks": [],
+        "votes": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/WPB-2/votes",
+          "votes": 0,
+          "hasVoted": false
+        },
+        "comment": {
+          "comments": [],
+          "self": "https://maldavies14.atlassian.net/rest/api/3/issue/10158/comment",
+          "maxResults": 0,
+          "total": 0,
+          "startAt": 0
+        },
+        "assignee": null,
+        "worklog": {
+          "startAt": 0,
+          "maxResults": 20,
+          "total": 0,
+          "worklogs": []
+        },
+        "updated": "2025-10-17T10:31:46.771-0400",
+        "status": {
+          "self": "https://maldavies14.atlassian.net/rest/api/3/status/10047",
+          "description": "",
+          "iconUrl": "https://maldavies14.atlassian.net/",
+          "name": "Done",
+          "id": "10047",
+          "statusCategory": {
+            "self": "https://maldavies14.atlassian.net/rest/api/3/statuscategory/3",
+            "id": 3,
+            "key": "done",
+            "colorName": "green",
+            "name": "Done"
+          }
+        }
+      }
+    }
+  ],
+  "isLast": true
+}

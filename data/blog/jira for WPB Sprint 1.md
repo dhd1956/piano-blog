@@ -60,15 +60,15 @@ I'll analyze the Jira issues from your WEB3 Piano Blog project sprint. Here's a 
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -134,15 +134,15 @@ I'll analyze the Jira issues from your WEB3 Piano Blog project sprint. Here's a 
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -212,15 +212,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -340,15 +340,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -430,15 +430,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -471,15 +471,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -501,15 +501,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -597,15 +597,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**
@@ -635,15 +635,15 @@ The sprint appears well-structured with clear user stories following the "As a..
 - Using `qrcode` package v1.5.4
 - Integration with MultiWalletProvider for wallet addresses
 - Following Celo payment URI standards
-- CAV token rewards configured in .env.local
+- PXP token rewards configured in .env.local
 - **Critical:** No localStorage/sessionStorage in artifacts
 
 ## Notable Patterns
 
 1. **Reward Structure:**
-   - New users: Starting CAV upon connection
-   - Venue scouts: 50 CAV (retroactive after verification)
-   - Verifiers: 25 CAV immediate payment
+   - New users: Starting PXP upon connection
+   - Venue scouts: 50 PXP (retroactive after verification)
+   - Verifiers: 25 PXP immediate payment
    - Requires 2+ approvals from 3+ verifiers
 
 2. **Quality Gates:**

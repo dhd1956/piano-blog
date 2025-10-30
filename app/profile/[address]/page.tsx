@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
+import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import { PrismaClient } from '@prisma/client'
 
 interface UserProfile {
@@ -28,11 +29,26 @@ interface UserProfile {
   lastActive: Date
 }
 
+interface MusicianProfile {
+  instruments: string[]
+  musicalStyles: string[]
+  genres: string[]
+  experienceLevel: string | null
+  yearsPlaying: number | null
+  availableForGigs: boolean
+  availableForCollab: boolean
+  availabilityNotes: string | null
+  recordingLinks: string[]
+  socialMedia: any
+  repertoire: string[]
+}
+
 export default function ProfilePage() {
   const params = useParams()
   const address = params.address as string
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [musicianProfile, setMusicianProfile] = useState<MusicianProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
@@ -58,6 +74,7 @@ export default function ProfilePage() {
 
       const data = await response.json()
       setProfile(data.profile)
+      setMusicianProfile(data.musicianProfile || null)
       setVenuesDiscovered(data.venuesDiscovered || 0)
       setReviewCount(data.reviewCount || 0)
 
@@ -217,7 +234,7 @@ export default function ProfilePage() {
               </button>
               {isOwnProfile && (
                 <button
-                  onClick={() => (window.location.href = '/profile/settings')}
+                  onClick={() => (window.location.href = `/profile/${address}/edit`)}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
                 >
                   ⚙️ Edit Profile
@@ -256,6 +273,19 @@ export default function ProfilePage() {
           <div className="text-sm text-purple-700">Reviews Written</div>
         </div>
       </div>
+
+      {/* Wallet Linking Section - Only show on own profile if no wallet linked */}
+      {isOwnProfile && profile.username && !profile.walletAddress && (
+        <div className="mb-8">
+          <LinkWalletButton
+            username={profile.username}
+            pendingPXP={profile.totalPXPEarned}
+            onSuccess={() => {
+              console.log('Wallet linked successfully')
+            }}
+          />
+        </div>
+      )}
 
       {/* Skills */}
       {profile.skills && profile.skills.length > 0 && (
@@ -338,6 +368,211 @@ export default function ProfilePage() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Musician Profile Section */}
+      {musicianProfile && (
+        <>
+          {/* Instruments - WPB-109 */}
+          {musicianProfile.instruments && musicianProfile.instruments.length > 0 && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">🎹 Instruments</h2>
+              <div className="flex flex-wrap gap-2">
+                {musicianProfile.instruments.map((instrument) => (
+                  <span
+                    key={instrument}
+                    className="rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-800"
+                  >
+                    {instrument}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Musical Styles & Genres - WPB-110 */}
+          {((musicianProfile.musicalStyles && musicianProfile.musicalStyles.length > 0) ||
+            (musicianProfile.genres && musicianProfile.genres.length > 0)) && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">🎵 Musical Style</h2>
+
+              {musicianProfile.musicalStyles && musicianProfile.musicalStyles.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="mb-2 text-sm font-semibold text-gray-700">Styles</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {musicianProfile.musicalStyles.map((style) => (
+                      <span
+                        key={style}
+                        className="rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-800"
+                      >
+                        {style}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {musicianProfile.genres && musicianProfile.genres.length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-gray-700">Genres</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {musicianProfile.genres.map((genre) => (
+                      <span
+                        key={genre}
+                        className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-800"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Experience Level - WPB-111 */}
+          {(musicianProfile.experienceLevel || musicianProfile.yearsPlaying) && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">📊 Experience</h2>
+              <div className="space-y-3">
+                {musicianProfile.experienceLevel && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-600">Level:</span>
+                    <span className="rounded-full bg-green-100 px-4 py-1 text-sm font-semibold text-green-800">
+                      {musicianProfile.experienceLevel}
+                    </span>
+                  </div>
+                )}
+                {musicianProfile.yearsPlaying && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-600">Playing for:</span>
+                    <span className="text-lg font-semibold text-gray-900">
+                      {musicianProfile.yearsPlaying} years
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Availability - WPB-112 */}
+          {(musicianProfile.availableForGigs ||
+            musicianProfile.availableForCollab ||
+            musicianProfile.availabilityNotes) && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">📅 Availability</h2>
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-3">
+                  {musicianProfile.availableForGigs && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
+                      <span className="text-green-600">✓</span>
+                      Available for Gigs
+                    </span>
+                  )}
+                  {musicianProfile.availableForCollab && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-800">
+                      <span className="text-blue-600">✓</span>
+                      Available for Collaborations
+                    </span>
+                  )}
+                </div>
+                {musicianProfile.availabilityNotes && (
+                  <div className="mt-3 rounded-md bg-gray-50 p-3">
+                    <p className="text-sm text-gray-700">{musicianProfile.availabilityNotes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Performance Portfolio - WPB-113 */}
+          {((musicianProfile.recordingLinks && musicianProfile.recordingLinks.length > 0) ||
+            (musicianProfile.socialMedia &&
+              Object.keys(musicianProfile.socialMedia).some(
+                (key) => musicianProfile.socialMedia[key]
+              ))) && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">🎥 Performance Portfolio</h2>
+
+              {musicianProfile.recordingLinks && musicianProfile.recordingLinks.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="mb-2 text-sm font-semibold text-gray-700">Recordings</h3>
+                  <div className="space-y-2">
+                    {musicianProfile.recordingLinks.map((link, index) => (
+                      <a
+                        key={index}
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block truncate text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {link}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {musicianProfile.socialMedia &&
+                Object.keys(musicianProfile.socialMedia).some(
+                  (key) => musicianProfile.socialMedia[key]
+                ) && (
+                  <div>
+                    <h3 className="mb-2 text-sm font-semibold text-gray-700">Social Media</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {musicianProfile.socialMedia.youtube && (
+                        <a
+                          href={musicianProfile.socialMedia.youtube}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-200"
+                        >
+                          📺 YouTube
+                        </a>
+                      )}
+                      {musicianProfile.socialMedia.instagram && (
+                        <a
+                          href={`https://instagram.com/${musicianProfile.socialMedia.instagram}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md bg-pink-100 px-3 py-2 text-sm font-medium text-pink-800 hover:bg-pink-200"
+                        >
+                          📷 Instagram
+                        </a>
+                      )}
+                      {musicianProfile.socialMedia.soundcloud && (
+                        <a
+                          href={musicianProfile.socialMedia.soundcloud}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md bg-orange-100 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-200"
+                        >
+                          🎧 SoundCloud
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+            </div>
+          )}
+
+          {/* Repertoire - WPB-114 */}
+          {musicianProfile.repertoire && musicianProfile.repertoire.length > 0 && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">📝 Repertoire</h2>
+              <div className="flex flex-wrap gap-2">
+                {musicianProfile.repertoire.map((song) => (
+                  <span
+                    key={song}
+                    className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800"
+                  >
+                    {song}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* QR Code Modal */}

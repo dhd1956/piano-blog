@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { UserService } from '@/lib/database'
 
 const prisma = new PrismaClient()
 
@@ -14,7 +15,7 @@ export async function GET(
     const normalizedAddress = address.toLowerCase()
 
     // Try to find user by wallet address or profile slug
-    const user = await prisma.user.findFirst({
+    let user = await prisma.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: address, mode: 'insensitive' } },
@@ -31,8 +32,30 @@ export async function GET(
             createdAt: true,
           },
         },
+        musicianProfile: true, // Include musician profile data
       },
     })
+
+    // If no user found and address looks like a wallet address (starts with 0x), create user
+    if (!user && address.toLowerCase().startsWith('0x')) {
+      user = await UserService.findOrCreateUser(address)
+
+      // Fetch full user data with relations after creation
+      user = await prisma.user.findUnique({
+        where: { walletAddress: address.toLowerCase() },
+        include: {
+          reviews: {
+            select: {
+              id: true,
+              venueId: true,
+              rating: true,
+              createdAt: true,
+            },
+          },
+          musicianProfile: true,
+        },
+      })
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
@@ -74,6 +97,7 @@ export async function GET(
 
     return NextResponse.json({
       profile: profileData,
+      musicianProfile: user.musicianProfile, // Include musician profile data
       venuesDiscovered,
       reviewCount,
     })
@@ -112,10 +136,19 @@ export async function PATCH(
       )
     }
 
+    // First, get the user to find their userId
+    const user = await prisma.user.findUnique({
+      where: { walletAddress: address.toLowerCase() },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: {
-        walletAddress: address,
+        walletAddress: address.toLowerCase(),
       },
       data: {
         username: body.username,
@@ -133,6 +166,42 @@ export async function PATCH(
         lastActive: new Date(),
       },
     })
+
+    // Update or create musician profile if provided
+    if (body.musicianProfile) {
+      await prisma.musicianProfile.upsert({
+        where: {
+          userId: user.id,
+        },
+        create: {
+          userId: user.id,
+          instruments: body.musicianProfile.instruments || [],
+          musicalStyles: body.musicianProfile.musicalStyles || [],
+          genres: body.musicianProfile.genres || [],
+          experienceLevel: body.musicianProfile.experienceLevel,
+          yearsPlaying: body.musicianProfile.yearsPlaying,
+          availableForGigs: body.musicianProfile.availableForGigs || false,
+          availableForCollab: body.musicianProfile.availableForCollab || false,
+          availabilityNotes: body.musicianProfile.availabilityNotes,
+          recordingLinks: body.musicianProfile.recordingLinks || [],
+          socialMedia: body.musicianProfile.socialMedia || {},
+          repertoire: body.musicianProfile.repertoire || [],
+        },
+        update: {
+          instruments: body.musicianProfile.instruments || [],
+          musicalStyles: body.musicianProfile.musicalStyles || [],
+          genres: body.musicianProfile.genres || [],
+          experienceLevel: body.musicianProfile.experienceLevel,
+          yearsPlaying: body.musicianProfile.yearsPlaying,
+          availableForGigs: body.musicianProfile.availableForGigs || false,
+          availableForCollab: body.musicianProfile.availableForCollab || false,
+          availabilityNotes: body.musicianProfile.availabilityNotes,
+          recordingLinks: body.musicianProfile.recordingLinks || [],
+          socialMedia: body.musicianProfile.socialMedia || {},
+          repertoire: body.musicianProfile.repertoire || [],
+        },
+      })
+    }
 
     return NextResponse.json({ profile: updatedUser })
   } catch (error) {
