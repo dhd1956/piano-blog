@@ -592,7 +592,7 @@ export default function CuratorDashboard() {
 
         {/* Venue Review Modal */}
         {selectedVenue && (
-          <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div className="max-h-screen w-full max-w-2xl overflow-y-auto rounded-lg bg-white">
               <div className="p-6">
                 <div className="mb-4 flex items-start justify-between">
