@@ -24,7 +24,20 @@ interface Venue {
   createdAt: Date
 }
 
-const VENUE_TYPES = ['Cafe', 'Restaurant', 'Bar', 'Club', 'Community Center']
+const VENUE_TYPES = [
+  'Cafe',
+  'Restaurant',
+  'Bar',
+  'Club',
+  'Community Center',
+  'Hotel/Resort',
+  'Music School',
+  'Church/Religious',
+  'Library',
+  'Senior Centre',
+  'Retirement Home',
+  'Other',
+]
 
 export default function CuratorDashboard() {
   const { isConnected, walletAddress, connect } = useWallet()

@@ -39,7 +39,21 @@ interface Venue {
   }
 }
 
-const VENUE_TYPES = ['All', 'Cafe', 'Restaurant', 'Bar', 'Club', 'Community Center']
+const VENUE_TYPES = [
+  'All',
+  'Cafe',
+  'Restaurant',
+  'Bar',
+  'Club',
+  'Community Center',
+  'Hotel/Resort',
+  'Music School',
+  'Church/Religious',
+  'Library',
+  'Senior Centre',
+  'Retirement Home',
+  'Other',
+]
 const CITIES = ['All', 'San Francisco', 'New York', 'Austin', 'Chicago', 'Los Angeles']
 
 export default function HybridVenueList() {

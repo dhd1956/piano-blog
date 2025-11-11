@@ -301,6 +301,8 @@ export const VENUE_TYPES = [
   'Music School',
   'Church/Religious',
   'Library',
+  'Senior Centre',
+  'Retirement Home',
   'Other',
 ] as const
 
