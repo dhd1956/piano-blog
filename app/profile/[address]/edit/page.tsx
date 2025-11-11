@@ -30,8 +30,11 @@ export default function ProfileEditPage() {
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [isBlogOwner, setIsBlogOwner] = useState(false)
+  const [isOwnProfile, setIsOwnProfile] = useState(false)
 
   // User profile fields
   const [displayName, setDisplayName] = useState('')
@@ -109,6 +112,19 @@ export default function ProfileEditPage() {
           setSoundcloudHandle(data.musicianProfile.socialMedia.soundcloud || '')
         }
       }
+
+      // Check if user is blog owner
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' })
+        if (accounts.length > 0) {
+          const connectedAddress = accounts[0].toLowerCase()
+          const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+          const profileAddress = data.profile.walletAddress?.toLowerCase()
+
+          setIsBlogOwner(connectedAddress === blogOwner)
+          setIsOwnProfile(connectedAddress === profileAddress)
+        }
+      }
     } catch (err: any) {
       console.error('Error loading profile:', err)
       setError(err.message)
@@ -179,6 +195,56 @@ export default function ProfileEditPage() {
       setError(err.message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (
+      !confirm(
+        'Are you sure you want to delete this profile? This action cannot be undone and will delete:\n\n• User profile\n• Musician profile\n• All reviews\n• All sessions\n\nType "DELETE" to confirm.'
+      )
+    ) {
+      return
+    }
+
+    const confirmText = prompt('Please type DELETE to confirm:')
+    if (confirmText !== 'DELETE') {
+      alert('Delete cancelled. You must type DELETE exactly.')
+      return
+    }
+
+    try {
+      setDeleting(true)
+      setError(null)
+
+      // Get connected wallet address for authentication
+      let requesterAddress = ''
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' })
+        if (accounts.length > 0) {
+          requesterAddress = accounts[0]
+        }
+      }
+
+      const response = await fetch(`/api/profile/${address}/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requesterAddress }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete profile')
+      }
+
+      alert('Profile deleted successfully')
+      router.push('/musicians')
+    } catch (err: any) {
+      console.error('Error deleting profile:', err)
+      setError(err.message)
+      alert(`Failed to delete profile: ${err.message}`)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -637,20 +703,40 @@ export default function ProfileEditPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {saving ? 'Saving...' : 'Save Profile'}
-          </button>
-          <button
-            onClick={() => router.push(`/profile/${address}`)}
-            className="rounded-md border border-gray-300 bg-white px-6 py-3 text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <button
+              onClick={handleSave}
+              disabled={saving || deleting}
+              className="flex-1 rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {saving ? 'Saving...' : 'Save Profile'}
+            </button>
+            <button
+              onClick={() => router.push(`/profile/${address}`)}
+              disabled={saving || deleting}
+              className="rounded-md border border-gray-300 bg-white px-6 py-3 text-gray-700 hover:bg-gray-50 disabled:bg-gray-100"
+            >
+              Cancel
+            </button>
+          </div>
+
+          {/* Delete Button - Only visible to blog owner editing someone else's profile */}
+          {isBlogOwner && !isOwnProfile && (
+            <div className="border-t border-red-200 pt-4">
+              <button
+                onClick={handleDelete}
+                disabled={saving || deleting}
+                className="w-full rounded-md border-2 border-red-600 bg-white px-6 py-3 font-semibold text-red-600 hover:bg-red-50 disabled:border-gray-300 disabled:text-gray-400"
+              >
+                {deleting ? 'Deleting...' : '🗑️ Delete Profile (Blog Owner Only)'}
+              </button>
+              <p className="mt-2 text-center text-xs text-red-600">
+                ⚠️ This will permanently delete the user profile, musician profile, reviews, and
+                sessions
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
