@@ -1,0 +1,138 @@
+/**
+ * User Registration API Route
+ * Allows new users to create accounts with username/password
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/database-simplified'
+import { hashPassword, generateToken } from '@/lib/auth'
+import { UserRole } from '@prisma/client'
+import { z } from 'zod'
+
+const signupSchema = z.object({
+  username: z
+    .string()
+    .min(3)
+    .max(50)
+    .regex(/^[a-zA-Z0-9_-]+$/, {
+      message: 'Username can only contain letters, numbers, hyphens, and underscores',
+    }),
+  password: z.string().min(6),
+  email: z.string().email().optional(),
+  displayName: z.string().max(100).optional(),
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const validation = signupSchema.safeParse(body)
+
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation failed',
+          message: 'Please check your input',
+          details: validation.error.issues,
+        },
+        { status: 400 }
+      )
+    }
+
+    const { username, password, email, displayName } = validation.data
+
+    // Check if username already exists
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    })
+
+    if (existingUsername) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Username taken',
+          message: `Username "${username}" is already taken. Please choose another.`,
+        },
+        { status: 400 }
+      )
+    }
+
+    // Check if email already exists (if provided)
+    if (email) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email },
+      })
+
+      if (existingEmail) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Email already registered',
+            message: `This email is already registered. Please log in or use a different email.`,
+          },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password)
+
+    // Create user
+    const newUser = await prisma.user.create({
+      data: {
+        username,
+        passwordHash,
+        email,
+        displayName: displayName || username,
+        role: UserRole.SCOUT, // Default role for new users
+        isActive: true,
+        publicProfile: true, // Default to public profile
+        showPXPBalance: true, // Default to showing PXP balance
+      },
+      select: {
+        id: true,
+        username: true,
+        walletAddress: true,
+        role: true,
+        email: true,
+        displayName: true,
+      },
+    })
+
+    // Generate JWT token
+    const token = await generateToken(newUser)
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Account created successfully',
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          walletAddress: newUser.walletAddress,
+          role: newUser.role,
+          displayName: newUser.displayName,
+        },
+        token,
+      },
+      {
+        status: 201,
+        headers: {
+          'Set-Cookie': `auth_token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}`,
+        },
+      }
+    )
+  } catch (error: any) {
+    console.error('Signup error:', error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Registration failed',
+        message: error.message || 'An error occurred during registration',
+      },
+      { status: 500 }
+    )
+  }
+}

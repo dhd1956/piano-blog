@@ -21,7 +21,7 @@ export default function MyProfilePage() {
     // Check if user is logged in via username/password
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/auth/session')
+        const response = await fetch('/api/auth/me')
         if (response.ok) {
           const data = await response.json()
           if (data.user && data.user.username) {
