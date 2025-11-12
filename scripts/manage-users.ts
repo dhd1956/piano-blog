@@ -82,7 +82,7 @@ async function deleteUserByEmail(email: string) {
   }
 
   // Delete reviews
-  const reviewCount = await prisma.review.deleteMany({
+  const reviewCount = await prisma.venueReview.deleteMany({
     where: { userId: user.id },
   })
   if (reviewCount.count > 0) {
@@ -136,7 +136,7 @@ async function deleteUserById(id: number) {
   }
 
   // Delete reviews
-  const reviewCount = await prisma.review.deleteMany({
+  const reviewCount = await prisma.venueReview.deleteMany({
     where: { userId: user.id },
   })
   if (reviewCount.count > 0) {

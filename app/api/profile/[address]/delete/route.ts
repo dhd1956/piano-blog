@@ -62,7 +62,7 @@ export async function DELETE(
     }
 
     // Delete reviews
-    await prisma.review.deleteMany({
+    await prisma.venueReview.deleteMany({
       where: { userId: user.id },
     })
 
