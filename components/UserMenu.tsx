@@ -74,9 +74,16 @@ export default function UserMenu() {
     }
   }
 
-  // Don't show if not logged in
+  // Show login link if not logged in
   if (!isLoggedIn) {
-    return null
+    return (
+      <Link
+        href="/auth/login"
+        className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
+      >
+        Login
+      </Link>
+    )
   }
 
   return (
