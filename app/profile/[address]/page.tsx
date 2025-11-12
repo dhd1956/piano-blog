@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
 import LinkWalletButton from '@/components/wallet/LinkWalletButton'
+import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
 
 interface UserProfile {
   walletAddress: string
@@ -287,6 +288,19 @@ export default function ProfilePage() {
             pendingPXP={profile.totalPXPEarned}
             onSuccess={() => {
               console.log('Wallet linked successfully')
+            }}
+          />
+        </div>
+      )}
+
+      {/* Add Credentials Section - Only show on own profile if wallet exists but no username */}
+      {isOwnProfile && profile.walletAddress && !profile.username && (
+        <div className="mb-8">
+          <AddCredentialsForm
+            walletAddress={profile.walletAddress}
+            onSuccess={() => {
+              console.log('Credentials added successfully')
+              loadProfile() // Reload profile to show updated data
             }}
           />
         </div>
