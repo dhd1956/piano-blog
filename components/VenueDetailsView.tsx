@@ -166,14 +166,8 @@ function VerificationDetails({ venue }: { venue: any }) {
     dateStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : 'Unknown'
   }
 
-  // Determine status
+  // Determine status - only show for rejected venues
   const isRejected = venue.rejectedAt !== null && venue.rejectedAt !== undefined
-  const statusText = venue.verified ? 'Verified' : isRejected ? 'Rejected' : 'Pending Verification'
-  const statusColor = venue.verified
-    ? 'text-green-600'
-    : isRejected
-      ? 'text-red-600'
-      : 'text-yellow-600'
 
   return (
     <div>
@@ -190,8 +184,6 @@ function VerificationDetails({ venue }: { venue: any }) {
             </div>
           }
         />
-
-        <InfoRow label="Status" value={<span className={statusColor}>{statusText}</span>} />
 
         {/* Show rejection details if rejected */}
         {isRejected && venue.rejectedAt && (
