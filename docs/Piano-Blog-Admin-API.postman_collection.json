@@ -1,0 +1,176 @@
+{
+  "info": {
+    "name": "Piano Blog - Admin API",
+    "description": "Admin endpoints for managing user profiles and cleanup operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://piano-blog.vercel.app",
+      "type": "string"
+    },
+    {
+      "key": "admin_api_key",
+      "value": "YOUR_ADMIN_API_KEY_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "User Cleanup",
+      "item": [
+        {
+          "name": "1. Check if User Exists (Safe)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-admin-key",
+                "value": "{{admin_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/cleanup-user?identifier=MalDav",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cleanup-user"],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "MalDav",
+                  "description": "Username, wallet address, or display name"
+                }
+              ]
+            },
+            "description": "Check if a user exists and see what data will be deleted. This is a safe, read-only operation."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Delete User - MalDav (DESTRUCTIVE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-admin-key",
+                "value": "{{admin_api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"MalDav\",\n  \"confirm\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/cleanup-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cleanup-user"]
+            },
+            "description": "⚠️ WARNING: This permanently deletes the user and all associated data!\n\nDeletes:\n- User account\n- Musician profile\n- All reviews\n- All sessions\n\nThis action CANNOT be undone!"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Delete User - Custom (Template)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-admin-key",
+                "value": "{{admin_api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"USERNAME_HERE\",\n  \"confirm\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/cleanup-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cleanup-user"]
+            },
+            "description": "⚠️ Template for deleting any user. Replace USERNAME_HERE with the actual username, wallet address, or display name."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Test - Without Confirm (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-admin-key",
+                "value": "{{admin_api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"MalDav\",\n  \"confirm\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/cleanup-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cleanup-user"]
+            },
+            "description": "Test the safety check - should return 400 error requiring confirm: true"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Test - Without Auth (Should Fail)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/cleanup-user?identifier=MalDav",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cleanup-user"],
+              "query": [
+                {
+                  "key": "identifier",
+                  "value": "MalDav"
+                }
+              ]
+            },
+            "description": "Test authentication - should return 401 Unauthorized when x-admin-key header is missing"
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin endpoints for cleaning up user profiles and associated data"
+    }
+  ]
+}
