@@ -80,7 +80,7 @@ export default function UserMenu() {
   }
 
   return (
-    <div ref={menuRef}>
+    <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="hover:text-primary-500 dark:hover:text-primary-400 flex items-center gap-1 font-medium text-gray-900 dark:text-gray-100"

@@ -1,10 +1,54 @@
-const headerNavLinks = [
+// Navigation structure with grouped items
+export interface NavItem {
+  href: string
+  title: string
+}
+
+export interface NavGroup {
+  type: 'link' | 'dropdown'
+  title: string
+  href?: string
+  items?: NavItem[]
+}
+
+const headerNavLinks: NavGroup[] = [
+  { type: 'link', title: 'Home', href: '/' },
+  {
+    type: 'dropdown',
+    title: 'Blog',
+    items: [
+      { href: '/blog', title: 'All Posts' },
+      { href: '/tags', title: 'Tags' },
+    ],
+  },
+  {
+    type: 'dropdown',
+    title: 'Community',
+    items: [
+      { href: '/venues', title: 'Venues' },
+      { href: '/musicians', title: 'Musicians' },
+      { href: '/events', title: 'Events' },
+    ],
+  },
+  {
+    type: 'dropdown',
+    title: 'Contribute',
+    items: [
+      { href: '/submit', title: 'Submit Venue' },
+      { href: '/community/dashboard', title: 'Dashboard' },
+    ],
+  },
+  { type: 'link', title: 'About', href: '/about' },
+]
+
+// Legacy flat structure for backward compatibility
+export const legacyHeaderNavLinks = [
   { href: '/', title: 'Home' },
   { href: '/blog', title: 'Blog' },
   { href: '/tags', title: 'Tags' },
-  { href: '/profile', title: 'My Profile' }, // WPB-140: Replaced Projects with My Profile
-  { href: '/musicians', title: 'Musicians' }, // WPB-201: Musicians Directory
-  { href: '/events', title: 'Events' }, // WPB-212: Events Directory
+  { href: '/profile', title: 'My Profile' },
+  { href: '/musicians', title: 'Musicians' },
+  { href: '/events', title: 'Events' },
   { href: '/venues', title: 'Venues' },
   { href: '/submit', title: 'Submit' },
   { href: '/community/dashboard', title: 'Dashboard' },

@@ -4,7 +4,7 @@ import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/re
 import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock'
 import { Fragment, useState, useEffect, useRef } from 'react'
 import Link from './Link'
-import headerNavLinks from '@/data/headerNavLinks'
+import headerNavLinks, { type NavGroup } from '@/data/headerNavLinks'
 import UserMenu from './UserMenu'
 
 const MobileNav = () => {
@@ -73,18 +73,37 @@ const MobileNav = () => {
                 ref={navRef}
                 className="mt-8 flex h-full basis-0 flex-col items-start overflow-y-auto pt-2 pl-12 text-left"
               >
-                {headerNavLinks
-                  .filter((link) => link.href !== '/profile')
-                  .map((link) => (
+                {headerNavLinks.map((navGroup) =>
+                  navGroup.type === 'link' && navGroup.href ? (
                     <Link
-                      key={link.title}
-                      href={link.href}
+                      key={navGroup.title}
+                      href={navGroup.href}
                       className="hover:text-primary-500 dark:hover:text-primary-400 mb-4 py-2 pr-4 text-2xl font-bold tracking-widest text-gray-900 outline outline-0 dark:text-gray-100"
                       onClick={onToggleNav}
                     >
-                      {link.title}
+                      {navGroup.title}
                     </Link>
-                  ))}
+                  ) : (
+                    navGroup.type === 'dropdown' &&
+                    navGroup.items && (
+                      <div key={navGroup.title} className="mb-4">
+                        <div className="text-primary-500 dark:text-primary-400 mb-2 py-2 pr-4 text-xl font-bold tracking-widest">
+                          {navGroup.title}
+                        </div>
+                        {navGroup.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="hover:text-primary-500 dark:hover:text-primary-400 mb-2 block py-1 pr-4 pl-4 text-lg font-medium text-gray-700 dark:text-gray-300"
+                            onClick={onToggleNav}
+                          >
+                            {item.title}
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  )
+                )}
                 <div className="mb-4 py-2 pr-4">
                   <UserMenu />
                 </div>

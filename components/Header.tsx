@@ -7,6 +7,7 @@ import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
 import WalletConnection from './web3/WalletConnection'
 import UserMenu from './UserMenu'
+import DropdownNav from './DropdownNav'
 
 const Header = () => {
   let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
@@ -31,24 +32,27 @@ const Header = () => {
         </div>
       </Link>
       <div className="flex items-center space-x-4 leading-5 sm:-mr-6 sm:space-x-6">
-        <div className="no-scrollbar hidden items-center gap-x-4 overflow-x-auto sm:flex">
-          {headerNavLinks
-            .filter((link) => link.href !== '/' && link.href !== '/profile')
-            .map((link) => (
+        <div className="no-scrollbar hidden items-center gap-x-4 sm:flex">
+          {headerNavLinks.map((navGroup) =>
+            navGroup.type === 'link' && navGroup.href ? (
               <Link
-                key={link.title}
-                href={link.href}
+                key={navGroup.title}
+                href={navGroup.href}
                 className="hover:text-primary-500 dark:hover:text-primary-400 m-1 font-medium text-gray-900 dark:text-gray-100"
               >
-                {link.title}
+                {navGroup.title}
               </Link>
-            ))}
+            ) : (
+              navGroup.type === 'dropdown' &&
+              navGroup.items && (
+                <DropdownNav key={navGroup.title} title={navGroup.title} items={navGroup.items} />
+              )
+            )
+          )}
         </div>
         <SearchButton />
         <ThemeSwitch />
-        <div className="relative">
-          <UserMenu />
-        </div>
+        <UserMenu />
         <WalletConnection size="sm" showNetworkStatus={true} />
         <MobileNav />
       </div>
