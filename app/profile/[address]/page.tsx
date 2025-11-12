@@ -180,10 +180,16 @@ export default function ProfilePage() {
               <p className="mb-2 font-mono text-sm text-blue-600">{profile.ensName}</p>
             )}
 
-            <p className="mb-4 font-mono text-xs text-gray-400">
-              {profile.walletAddress.substring(0, 6)}...
-              {profile.walletAddress.substring(profile.walletAddress.length - 4)}
-            </p>
+            {profile.walletAddress && (
+              <p className="mb-4 font-mono text-xs text-gray-400">
+                {profile.walletAddress.substring(0, 6)}...
+                {profile.walletAddress.substring(profile.walletAddress.length - 4)}
+              </p>
+            )}
+
+            {!profile.walletAddress && profile.username && (
+              <p className="mb-4 font-mono text-xs text-gray-400">@{profile.username}</p>
+            )}
 
             {profile.bio && <p className="mb-4 text-gray-700">{profile.bio}</p>}
 
