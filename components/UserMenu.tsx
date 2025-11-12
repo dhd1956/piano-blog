@@ -80,7 +80,7 @@ export default function UserMenu() {
   }
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="hover:text-primary-500 dark:hover:text-primary-400 flex items-center gap-1 font-medium text-gray-900 dark:text-gray-100"
@@ -111,7 +111,7 @@ export default function UserMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 z-50 mt-2 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="absolute top-full right-0 z-[100] mt-2 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-xl dark:border-gray-700 dark:bg-gray-800">
           <div className="border-b border-gray-200 px-4 py-2 dark:border-gray-700">
             <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
               {username}

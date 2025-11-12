@@ -46,7 +46,9 @@ const Header = () => {
         </div>
         <SearchButton />
         <ThemeSwitch />
-        <UserMenu />
+        <div className="relative">
+          <UserMenu />
+        </div>
         <WalletConnection size="sm" showNetworkStatus={true} />
         <MobileNav />
       </div>
