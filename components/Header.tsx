@@ -6,6 +6,7 @@ import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
 import WalletConnection from './web3/WalletConnection'
+import LogoutButton from './LogoutButton'
 
 const Header = () => {
   let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
@@ -42,6 +43,7 @@ const Header = () => {
                 {link.title}
               </Link>
             ))}
+          <LogoutButton />
         </div>
         <SearchButton />
         <ThemeSwitch />
