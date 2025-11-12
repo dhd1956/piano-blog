@@ -6,7 +6,7 @@ import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
 import WalletConnection from './web3/WalletConnection'
-import LogoutButton from './LogoutButton'
+import UserMenu from './UserMenu'
 
 const Header = () => {
   let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
@@ -33,7 +33,7 @@ const Header = () => {
       <div className="flex items-center space-x-4 leading-5 sm:-mr-6 sm:space-x-6">
         <div className="no-scrollbar hidden items-center gap-x-4 overflow-x-auto sm:flex">
           {headerNavLinks
-            .filter((link) => link.href !== '/')
+            .filter((link) => link.href !== '/' && link.href !== '/profile')
             .map((link) => (
               <Link
                 key={link.title}
@@ -43,10 +43,10 @@ const Header = () => {
                 {link.title}
               </Link>
             ))}
-          <LogoutButton />
         </div>
         <SearchButton />
         <ThemeSwitch />
+        <UserMenu />
         <WalletConnection size="sm" showNetworkStatus={true} />
         <MobileNav />
       </div>
