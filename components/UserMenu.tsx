@@ -7,6 +7,7 @@ import Link from './Link'
 export default function UserMenu() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState<string | null>(null)
+  const [profileUrl, setProfileUrl] = useState<string>('/profile')
   const [isOpen, setIsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
@@ -21,7 +22,19 @@ export default function UserMenu() {
           const data = await response.json()
           if (data.user) {
             setIsLoggedIn(true)
-            setUsername(data.user.username || data.user.displayName || 'User')
+            // Set display name
+            const displayName =
+              data.user.username || data.user.displayName || data.user.walletAddress || 'User'
+            setUsername(displayName)
+
+            // Set profile URL based on what identifier user has
+            if (data.user.username) {
+              setProfileUrl(`/profile/${data.user.username}`)
+            } else if (data.user.walletAddress) {
+              setProfileUrl(`/profile/${data.user.walletAddress}`)
+            } else {
+              setProfileUrl('/profile')
+            }
           }
         }
       } catch (error) {
@@ -126,7 +139,7 @@ export default function UserMenu() {
           </div>
 
           <Link
-            href="/profile"
+            href={profileUrl}
             className="hover:bg-primary-50 dark:hover:bg-primary-900/20 block px-4 py-2 text-sm text-gray-700 dark:text-gray-300"
             onClick={() => setIsOpen(false)}
           >
