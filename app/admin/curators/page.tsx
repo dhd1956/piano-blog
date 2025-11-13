@@ -5,6 +5,8 @@ import { useWallet } from '@/hooks/useWallet'
 import { usePermissions } from '@/components/web3/WorkingWeb3Provider'
 import WalletConnection from '@/components/web3/WalletConnection'
 
+export const dynamic = 'force-dynamic'
+
 interface Curator {
   id: number
   walletAddress: string

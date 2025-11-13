@@ -95,6 +95,9 @@ module.exports = () => {
         use: ['@svgr/webpack'],
       })
 
+      // Add externals for Reown AppKit (prevents bundling issues)
+      config.externals.push('pino-pretty', 'lokijs', 'encoding')
+
       return config
     },
   })

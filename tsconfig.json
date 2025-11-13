@@ -25,6 +25,8 @@
       "@/utils/*": ["utils/*"],
       "@/types/*": ["types/*"],
       "@/hooks/*": ["hooks/*"],
+      "@/context/*": ["context/*"],
+      "@/config/*": ["config/*"],
       "contentlayer/generated": ["./.contentlayer/generated"],
       "pliny/*": ["node_modules/pliny/*"]
     },

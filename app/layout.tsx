@@ -10,7 +10,9 @@ import SectionContainer from '@/components/SectionContainer'
 import Footer from '@/components/Footer'
 import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
-import { WorkingWeb3Provider as Web3Provider } from '@/components/web3/WorkingWeb3Provider'
+import { ReownProvider } from '@/context/ReownProvider'
+import { WorkingWeb3Provider } from '@/components/web3/WorkingWeb3Provider'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -96,18 +98,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
-        <Web3Provider>
-          <ThemeProviders>
-            <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-            <SectionContainer>
-              <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                <Header />
-                <main className="mb-auto">{children}</main>
-              </SearchProvider>
-              <Footer />
-            </SectionContainer>
-          </ThemeProviders>
-        </Web3Provider>
+        <ErrorBoundary>
+          <ReownProvider>
+            <WorkingWeb3Provider>
+              <ThemeProviders>
+                <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+                <SectionContainer>
+                  <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                    <Header />
+                    <main className="mb-auto">{children}</main>
+                  </SearchProvider>
+                  <Footer />
+                </SectionContainer>
+              </ThemeProviders>
+            </WorkingWeb3Provider>
+          </ReownProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

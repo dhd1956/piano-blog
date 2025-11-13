@@ -1,3 +1,5 @@
+'use client'
+
 import siteMetadata from '@/data/siteMetadata'
 import headerNavLinks from '@/data/headerNavLinks'
 import Logo from '@/data/logo.svg'
@@ -5,8 +7,7 @@ import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
-import WalletConnection from './web3/WalletConnection'
-import UserMenu from './UserMenu'
+import ConnectButton from './ConnectButton'
 import DropdownNav from './DropdownNav'
 
 const Header = () => {
@@ -52,8 +53,7 @@ const Header = () => {
         </div>
         <SearchButton />
         <ThemeSwitch />
-        <UserMenu />
-        <WalletConnection size="sm" showNetworkStatus={true} />
+        <ConnectButton />
         <MobileNav />
       </div>
     </header>
