@@ -146,3 +146,4 @@ The VenueRegistry contract manages:
 - No private keys stored in frontend code
 - IPFS hashes used for extended venue data storage
 - please ensure that the sprint documents are in Claude memory. Is it already?
+- add this page to the PXP epic
