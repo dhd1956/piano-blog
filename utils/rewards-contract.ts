@@ -126,6 +126,81 @@ export const PXP_REWARDS_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
+  // V2: Configurable Reward Functions
+  {
+    inputs: [],
+    name: 'newUserReward',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'scoutReward',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'verifierReward',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getAllRewards',
+    outputs: [
+      { name: 'newUser', type: 'uint256' },
+      { name: 'scout', type: 'uint256' },
+      { name: 'verifier', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getRewardLimits',
+    outputs: [
+      { name: 'min', type: 'uint256' },
+      { name: 'max', type: 'uint256' },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'amount', type: 'uint256' }],
+    name: 'setNewUserReward',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'amount', type: 'uint256' }],
+    name: 'setScoutReward',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'amount', type: 'uint256' }],
+    name: 'setVerifierReward',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'newUser', type: 'uint256' },
+      { name: 'scout', type: 'uint256' },
+      { name: 'verifier', type: 'uint256' },
+    ],
+    name: 'setAllRewards',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
   // Events
   {
     anonymous: false,
@@ -175,6 +250,16 @@ export const PXP_REWARDS_ABI = [
       { indexed: false, name: 'memo', type: 'string' },
     ],
     name: 'PaymentTracked',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'rewardType', type: 'string' },
+      { indexed: false, name: 'oldAmount', type: 'uint256' },
+      { indexed: false, name: 'newAmount', type: 'uint256' },
+    ],
+    name: 'RewardAmountUpdated',
     type: 'event',
   },
 ] as const

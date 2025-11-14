@@ -13,10 +13,14 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 contract PXPRewards is Ownable, ReentrancyGuard {
     IERC20 public immutable pxpToken;
 
-    // Reward amounts (in PXP tokens with 18 decimals)
-    uint256 public constant NEW_USER_REWARD = 25 * 10**18;      // 25 PXP
-    uint256 public constant SCOUT_REWARD = 50 * 10**18;         // 50 PXP
-    uint256 public constant VERIFIER_REWARD = 25 * 10**18;      // 25 PXP
+    // Reward amounts (in PXP tokens with 18 decimals) - Now configurable!
+    uint256 public newUserReward = 25 * 10**18;      // 25 PXP
+    uint256 public scoutReward = 50 * 10**18;         // 50 PXP
+    uint256 public verifierReward = 25 * 10**18;      // 25 PXP
+
+    // Reward limits for validation (1-1000 PXP)
+    uint256 public constant MIN_REWARD = 1 * 10**18;
+    uint256 public constant MAX_REWARD = 1000 * 10**18;
 
     // Verification requirements
     uint256 public constant MIN_VERIFICATIONS = 2;
@@ -38,6 +42,7 @@ contract PXPRewards is Ownable, ReentrancyGuard {
     event VenueVerified(bytes32 indexed venueHash, address indexed verifier, bool approved);
     event PaymentTracked(address indexed from, address indexed to, uint256 amount, string memo);
     event VerifierStatusUpdated(address indexed verifier, bool authorized);
+    event RewardAmountUpdated(string indexed rewardType, uint256 oldAmount, uint256 newAmount);
 
     constructor(address _pxpToken) Ownable(msg.sender) {
         pxpToken = IERC20(_pxpToken);
@@ -45,12 +50,12 @@ contract PXPRewards is Ownable, ReentrancyGuard {
 
     function claimNewUserReward() external nonReentrant {
         require(!hasClaimedNewUserReward[msg.sender], "Already claimed");
-        require(pxpToken.balanceOf(address(this)) >= NEW_USER_REWARD, "Insufficient balance");
+        require(pxpToken.balanceOf(address(this)) >= newUserReward, "Insufficient balance");
 
         hasClaimedNewUserReward[msg.sender] = true;
-        require(pxpToken.transfer(msg.sender, NEW_USER_REWARD), "Transfer failed");
+        require(pxpToken.transfer(msg.sender, newUserReward), "Transfer failed");
 
-        emit NewUserRewarded(msg.sender, NEW_USER_REWARD);
+        emit NewUserRewarded(msg.sender, newUserReward);
     }
 
     function verifyVenue(
@@ -67,17 +72,17 @@ contract PXPRewards is Ownable, ReentrancyGuard {
         if (approved) {
             venueVerificationCount[venueHash]++;
 
-            require(pxpToken.balanceOf(address(this)) >= VERIFIER_REWARD, "Insufficient balance");
-            require(pxpToken.transfer(msg.sender, VERIFIER_REWARD), "Transfer failed");
-            emit VerifierRewarded(msg.sender, venueHash, VERIFIER_REWARD);
+            require(pxpToken.balanceOf(address(this)) >= verifierReward, "Insufficient balance");
+            require(pxpToken.transfer(msg.sender, verifierReward), "Transfer failed");
+            emit VerifierRewarded(msg.sender, venueHash, verifierReward);
 
             if (venueVerificationCount[venueHash] >= MIN_VERIFICATIONS &&
                 !venueVerificationPaid[venueHash]) {
                 venueVerificationPaid[venueHash] = true;
 
-                require(pxpToken.balanceOf(address(this)) >= SCOUT_REWARD, "Insufficient balance");
-                require(pxpToken.transfer(scout, SCOUT_REWARD), "Transfer failed");
-                emit ScoutRewarded(scout, venueHash, SCOUT_REWARD);
+                require(pxpToken.balanceOf(address(this)) >= scoutReward, "Insufficient balance");
+                require(pxpToken.transfer(scout, scoutReward), "Transfer failed");
+                emit ScoutRewarded(scout, venueHash, scoutReward);
             }
         }
 
@@ -102,6 +107,67 @@ contract PXPRewards is Ownable, ReentrancyGuard {
             authorizedVerifiers[verifiers[i]] = true;
             emit VerifierStatusUpdated(verifiers[i], true);
         }
+    }
+
+    /**
+     * @dev Set the new user reward amount
+     * @param amount The new reward amount in wei (with 18 decimals)
+     */
+    function setNewUserReward(uint256 amount) external onlyOwner {
+        require(amount >= MIN_REWARD && amount <= MAX_REWARD, "Reward out of range");
+        uint256 oldAmount = newUserReward;
+        newUserReward = amount;
+        emit RewardAmountUpdated("NEW_USER", oldAmount, amount);
+    }
+
+    /**
+     * @dev Set the scout reward amount
+     * @param amount The new reward amount in wei (with 18 decimals)
+     */
+    function setScoutReward(uint256 amount) external onlyOwner {
+        require(amount >= MIN_REWARD && amount <= MAX_REWARD, "Reward out of range");
+        uint256 oldAmount = scoutReward;
+        scoutReward = amount;
+        emit RewardAmountUpdated("SCOUT", oldAmount, amount);
+    }
+
+    /**
+     * @dev Set the verifier reward amount
+     * @param amount The new reward amount in wei (with 18 decimals)
+     */
+    function setVerifierReward(uint256 amount) external onlyOwner {
+        require(amount >= MIN_REWARD && amount <= MAX_REWARD, "Reward out of range");
+        uint256 oldAmount = verifierReward;
+        verifierReward = amount;
+        emit RewardAmountUpdated("VERIFIER", oldAmount, amount);
+    }
+
+    /**
+     * @dev Set all reward amounts at once
+     * @param newUser New user reward amount
+     * @param scout Scout reward amount
+     * @param verifier Verifier reward amount
+     */
+    function setAllRewards(
+        uint256 newUser,
+        uint256 scout,
+        uint256 verifier
+    ) external onlyOwner {
+        require(newUser >= MIN_REWARD && newUser <= MAX_REWARD, "New user reward out of range");
+        require(scout >= MIN_REWARD && scout <= MAX_REWARD, "Scout reward out of range");
+        require(verifier >= MIN_REWARD && verifier <= MAX_REWARD, "Verifier reward out of range");
+
+        uint256 oldNewUser = newUserReward;
+        uint256 oldScout = scoutReward;
+        uint256 oldVerifier = verifierReward;
+
+        newUserReward = newUser;
+        scoutReward = scout;
+        verifierReward = verifier;
+
+        emit RewardAmountUpdated("NEW_USER", oldNewUser, newUser);
+        emit RewardAmountUpdated("SCOUT", oldScout, scout);
+        emit RewardAmountUpdated("VERIFIER", oldVerifier, verifier);
     }
 
     function emergencyWithdraw() external onlyOwner {
@@ -138,5 +204,28 @@ contract PXPRewards is Ownable, ReentrancyGuard {
         address scout
     ) external pure returns (bytes32) {
         return keccak256(abi.encodePacked(name, city, scout));
+    }
+
+    /**
+     * @dev Get all current reward amounts
+     * @return newUser Current new user reward
+     * @return scout Current scout reward
+     * @return verifier Current verifier reward
+     */
+    function getAllRewards() external view returns (
+        uint256 newUser,
+        uint256 scout,
+        uint256 verifier
+    ) {
+        return (newUserReward, scoutReward, verifierReward);
+    }
+
+    /**
+     * @dev Get reward limits
+     * @return min Minimum allowed reward
+     * @return max Maximum allowed reward
+     */
+    function getRewardLimits() external pure returns (uint256 min, uint256 max) {
+        return (MIN_REWARD, MAX_REWARD);
     }
 }
