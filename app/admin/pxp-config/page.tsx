@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAccount, useSendTransaction } from 'wagmi'
-import { parseEther } from 'viem'
 
 interface PXPConfig {
   rewards: {
@@ -28,23 +27,63 @@ export default function PXPConfigPage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [authStatus, setAuthStatus] = useState<string>('Checking authentication...')
 
   // Form state
   const [newUserReward, setNewUserReward] = useState<number>(25)
   const [scoutReward, setScoutReward] = useState<number>(50)
   const [verifierReward, setVerifierReward] = useState<number>(25)
 
-  // Load current configuration
+  // Auto-authenticate with wallet when connected
   useEffect(() => {
-    fetchConfig()
-  }, [])
+    if (isConnected && address) {
+      authenticateWithWallet()
+    } else {
+      setAuthStatus('Wallet not connected')
+      setLoading(false)
+    }
+  }, [isConnected, address])
+
+  const authenticateWithWallet = async () => {
+    if (!address) return
+
+    try {
+      setAuthStatus('Authenticating with wallet...')
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ walletAddress: address }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setAuthStatus(`Authenticated as ${data.user.role}`)
+        // Wait for cookie to be set
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        fetchConfig()
+      } else {
+        setAuthStatus(`Auth failed: ${data.message}`)
+        setError(`Authentication failed: ${data.message}`)
+        setLoading(false)
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown'
+      setAuthStatus(`Auth error: ${errorMsg}`)
+      setError(`Failed to authenticate: ${errorMsg}`)
+      setLoading(false)
+    }
+  }
 
   const fetchConfig = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/admin/pxp-config')
+      const response = await fetch('/api/admin/pxp-config', {
+        credentials: 'include',
+      })
       const data = await response.json()
 
       if (!response.ok) {
@@ -79,6 +118,7 @@ export default function PXPConfigPage() {
       const response = await fetch('/api/admin/pxp-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           newUser: newUserReward,
           scout: scoutReward,
@@ -118,6 +158,7 @@ export default function PXPConfigPage() {
         <h1 className="mb-8 text-3xl font-bold">PXP Reward Configuration</h1>
         <div className="rounded-lg border border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-800">
           <p className="text-gray-600 dark:text-gray-400">Loading configuration...</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">Status: {authStatus}</p>
         </div>
       </div>
     )
@@ -129,6 +170,13 @@ export default function PXPConfigPage() {
       <p className="mb-8 text-gray-600 dark:text-gray-400">
         Configure Piano Experience Points rewards for community actions
       </p>
+
+      {/* Auth Status */}
+      <div className="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+        <p className="text-sm text-blue-800 dark:text-blue-400">
+          <span className="font-semibold">Auth Status:</span> {authStatus}
+        </p>
+      </div>
 
       {/* Error Message */}
       {error && (
@@ -272,7 +320,10 @@ export default function PXPConfigPage() {
         <div className="mt-8 flex justify-end gap-4">
           <button
             type="button"
-            onClick={fetchConfig}
+            onClick={() => {
+              authenticateWithWallet()
+              fetchConfig()
+            }}
             className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
           >
             Refresh

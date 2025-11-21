@@ -49,6 +49,7 @@ export default function PXPConfigSimplePage() {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: include cookies
         body: JSON.stringify({ walletAddress: address }),
       })
 
@@ -56,12 +57,17 @@ export default function PXPConfigSimplePage() {
 
       if (response.ok) {
         setAuthStatus(`Authenticated as ${data.user.role}`)
+        // Wait a moment for cookie to be set
+        await new Promise((resolve) => setTimeout(resolve, 500))
         fetchConfig() // Now fetch config with valid session
       } else {
         setAuthStatus(`Auth failed: ${data.message}`)
+        setError(`Authentication failed: ${data.message}`)
       }
     } catch (err) {
-      setAuthStatus(`Auth error: ${err instanceof Error ? err.message : 'Unknown'}`)
+      const errorMsg = err instanceof Error ? err.message : 'Unknown'
+      setAuthStatus(`Auth error: ${errorMsg}`)
+      setError(`Failed to authenticate: ${errorMsg}`)
     }
   }
 
@@ -70,7 +76,9 @@ export default function PXPConfigSimplePage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/admin/pxp-config')
+      const response = await fetch('/api/admin/pxp-config', {
+        credentials: 'include', // Important: include cookies
+      })
       const data = await response.json()
 
       if (!response.ok) {
@@ -105,6 +113,7 @@ export default function PXPConfigSimplePage() {
       const response = await fetch('/api/admin/pxp-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: include cookies
         body: JSON.stringify({
           newUser: newUserReward,
           scout: scoutReward,
