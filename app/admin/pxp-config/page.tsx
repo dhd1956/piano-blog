@@ -81,9 +81,16 @@ export default function PXPConfigPage() {
       setLoading(true)
       setError(null)
 
+      // Add timeout to prevent hanging forever
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
       const response = await fetch('/api/admin/pxp-config', {
         credentials: 'include',
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
       const data = await response.json()
 
       if (!response.ok) {
@@ -95,7 +102,33 @@ export default function PXPConfigPage() {
       setScoutReward(data.rewards.scout)
       setVerifierReward(data.rewards.verifier)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load configuration')
+      // If RPC fails, fallback to mock data
+      console.warn('Failed to fetch from smart contract, using mock data:', err)
+
+      try {
+        const mockResponse = await fetch('/api/admin/pxp-config-mock', {
+          credentials: 'include',
+        })
+        const mockData = await mockResponse.json()
+
+        if (mockResponse.ok) {
+          setConfig(mockData)
+          setNewUserReward(mockData.rewards.newUser)
+          setScoutReward(mockData.rewards.scout)
+          setVerifierReward(mockData.rewards.verifier)
+          setError(
+            '⚠️ Using mock data - Celo RPC is unavailable. Changes will not affect the actual smart contract.'
+          )
+        } else {
+          throw new Error('Both real and mock endpoints failed')
+        }
+      } catch (mockErr) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          setError('Request timed out - Celo RPC is unreachable. Using default values.')
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load configuration')
+        }
+      }
     } finally {
       setLoading(false)
     }

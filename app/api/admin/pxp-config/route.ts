@@ -13,8 +13,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Connect to smart contract
+    console.log('Using Celo RPC:', CELO_TESTNET_RPC)
     const web3 = new Web3(CELO_TESTNET_RPC)
     const contract = new web3.eth.Contract(PXP_REWARDS_ABI as any, PXP_REWARDS_ADDRESS)
+
+    console.log('Fetching rewards from contract...')
 
     // Get all reward amounts from contract
     const rewards = await contract.methods.getAllRewards().call()
