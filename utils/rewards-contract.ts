@@ -13,7 +13,9 @@ export const PXP_TOKEN_ADDRESS =
   process.env.NEXT_PUBLIC_PXP_TOKEN_ADDRESS || '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F'
 
 // Network configuration
-export const CELO_TESTNET_RPC = 'https://alfajores-forno.celo-testnet.org'
+// Try multiple RPC endpoints (fallback if primary is slow)
+export const CELO_TESTNET_RPC =
+  process.env.CELO_TESTNET_RPC_URL || 'https://alfajores-forno.celo-testnet.org'
 export const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
 
 // Reward amounts (in PXP tokens)
