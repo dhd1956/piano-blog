@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useSendTransaction } from 'wagmi'
+import { useAccount, useWriteContract, useReadContract, useBlockNumber } from 'wagmi'
+import { PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS } from '@/utils/rewards-contract'
 
 interface PXPConfig {
   rewards: {
@@ -20,7 +21,43 @@ interface PXPConfig {
 
 export default function PXPConfigPage() {
   const { address, isConnected } = useAccount()
-  const { sendTransaction } = useSendTransaction()
+  const { writeContract, isPending: isWritePending } = useWriteContract()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
+
+  // Read contract data directly from blockchain via browser
+  const {
+    data: rewardsData,
+    refetch: refetchRewards,
+    isLoading: rewardsLoading,
+    error: rewardsError,
+  } = useReadContract({
+    address: PXP_REWARDS_ADDRESS as `0x${string}`,
+    abi: PXP_REWARDS_ABI,
+    functionName: 'getAllRewards',
+    chainId: 44787, // Celo Alfajores testnet
+  })
+
+  const {
+    data: limitsData,
+    isLoading: limitsLoading,
+    error: limitsError,
+  } = useReadContract({
+    address: PXP_REWARDS_ADDRESS as `0x${string}`,
+    abi: PXP_REWARDS_ABI,
+    functionName: 'getRewardLimits',
+    chainId: 44787, // Celo Alfajores testnet
+  })
+
+  const {
+    data: contractBalance,
+    isLoading: balanceLoading,
+    error: balanceError,
+  } = useReadContract({
+    address: PXP_REWARDS_ADDRESS as `0x${string}`,
+    abi: PXP_REWARDS_ABI,
+    functionName: 'getContractBalance',
+    chainId: 44787, // Celo Alfajores testnet
+  })
 
   const [config, setConfig] = useState<PXPConfig | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,6 +70,61 @@ export default function PXPConfigPage() {
   const [newUserReward, setNewUserReward] = useState<number>(25)
   const [scoutReward, setScoutReward] = useState<number>(50)
   const [verifierReward, setVerifierReward] = useState<number>(25)
+
+  // Process contract data when loaded
+  useEffect(() => {
+    // Check for errors first
+    if (rewardsError || limitsError || balanceError) {
+      const errorMsg =
+        rewardsError?.message || limitsError?.message || balanceError?.message || 'Unknown error'
+      setError(`Failed to load from blockchain: ${errorMsg}`)
+      setLoading(false)
+      return
+    }
+
+    // Check if still loading
+    if (rewardsLoading || limitsLoading || balanceLoading) {
+      setLoading(true)
+      return
+    }
+
+    // Process data if all loaded successfully
+    if (rewardsData && limitsData && contractBalance) {
+      const [newUser, scout, verifier] = rewardsData as [bigint, bigint, bigint]
+      const [min, max] = limitsData as [bigint, bigint]
+
+      setConfig({
+        rewards: {
+          newUser: Number(newUser),
+          scout: Number(scout),
+          verifier: Number(verifier),
+        },
+        limits: {
+          min: Number(min),
+          max: Number(max),
+        },
+        contractBalance: (Number(contractBalance) / 1e18).toString(),
+        contractAddress: PXP_REWARDS_ADDRESS,
+        timestamp: new Date().toISOString(),
+      })
+
+      setNewUserReward(Number(newUser))
+      setScoutReward(Number(scout))
+      setVerifierReward(Number(verifier))
+      setLoading(false)
+      setError(null)
+    }
+  }, [
+    rewardsData,
+    limitsData,
+    contractBalance,
+    rewardsLoading,
+    limitsLoading,
+    balanceLoading,
+    rewardsError,
+    limitsError,
+    balanceError,
+  ])
 
   // Auto-authenticate with wallet when connected
   useEffect(() => {
@@ -60,9 +152,6 @@ export default function PXPConfigPage() {
 
       if (response.ok) {
         setAuthStatus(`Authenticated as ${data.user.role}`)
-        // Wait for cookie to be set
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        fetchConfig()
       } else {
         setAuthStatus(`Auth failed: ${data.message}`)
         setError(`Authentication failed: ${data.message}`)
@@ -76,63 +165,7 @@ export default function PXPConfigPage() {
     }
   }
 
-  const fetchConfig = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Add timeout to prevent hanging forever
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-      const response = await fetch('/api/admin/pxp-config', {
-        credentials: 'include',
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to load configuration')
-      }
-
-      setConfig(data)
-      setNewUserReward(data.rewards.newUser)
-      setScoutReward(data.rewards.scout)
-      setVerifierReward(data.rewards.verifier)
-    } catch (err) {
-      // If RPC fails, fallback to mock data
-      console.warn('Failed to fetch from smart contract, using mock data:', err)
-
-      try {
-        const mockResponse = await fetch('/api/admin/pxp-config-mock', {
-          credentials: 'include',
-        })
-        const mockData = await mockResponse.json()
-
-        if (mockResponse.ok) {
-          setConfig(mockData)
-          setNewUserReward(mockData.rewards.newUser)
-          setScoutReward(mockData.rewards.scout)
-          setVerifierReward(mockData.rewards.verifier)
-          setError(
-            '⚠️ Using mock data - Celo RPC is unavailable. Changes will not affect the actual smart contract.'
-          )
-        } else {
-          throw new Error('Both real and mock endpoints failed')
-        }
-      } catch (mockErr) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          setError('Request timed out - Celo RPC is unreachable. Using default values.')
-        } else {
-          setError(err instanceof Error ? err.message : 'Failed to load configuration')
-        }
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Removed fetchConfig - now reading directly from blockchain via wagmi hooks
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -142,45 +175,53 @@ export default function PXPConfigPage() {
       return
     }
 
+    // Validate reward amounts
+    if (config) {
+      if (
+        newUserReward < config.limits.min ||
+        newUserReward > config.limits.max ||
+        scoutReward < config.limits.min ||
+        scoutReward > config.limits.max ||
+        verifierReward < config.limits.min ||
+        verifierReward > config.limits.max
+      ) {
+        setError(`Reward amounts must be between ${config.limits.min} and ${config.limits.max} PXP`)
+        return
+      }
+    }
+
     try {
       setSaving(true)
       setError(null)
       setSuccess(false)
 
-      // Prepare transaction via API
-      const response = await fetch('/api/admin/pxp-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          newUser: newUserReward,
-          scout: scoutReward,
-          verifier: verifierReward,
-          walletAddress: address,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to prepare transaction')
-      }
-
-      // Execute transaction via wallet
-      await sendTransaction({
-        to: data.transaction.to as `0x${string}`,
-        data: data.transaction.data as `0x${string}`,
-      })
-
-      setSuccess(true)
-      // Refresh config after successful update
-      setTimeout(() => {
-        fetchConfig()
-        setSuccess(false)
-      }, 3000)
+      // Call smart contract directly via MetaMask
+      writeContract(
+        {
+          address: PXP_REWARDS_ADDRESS as `0x${string}`,
+          abi: PXP_REWARDS_ABI,
+          functionName: 'setAllRewards',
+          args: [BigInt(newUserReward), BigInt(scoutReward), BigInt(verifierReward)],
+          chainId: 44787, // Celo Alfajores
+        },
+        {
+          onSuccess: () => {
+            setSuccess(true)
+            setSaving(false)
+            // Refresh config after successful update
+            setTimeout(() => {
+              refetchRewards()
+              setSuccess(false)
+            }, 3000)
+          },
+          onError: (err) => {
+            setError(err.message || 'Failed to update rewards')
+            setSaving(false)
+          },
+        }
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update rewards')
-    } finally {
       setSaving(false)
     }
   }
@@ -354,8 +395,7 @@ export default function PXPConfigPage() {
           <button
             type="button"
             onClick={() => {
-              authenticateWithWallet()
-              fetchConfig()
+              refetchRewards()
             }}
             className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
           >
