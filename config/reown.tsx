@@ -1,7 +1,8 @@
 import { cookieStorage, createStorage } from '@wagmi/core'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { celo, celoAlfajores } from '@reown/appkit/networks'
+import { celo } from '@reown/appkit/networks'
 import { http } from 'wagmi'
+import type { Chain } from 'wagmi/chains'
 
 // Get project ID from environment
 export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || ''
@@ -14,30 +15,36 @@ if (!projectId || projectId.includes('placeholder')) {
   )
 }
 
-// Configure custom RPC endpoints with multiple fallbacks for Celo Alfajores
-// Using multiple endpoints to handle WSL networking issues
-const celoAlfajoresWithRPC = {
-  ...celoAlfajores,
+// Define Celo Sepolia Testnet (New testnet replacing Alfajores)
+// Alfajores will be sunset on September 30, 2025
+export const celoSepolia = {
+  id: 11142220,
+  name: 'Celo Sepolia Testnet',
+  network: 'celo-sepolia',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'CELO',
+    symbol: 'CELO',
+  },
   rpcUrls: {
     default: {
-      http: [
-        'https://alfajores-forno.celo-testnet.org',
-        'https://rpc.ankr.com/celo_alfajores',
-        'https://celo-alfajores-rpc.allthatnode.com',
-      ],
+      http: ['https://forno.celo-sepolia.celo-testnet.org'],
     },
     public: {
-      http: [
-        'https://alfajores-forno.celo-testnet.org',
-        'https://rpc.ankr.com/celo_alfajores',
-        'https://celo-alfajores-rpc.allthatnode.com',
-      ],
+      http: ['https://forno.celo-sepolia.celo-testnet.org'],
     },
   },
-}
+  blockExplorers: {
+    default: {
+      name: 'CeloScan',
+      url: 'https://celo-sepolia.blockscout.com',
+    },
+  },
+  testnet: true,
+} as const satisfies Chain
 
-// Define networks - Celo Alfajores (testnet) and Celo Mainnet
-export const networks = [celoAlfajoresWithRPC, celo]
+// Define networks - Celo Sepolia (primary testnet) and Celo Mainnet
+export const networks = [celoSepolia, celo]
 
 // Metadata for your app (shown in wallet connection modals)
 export const metadata = {
@@ -48,7 +55,7 @@ export const metadata = {
 }
 
 // Create Wagmi adapter with cookie storage for SSR support
-// Configure transports with multiple RPC fallbacks and retry logic
+// Configure transports with retry logic for Celo Sepolia
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: cookieStorage,
@@ -57,7 +64,7 @@ export const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks,
   transports: {
-    [celoAlfajores.id]: http('https://alfajores-forno.celo-testnet.org', {
+    [celoSepolia.id]: http('https://forno.celo-sepolia.celo-testnet.org', {
       batch: true,
       retryCount: 5,
       retryDelay: 1000,

@@ -34,7 +34,7 @@ export default function PXPConfigPage() {
     address: PXP_REWARDS_ADDRESS as `0x${string}`,
     abi: PXP_REWARDS_ABI,
     functionName: 'getAllRewards',
-    chainId: 44787, // Celo Alfajores testnet
+    chainId: 11142220, // Celo Alfajores testnet
   })
 
   const {
@@ -45,7 +45,7 @@ export default function PXPConfigPage() {
     address: PXP_REWARDS_ADDRESS as `0x${string}`,
     abi: PXP_REWARDS_ABI,
     functionName: 'getRewardLimits',
-    chainId: 44787, // Celo Alfajores testnet
+    chainId: 11142220, // Celo Alfajores testnet
   })
 
   const {
@@ -56,7 +56,7 @@ export default function PXPConfigPage() {
     address: PXP_REWARDS_ADDRESS as `0x${string}`,
     abi: PXP_REWARDS_ABI,
     functionName: 'getContractBalance',
-    chainId: 44787, // Celo Alfajores testnet
+    chainId: 11142220, // Celo Alfajores testnet
   })
 
   const [config, setConfig] = useState<PXPConfig | null>(null)
@@ -202,7 +202,7 @@ export default function PXPConfigPage() {
           abi: PXP_REWARDS_ABI,
           functionName: 'setAllRewards',
           args: [BigInt(newUserReward), BigInt(scoutReward), BigInt(verifierReward)],
-          chainId: 44787, // Celo Alfajores
+          chainId: 11142220, // Celo Alfajores
         },
         {
           onSuccess: () => {

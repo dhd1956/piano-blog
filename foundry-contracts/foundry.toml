@@ -6,11 +6,15 @@ remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/"
 ]
 
-# Celo Alfajores configuration
+# Celo network configuration
+# Alfajores (being sunset Sept 30, 2025)
+# Sepolia (new primary testnet)
 [rpc_endpoints]
 alfajores = "https://alfajores-forno.celo-testnet.org"
+celo_sepolia = "https://forno.celo-sepolia.celo-testnet.org"
 
 [etherscan]
 alfajores = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api" }
+celo_sepolia = { key = "${CELOSCAN_API_KEY}", url = "https://celo-sepolia.blockscout.com/api" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
