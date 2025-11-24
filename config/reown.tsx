@@ -17,10 +17,9 @@ if (!projectId || projectId.includes('placeholder')) {
 
 // Define Celo Sepolia Testnet (New testnet replacing Alfajores)
 // Alfajores will be sunset on September 30, 2025
-export const celoSepolia = {
+export const celoSepolia: Chain = {
   id: 11142220,
   name: 'Celo Sepolia Testnet',
-  network: 'celo-sepolia',
   nativeCurrency: {
     decimals: 18,
     name: 'CELO',
@@ -28,13 +27,6 @@ export const celoSepolia = {
   },
   rpcUrls: {
     default: {
-      http: [
-        'https://rpc.ankr.com/celo_sepolia',
-        'https://forno.celo-sepolia.celo-testnet.org',
-        'https://celo-sepolia.gateway.tatum.io',
-      ],
-    },
-    public: {
       http: [
         'https://rpc.ankr.com/celo_sepolia',
         'https://forno.celo-sepolia.celo-testnet.org',
@@ -49,7 +41,7 @@ export const celoSepolia = {
     },
   },
   testnet: true,
-} as const satisfies Chain
+}
 
 // Define networks - Celo Sepolia (primary testnet) and Celo Mainnet
 export const networks = [celoSepolia, celo]
