@@ -8,10 +8,10 @@ remappings = [
 
 # Celo network configuration
 # Alfajores (being sunset Sept 30, 2025)
-# Sepolia (new primary testnet)
+# Sepolia (new primary testnet) - using Ankr for best performance
 [rpc_endpoints]
 alfajores = "https://alfajores-forno.celo-testnet.org"
-celo_sepolia = "https://forno.celo-sepolia.celo-testnet.org"
+celo_sepolia = "https://rpc.ankr.com/celo_sepolia"
 
 [etherscan]
 alfajores = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api" }

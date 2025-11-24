@@ -28,10 +28,18 @@ export const celoSepolia = {
   },
   rpcUrls: {
     default: {
-      http: ['https://forno.celo-sepolia.celo-testnet.org'],
+      http: [
+        'https://rpc.ankr.com/celo_sepolia',
+        'https://forno.celo-sepolia.celo-testnet.org',
+        'https://celo-sepolia.gateway.tatum.io',
+      ],
     },
     public: {
-      http: ['https://forno.celo-sepolia.celo-testnet.org'],
+      http: [
+        'https://rpc.ankr.com/celo_sepolia',
+        'https://forno.celo-sepolia.celo-testnet.org',
+        'https://celo-sepolia.gateway.tatum.io',
+      ],
     },
   },
   blockExplorers: {
@@ -56,6 +64,7 @@ export const metadata = {
 
 // Create Wagmi adapter with cookie storage for SSR support
 // Configure transports with retry logic for Celo Sepolia
+// Using Ankr as primary (fastest according to chainlist)
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: cookieStorage,
@@ -64,7 +73,7 @@ export const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks,
   transports: {
-    [celoSepolia.id]: http('https://forno.celo-sepolia.celo-testnet.org', {
+    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia', {
       batch: true,
       retryCount: 5,
       retryDelay: 1000,
