@@ -4,7 +4,8 @@ import { ReactNode } from 'react'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
-import { projectId, metadata, wagmiAdapter, networks } from '@/config/reown'
+import { celo } from '@reown/appkit/networks'
+import { projectId, metadata, wagmiAdapter, celoSepolia } from '@/config/reown'
 
 // Set up queryClient for React Query
 const queryClient = new QueryClient()
@@ -13,7 +14,7 @@ const queryClient = new QueryClient()
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks, // Use networks from config (includes custom RPC endpoints)
+  networks: [celoSepolia as any, celo], // Cast custom network for AppKit compatibility
   metadata,
   features: {
     analytics: true, // Enable analytics (optional)

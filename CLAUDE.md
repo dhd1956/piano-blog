@@ -17,8 +17,8 @@ This is "Developing My Piano Style" - a Next.js blog application that combines t
 
 ### Web3 Integration
 
-- **Blockchain**: Celo Alfajores testnet integration
-- **Contract Address**: VenueRegistry at `0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2`
+- **Blockchain**: Celo Sepolia testnet integration (migrated from Alfajores)
+- **Contract Address**: VenueRegistry at `0x325F81e26CF5A757dc63c85f2CE59621D1d1645E`
 - **Connection**: MetaMask wallet integration with automatic network switching
 - **Libraries**: @celo/contractkit, @celo/react-celo, web3.js
 
@@ -121,7 +121,7 @@ The VenueRegistry contract manages:
 ### Web3 Development
 
 - Always check wallet connection before contract interactions
-- Handle network switching to Celo Alfajores (chainId: 0xaef3)
+- Handle network switching to Celo Sepolia (chainId: 11142220 / 0xaa044c)
 - Use proper error handling for blockchain transactions
 - Simulate IPFS hashes during development (production should use real IPFS)
 

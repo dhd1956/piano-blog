@@ -1,14 +1,14 @@
 # Deployed Smart Contracts
 
-## Production Contracts (Celo Alfajores Testnet)
+## Production Contracts (Celo Sepolia Testnet)
 
 ### Active Contracts (Currently Used)
 
-| Contract           | Version | Address                                      | Network        | Status  |
-| ------------------ | ------- | -------------------------------------------- | -------------- | ------- |
-| **PXP Token**      | V1      | `0x7B1E3d40Acf8ea8717822E23096eFf8fE8573d35` | Celo Alfajores | ✅ LIVE |
-| **PXP Rewards**    | V1      | `0x79cC4705739c42628Ac93523AAaCe023B9520d38` | Celo Alfajores | ✅ LIVE |
-| **Venue Registry** | V1      | `0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2` | Celo Alfajores | ✅ LIVE |
+| Contract           | Version | Address                                      | Network      | Status  |
+| ------------------ | ------- | -------------------------------------------- | ------------ | ------- |
+| **PXP Token**      | V1      | `0x04eAE71832147D75D4B69B3FFB5d9514e8471c75` | Celo Sepolia | ✅ LIVE |
+| **PXP Rewards**    | V1      | `0x28aCAf06E470Dad9890d75B7fD55fBDe913D6128` | Celo Sepolia | ✅ LIVE |
+| **Venue Registry** | V1      | `0x325F81e26CF5A757dc63c85f2CE59621D1d1645E` | Celo Sepolia | ✅ LIVE |
 
 ### Contract Details
 
@@ -21,7 +21,7 @@
 - **Initial Supply:** 1,000,000 PXP
 - **Features:** Mintable, Burnable, Ownable
 - **Contract File:** `foundry-contracts/src/PXPToken.sol`
-- **Explorer:** [View on Celoscan](https://alfajores.celoscan.io/address/0x7B1E3d40Acf8ea8717822E23096eFf8fE8573d35)
+- **Explorer:** [View on Celoscan](https://celo-sepolia.blockscout.com/address/0x04eAE71832147D75D4B69B3FFB5d9514e8471c75)
 
 #### PXP Rewards (V1)
 
@@ -33,7 +33,7 @@
 - **Features:** New user rewards, venue verification rewards, payment tracking
 - **Limitations:** Reward amounts are hardcoded constants (cannot be changed without redeployment)
 - **Contract File:** `foundry-contracts/src/PXPRewards.sol` (V1 features)
-- **Explorer:** [View on Celoscan](https://alfajores.celoscan.io/address/0x79cC4705739c42628Ac93523AAaCe023B9520d38)
+- **Explorer:** [View on Celoscan](https://celo-sepolia.blockscout.com/address/0x28aCAf06E470Dad9890d75B7fD55fBDe913D6128)
 
 #### Venue Registry (V1)
 
@@ -42,7 +42,7 @@
 - **Features:** Venue submission, multi-curator verification, uniqueness checks
 - **Verification Requirements:** 2-3 curator approvals needed
 - **Contract File:** `foundry-contracts/src/VenueRegistry.sol`
-- **Explorer:** [View on Celoscan](https://alfajores.celoscan.io/address/0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2)
+- **Explorer:** [View on Celoscan](https://celo-sepolia.blockscout.com/address/0x325F81e26CF5A757dc63c85f2CE59621D1d1645E)
 
 ---
 
@@ -78,7 +78,7 @@ forge test --match-path test/PXPRewards.t.sol -vv
 
 ```bash
 forge script script/DeployPXPRewardsV2.s.sol:DeployPXPRewardsV2 \
-  --rpc-url $CELO_ALFAJORES_RPC \
+  --rpc-url $CELO_SEPOLIA_RPC \
   --broadcast \
   --verify
 ```
@@ -133,15 +133,15 @@ forge script script/DeployPXPRewardsV2.s.sol:DeployPXPRewardsV2 \
 ### Current (.env.local)
 
 ```bash
-# Active Contracts (V1)
-NEXT_PUBLIC_PXP_TOKEN_ADDRESS="0x7B1E3d40Acf8ea8717822E23096eFf8fE8573d35"
-NEXT_PUBLIC_PXP_REWARDS_ADDRESS="0x79cC4705739c42628Ac93523AAaCe023B9520d38"
-NEXT_PUBLIC_CONTRACT_ADDRESS="0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2"
+# Active Contracts (V1) - Celo Sepolia Testnet
+NEXT_PUBLIC_PXP_TOKEN_ADDRESS="0x04eAE71832147D75D4B69B3FFB5d9514e8471c75"
+NEXT_PUBLIC_PXP_REWARDS_ADDRESS="0x28aCAf06E470Dad9890d75B7fD55fBDe913D6128"
+NEXT_PUBLIC_CONTRACT_ADDRESS="0x325F81e26CF5A757dc63c85f2CE59621D1d1645E"
 
 # Network Configuration
-NEXT_PUBLIC_NETWORK_NAME="Celo Alfajores Testnet"
-NEXT_PUBLIC_CHAIN_ID="44787"
-NEXT_PUBLIC_RPC_URL="https://alfajores-forno.celo-testnet.org"
+NEXT_PUBLIC_NETWORK_NAME="Celo Sepolia Testnet"
+NEXT_PUBLIC_CHAIN_ID="11142220"
+NEXT_PUBLIC_RPC_URL="https://rpc.ankr.com/celo_sepolia"
 
 # Blog Owner (Contract Admin)
 NEXT_PUBLIC_BLOG_OWNER_ADDRESS="your_wallet_address_here"
@@ -187,12 +187,12 @@ NEXT_PUBLIC_PXP_REWARDS_ADDRESS="<NEW_V2_ADDRESS>"
 
 ### Explorers
 
-- [Celo Alfajores Testnet Explorer](https://alfajores.celoscan.io/)
+- [Celo Sepolia Testnet Explorer](https://celo-sepolia.blockscout.com/)
 - [Celo Mainnet Explorer](https://celoscan.io/)
 
 ### Faucets
 
-- [Celo Alfajores Faucet](https://faucet.celo.org/)
+- [Celo Sepolia Faucet](https://faucet.celo.org/sepolia)
 
 ### Documentation
 
@@ -226,17 +226,30 @@ NEXT_PUBLIC_PXP_REWARDS_ADDRESS="<NEW_V2_ADDRESS>"
 
 ## Version History
 
-| Date       | Contract       | Version | Change               | Deployment  |
-| ---------- | -------------- | ------- | -------------------- | ----------- |
-| 2024-XX-XX | PXP Token      | V1      | Initial deployment   | ✅ Deployed |
-| 2024-XX-XX | PXP Rewards    | V1      | Initial deployment   | ✅ Deployed |
-| 2024-XX-XX | Venue Registry | V1      | Initial deployment   | ✅ Deployed |
-| 2025-11-13 | PXP Rewards    | V2      | Configurable rewards | 🟡 Ready    |
+| Date       | Contract       | Version | Change                         | Deployment  |
+| ---------- | -------------- | ------- | ------------------------------ | ----------- |
+| 2024-XX-XX | PXP Token      | V1      | Initial deployment (Alfajores) | ✅ Deployed |
+| 2024-XX-XX | PXP Rewards    | V1      | Initial deployment (Alfajores) | ✅ Deployed |
+| 2024-XX-XX | Venue Registry | V1      | Initial deployment (Alfajores) | ✅ Deployed |
+| 2025-01-24 | PXP Token      | V1      | Migrated to Sepolia            | ✅ Deployed |
+| 2025-01-24 | PXP Rewards    | V1      | Migrated to Sepolia            | ✅ Deployed |
+| 2025-01-25 | Venue Registry | V1      | Migrated to Sepolia            | ✅ Deployed |
+| 2025-11-13 | PXP Rewards    | V2      | Configurable rewards           | 🟡 Ready    |
 
 ---
 
-**Last Updated:** 2025-11-13
+## Migration Notes
+
+**Alfajores → Sepolia Migration (2025-01-24/25)**
+
+- All contracts migrated from Celo Alfajores (Chain ID: 44787) to Celo Sepolia (Chain ID: 11142220)
+- Alfajores testnet will be sunset on September 30, 2025
+- Sepolia is the new official Celo testnet
+
+---
+
+**Last Updated:** 2025-01-25
 
 **Maintainer:** dhd1956
 
-**Network:** Celo Alfajores Testnet (Chain ID: 44787)
+**Network:** Celo Sepolia Testnet (Chain ID: 11142220)
