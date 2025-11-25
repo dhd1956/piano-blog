@@ -15,8 +15,8 @@ export const PXP_TOKEN_ADDRESS =
 // Network configuration
 // Try multiple RPC endpoints (fallback if primary is slow)
 export const CELO_TESTNET_RPC =
-  process.env.CELO_TESTNET_RPC_URL || 'https://alfajores-forno.celo-testnet.org'
-export const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
+  process.env.CELO_TESTNET_RPC_URL || 'https://rpc.ankr.com/celo_sepolia'
+export const CELO_CHAIN_ID = '0xaa044c' // 11142220 in hex (Celo Sepolia)
 
 // Reward amounts (in PXP tokens)
 export const REWARD_AMOUNTS = {
