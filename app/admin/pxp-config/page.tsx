@@ -93,24 +93,31 @@ export default function PXPConfigPage() {
       const [newUser, scout, verifier] = rewardsData as [bigint, bigint, bigint]
       const [min, max] = limitsData as [bigint, bigint]
 
+      // Convert from wei (18 decimals) to PXP tokens
+      const newUserPXP = Number(newUser) / 1e18
+      const scoutPXP = Number(scout) / 1e18
+      const verifierPXP = Number(verifier) / 1e18
+      const minPXP = Number(min) / 1e18
+      const maxPXP = Number(max) / 1e18
+
       setConfig({
         rewards: {
-          newUser: Number(newUser),
-          scout: Number(scout),
-          verifier: Number(verifier),
+          newUser: newUserPXP,
+          scout: scoutPXP,
+          verifier: verifierPXP,
         },
         limits: {
-          min: Number(min),
-          max: Number(max),
+          min: minPXP,
+          max: maxPXP,
         },
         contractBalance: (Number(contractBalance) / 1e18).toString(),
         contractAddress: PXP_REWARDS_ADDRESS,
         timestamp: new Date().toISOString(),
       })
 
-      setNewUserReward(Number(newUser))
-      setScoutReward(Number(scout))
-      setVerifierReward(Number(verifier))
+      setNewUserReward(newUserPXP)
+      setScoutReward(scoutPXP)
+      setVerifierReward(verifierPXP)
       setLoading(false)
       setError(null)
     }
@@ -195,14 +202,19 @@ export default function PXPConfigPage() {
       setError(null)
       setSuccess(false)
 
+      // Convert PXP tokens to wei (multiply by 10^18) for smart contract
+      const newUserWei = BigInt(Math.round(newUserReward * 1e18))
+      const scoutWei = BigInt(Math.round(scoutReward * 1e18))
+      const verifierWei = BigInt(Math.round(verifierReward * 1e18))
+
       // Call smart contract directly via MetaMask
       writeContract(
         {
           address: PXP_REWARDS_ADDRESS as `0x${string}`,
           abi: PXP_REWARDS_ABI,
           functionName: 'setAllRewards',
-          args: [BigInt(newUserReward), BigInt(scoutReward), BigInt(verifierReward)],
-          chainId: 11142220, // Celo Alfajores
+          args: [newUserWei, scoutWei, verifierWei],
+          chainId: 11142220, // Celo Sepolia
         },
         {
           onSuccess: () => {
