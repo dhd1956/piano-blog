@@ -110,7 +110,7 @@ export default function PXPConfigPage() {
           min: minPXP,
           max: maxPXP,
         },
-        contractBalance: (Number(contractBalance) / 1e18).toString(),
+        contractBalance: Math.floor(Number(contractBalance) / 1e18).toLocaleString(),
         contractAddress: PXP_REWARDS_ADDRESS,
         timestamp: new Date().toISOString(),
       })
