@@ -20,12 +20,13 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Query for users with musician profiles
-    // Only include public profiles for now
+    // Show all profiles that have musician data (privacy controls can be added later)
     const where = {
-      publicProfile: true,
       musicianProfile: {
         isNot: null, // Only users with a musician profile
       },
+      // Optional: filter by publicProfile if explicitly set to false
+      // For now, show all musician profiles
     }
 
     // Get total count for pagination
