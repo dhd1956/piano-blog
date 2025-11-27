@@ -36,6 +36,13 @@ export default function ProfileEditPage() {
   const [isBlogOwner, setIsBlogOwner] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
 
+  // Auto-scroll to top when error or success message appears
+  useEffect(() => {
+    if (error || success) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [error, success])
+
   // User profile fields
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')

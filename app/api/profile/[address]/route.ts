@@ -136,19 +136,25 @@ export async function PATCH(
       )
     }
 
-    // First, get the user to find their userId
-    const user = await prisma.user.findUnique({
-      where: { walletAddress: address.toLowerCase() },
+    // First, get the user to find their userId (support wallet address, username, or profile slug)
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { walletAddress: { equals: address, mode: 'insensitive' } },
+          { profileSlug: { equals: address, mode: 'insensitive' } },
+          { username: { equals: address, mode: 'insensitive' } },
+        ],
+      },
     })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Update user profile
+    // Update user profile using the user's primary key (id)
     const updatedUser = await prisma.user.update({
       where: {
-        walletAddress: address.toLowerCase(),
+        id: user.id,
       },
       data: {
         username: body.username,
