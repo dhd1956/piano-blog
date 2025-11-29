@@ -139,10 +139,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization (only organizer can edit)
-    if (event.organizerId !== requester.id) {
+    // Check authorization (organizer or blog owner can edit)
+    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+    const isOrganizer = event.organizerId === requester.id
+    const isBlogOwner =
+      requester.role === 'BLOG_OWNER' ||
+      (blogOwnerAddress && requester.walletAddress?.toLowerCase() === blogOwnerAddress)
+
+    if (!isOrganizer && !isBlogOwner) {
       return NextResponse.json(
-        { error: 'Only the event organizer can edit this event' },
+        { error: 'Only the event organizer or blog owner can edit this event' },
         { status: 403 }
       )
     }
@@ -236,10 +242,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization
-    if (event.organizerId !== requester.id) {
+    // Check authorization (organizer or blog owner can cancel)
+    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+    const isOrganizer = event.organizerId === requester.id
+    const isBlogOwner =
+      requester.role === 'BLOG_OWNER' ||
+      (blogOwnerAddress && requester.walletAddress?.toLowerCase() === blogOwnerAddress)
+
+    if (!isOrganizer && !isBlogOwner) {
       return NextResponse.json(
-        { error: 'Only the event organizer can cancel this event' },
+        { error: 'Only the event organizer or blog owner can cancel this event' },
         { status: 403 }
       )
     }
