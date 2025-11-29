@@ -19,7 +19,7 @@ createAppKit({
   features: {
     analytics: true, // Enable analytics (optional)
     email: true, // Enable email login
-    // socials removed entirely to prevent Google login hang
+    socials: ['google', 'github', 'apple'], // Re-enabled after configuring Reown dashboard
     emailShowWallets: true, // Show wallet options in email flow
   },
   themeMode: 'light', // or 'dark' - can be made dynamic later
