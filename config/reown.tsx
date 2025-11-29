@@ -50,8 +50,8 @@ export const networks = [celoSepolia, celo]
 export const metadata = {
   name: 'Piano Style Blog',
   description: 'Developing My Piano Style - A blog and venue discovery platform',
-  url: 'https://piano-style.vercel.app', // Update with your production URL
-  icons: ['https://piano-style.vercel.app/static/favicons/favicon.ico'],
+  url: 'https://piano-blog.vercel.app',
+  icons: ['https://piano-blog.vercel.app/static/favicons/favicon.ico'],
 }
 
 // Create Wagmi adapter with cookie storage for SSR support
