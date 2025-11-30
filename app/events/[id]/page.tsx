@@ -292,11 +292,19 @@ export default function EventDetailPage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      {/* Back Link */}
-      <div className="mb-4">
+      {/* Back Link and Edit Button */}
+      <div className="mb-4 flex items-center justify-between">
         <Link href="/events" className="text-blue-600 hover:underline dark:text-blue-400">
           ← Back to Events
         </Link>
+        {isOrganizer && event.status !== 'CANCELLED' && (
+          <Link
+            href={`/events/${eventId}/edit`}
+            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            ⚙️ Edit Event
+          </Link>
+        )}
       </div>
 
       {/* Cover Image */}
