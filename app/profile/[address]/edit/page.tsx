@@ -45,6 +45,7 @@ export default function ProfileEditPage() {
 
   // User profile fields
   const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
   const [bio, setBio] = useState('')
   const [location, setLocation] = useState('')
   const [title, setTitle] = useState('')
@@ -95,6 +96,7 @@ export default function ProfileEditPage() {
 
       // Load user profile fields
       setDisplayName(data.profile.displayName || '')
+      setEmail(data.profile.email || '')
       setBio(data.profile.bio || '')
       setLocation(data.profile.location || '')
       setTitle(data.profile.title || '')
@@ -162,6 +164,7 @@ export default function ProfileEditPage() {
           requesterAddress,
           // User profile fields
           displayName,
+          email,
           bio,
           location,
           title,
@@ -356,6 +359,23 @@ export default function ProfileEditPage() {
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
                 placeholder="Your display name"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                This is how your name will appear on your profile and posts
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                placeholder="your.email@example.com"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Your email is private and used to recognize you across login methods
+              </p>
             </div>
 
             <div>
