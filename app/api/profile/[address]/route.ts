@@ -78,6 +78,7 @@ export async function GET(
       walletAddress: user.walletAddress,
       username: user.username,
       displayName: user.displayName,
+      email: user.email,
       bio: user.bio,
       avatar: user.avatar,
       location: user.location,
@@ -159,6 +160,7 @@ export async function PATCH(
       data: {
         username: body.username,
         displayName: body.displayName,
+        email: body.email,
         bio: body.bio,
         avatar: body.avatar,
         location: body.location,
