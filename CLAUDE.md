@@ -19,15 +19,17 @@ This is "Developing My Piano Style" - a Next.js blog application that combines t
 
 - **Blockchain**: Celo Sepolia testnet integration (migrated from Alfajores)
 - **Contract Address**: VenueRegistry at `0x325F81e26CF5A757dc63c85f2CE59621D1d1645E`
-- **Connection**: MetaMask wallet integration with automatic network switching
-- **Libraries**: @celo/contractkit, @celo/react-celo, web3.js
+- **Connection**: Reown AppKit (formerly WalletConnect) with MetaMask, Google OAuth, and email login
+- **Libraries**: @reown/appkit, @celo/contractkit, wagmi, viem
 
 ### Key Features
 
 1. **Blog System**: MDX-based blog with Contentlayer for content management
 2. **Venue Registry**: Blockchain-based venue submission and verification system
-3. **Web3 Wallet**: MetaMask integration with Celo network support
-4. **Curator System**: Manual venue verification by authorized curators
+3. **Web3 Authentication**: Multiple login methods (MetaMask, Google OAuth, email) via Reown AppKit
+4. **User Profiles**: Customizable profiles with musician details, PXP rewards, badges
+5. **Curator System**: Manual venue verification by authorized curators
+6. **Events System**: Community events with RSVP tracking
 
 ## Development Commands
 
@@ -141,9 +143,34 @@ The VenueRegistry contract manages:
 
 ## Security Considerations
 
-- Content Security Policy configured in next.config.js
+- Content Security Policy configured in next.config.js (includes WalletConnect domains for OAuth)
 - Web3 interactions require user wallet approval
 - No private keys stored in frontend code
 - IPFS hashes used for extended venue data storage
-- please ensure that the sprint documents are in Claude memory. Is it already?
-- add this page to the PXP epic
+
+## Current Implementation Status
+
+### Google Login & Profile Setup (In Progress)
+
+**Implementation Plan**: See `.claude/plans/radiant-conjuring-peach.md` for full details
+
+**Phase 1-2 Completed** (2024-11):
+
+- ✅ Re-enabled Google social login (CSP fix resolved hanging issue)
+- ✅ Fixed "Anonymous User" display (now shows `User {wallet_prefix}`)
+- ✅ Created ProfileSetupBanner component for progressive onboarding
+- ✅ Banner shows missing fields (displayName, username, email)
+
+**Next Phases** (Pending):
+
+- Phase 3: OAuth user creation with email capture
+- Phase 4: Enhanced profile setup flow with email field
+- Phase 5: Wallet upgrade flow (Google → MetaMask) with account merging
+- Phase 6: Email-based user recognition across auth methods
+
+**Key Files**:
+
+- `context/ReownProvider.tsx` - Reown AppKit configuration
+- `components/profile/ProfileSetupBanner.tsx` - Profile completion prompt
+- `app/profile/[address]/page.tsx` - Profile display page
+- `next.config.js` - CSP configuration (critical for OAuth)
