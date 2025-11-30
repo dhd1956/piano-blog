@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
+import { useAppKitAccount } from '@reown/appkit/react'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
 import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
@@ -47,6 +48,7 @@ interface MusicianProfile {
 export default function ProfilePage() {
   const params = useParams()
   const address = params.address as string
+  const { address: connectedAddress, isConnected } = useAppKitAccount()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [musicianProfile, setMusicianProfile] = useState<MusicianProfile | null>(null)
@@ -59,7 +61,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile()
-  }, [address])
+  }, [address, connectedAddress, isConnected])
 
   const loadProfile = async () => {
     try {
@@ -80,19 +82,15 @@ export default function ProfilePage() {
       setReviewCount(data.reviewCount || 0)
 
       // Check if this is the user's own profile OR if user is blog owner (admin)
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({
-          method: 'eth_accounts',
-        })
-        if (accounts.length > 0) {
-          const connectedAddress = accounts[0].toLowerCase()
-          const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-          const isProfileOwner = connectedAddress === data.profile.walletAddress.toLowerCase()
-          const isBlogOwner = connectedAddress === blogOwner
+      // Use Reown AppKit account info (works for MetaMask, Google login, email, etc.)
+      if (isConnected && connectedAddress) {
+        const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+        const isProfileOwner =
+          connectedAddress.toLowerCase() === data.profile.walletAddress?.toLowerCase()
+        const isBlogOwner = connectedAddress.toLowerCase() === blogOwner
 
-          // Allow editing if it's own profile OR if user is blog owner
-          setIsOwnProfile(isProfileOwner || isBlogOwner)
-        }
+        // Allow editing if it's own profile OR if user is blog owner
+        setIsOwnProfile(isProfileOwner || isBlogOwner)
       }
     } catch (err: any) {
       console.error('Error loading profile:', err)
