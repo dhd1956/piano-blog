@@ -36,7 +36,7 @@ export default function ProfileSetupBanner({
     return null
   }
 
-  const missingFields = []
+  const missingFields: string[] = []
   if (!hasDisplayName) missingFields.push('Display Name')
   if (!hasUsername) missingFields.push('Username')
   if (!hasEmail) missingFields.push('Email')
