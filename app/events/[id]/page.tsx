@@ -270,7 +270,13 @@ export default function EventDetailPage() {
   const organizerName =
     event.organizer.displayName || event.organizer.username || 'Anonymous Organizer'
   const location = event.venue ? event.venue.name : event.customLocation || 'Location TBD'
-  const isOrganizer = currentUserId === event.organizer.id
+
+  // Check if current user is the organizer (by user ID or wallet address)
+  const isOrganizer =
+    currentUserId === event.organizer.id ||
+    (walletAddress &&
+      event.organizer.walletAddress &&
+      walletAddress.toLowerCase() === event.organizer.walletAddress.toLowerCase())
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
