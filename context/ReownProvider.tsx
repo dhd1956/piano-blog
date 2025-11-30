@@ -19,10 +19,7 @@ createAppKit({
   features: {
     analytics: true, // Enable analytics (optional)
     email: true, // Enable email login
-    // socials: DISABLED - Reown social login has persistent issues with
-    // secure.walletconnect.org/loading hanging and looping popup windows
-    // even with correct dashboard configuration (domain verified, toggles enabled)
-    // Alternative: Use NextAuth for Google OAuth or rely on email/username auth
+    socials: ['google'], // Re-enabled: CSP fix resolved hanging issue (added WalletConnect domains to frame-src)
     emailShowWallets: true, // Show wallet options in email flow
   },
   themeMode: 'light', // or 'dark' - can be made dynamic later

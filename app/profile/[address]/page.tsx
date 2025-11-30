@@ -6,6 +6,7 @@ import Image from 'next/image'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
 import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
+import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
 
 interface UserProfile {
   walletAddress: string
@@ -153,7 +154,11 @@ export default function ProfilePage() {
             {profile.avatar ? (
               <Image
                 src={profile.avatar}
-                alt={profile.displayName || profile.username || 'User avatar'}
+                alt={
+                  profile.displayName ||
+                  profile.username ||
+                  `User ${profile.walletAddress?.slice(2, 8)}`
+                }
                 width={128}
                 height={128}
                 className="h-32 w-32 rounded-full border-4 border-blue-600 object-cover"
@@ -168,7 +173,9 @@ export default function ProfilePage() {
           {/* Profile Info */}
           <div className="flex-1 text-center md:text-left">
             <h1 className="mb-2 text-3xl font-bold text-gray-900">
-              {profile.displayName || profile.username || 'Anonymous User'}
+              {profile.displayName ||
+                profile.username ||
+                `User ${profile.walletAddress?.slice(2, 8)}`}
             </h1>
 
             {profile.title && <p className="mb-2 text-lg text-gray-600">{profile.title}</p>}
@@ -250,6 +257,16 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Profile Setup Banner - Only show on own profile if incomplete */}
+      {isOwnProfile && profile.walletAddress && (
+        <ProfileSetupBanner
+          walletAddress={profile.walletAddress}
+          hasDisplayName={!!profile.displayName}
+          hasUsername={!!profile.username}
+          hasEmail={!!profile.email}
+        />
+      )}
 
       {/* Stats Grid */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
