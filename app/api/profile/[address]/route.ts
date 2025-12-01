@@ -47,7 +47,7 @@ export async function GET(
       await UserService.findOrCreateUser(address, {
         email: email || undefined, // Auto-capture email from OAuth if provided
         emailVerified, // Set emailVerified to true for OAuth users
-        authProvider, // Track which OAuth provider was used
+        authProvider: authProvider || undefined, // Track which OAuth provider was used
       })
 
       // Fetch full user data with relations after creation
