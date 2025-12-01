@@ -88,12 +88,7 @@ export async function POST(request: NextRequest) {
 
     // Send security alert email
     if (user.email) {
-      await sendSecurityAlertEmail(
-        user.email,
-        'Wallet Unlinked',
-        `Your wallet address ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} was unlinked from your account. If you did not make this change, please contact support immediately.`,
-        user.username || undefined
-      )
+      await sendSecurityAlertEmail(user.email, user.username || 'User', 'wallet_unlinked')
     }
 
     return NextResponse.json({

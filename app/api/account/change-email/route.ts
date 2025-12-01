@@ -105,12 +105,7 @@ export async function POST(request: NextRequest) {
 
     // Send security alert to old email (if exists)
     if (currentEmail) {
-      await sendSecurityAlertEmail(
-        currentEmail,
-        'Email Address Changed',
-        `Your email address was changed to ${newEmail}. If you did not make this change, please contact support immediately.`,
-        user.username || undefined
-      )
+      await sendSecurityAlertEmail(currentEmail, user.username || 'User', 'email_changed')
     }
 
     if (!emailResult.success) {

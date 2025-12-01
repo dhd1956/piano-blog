@@ -114,12 +114,7 @@ export async function DELETE(request: NextRequest) {
 
     // Send security alert email
     if (user.email) {
-      await sendSecurityAlertEmail(
-        user.email,
-        'All Sessions Logged Out',
-        'All active sessions were logged out from your account. If you did not make this change, please reset your password immediately.',
-        user.username || undefined
-      )
+      await sendSecurityAlertEmail(user.email, user.username || 'User', 'sessions_logged_out')
     }
 
     return NextResponse.json({

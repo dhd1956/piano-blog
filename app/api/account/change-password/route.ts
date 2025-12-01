@@ -89,12 +89,7 @@ export async function POST(request: NextRequest) {
 
     // Send security alert email
     if (user.email) {
-      await sendSecurityAlertEmail(
-        user.email,
-        'Password Changed',
-        'Your password was successfully changed. If you did not make this change, please contact support immediately and reset your password.',
-        user.username || undefined
-      )
+      await sendSecurityAlertEmail(user.email, user.username || 'User', 'password_changed')
     }
 
     return NextResponse.json({

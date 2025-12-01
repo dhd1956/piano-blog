@@ -323,6 +323,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     }
 
     autoConnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const contextValue = {

@@ -196,7 +196,12 @@ export async function sendWelcomeEmail(email: string, username: string) {
 export async function sendSecurityAlertEmail(
   email: string,
   username: string,
-  alertType: 'email_changed' | 'password_changed' | 'wallet_linked' | 'wallet_unlinked'
+  alertType:
+    | 'email_changed'
+    | 'password_changed'
+    | 'wallet_linked'
+    | 'wallet_unlinked'
+    | 'sessions_logged_out'
 ) {
   const alertMessages = {
     email_changed: {
@@ -217,6 +222,11 @@ export async function sendSecurityAlertEmail(
     wallet_unlinked: {
       title: 'Wallet Unlinked',
       message: 'A cryptocurrency wallet has been unlinked from your account.',
+    },
+    sessions_logged_out: {
+      title: 'All Sessions Logged Out',
+      message:
+        'All active sessions were logged out from your account. If you did not make this change, please reset your password immediately.',
     },
   }
 
