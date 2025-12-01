@@ -137,6 +137,20 @@ model User {
   // User badges
   badges         String[] // Array of earned badge IDs
 
+  // Email verification (Web 2.5 authentication)
+  emailVerified           Boolean   @default(false)  // Email verification status
+  emailVerifiedAt         DateTime? // When email was verified
+  emailVerificationToken  String?   @unique          // Token for email verification
+  emailVerificationExpiry DateTime? // Token expiration time
+
+  // Profile completion tracking
+  profileCompleted        Boolean   @default(false)  // Profile setup completed
+  profileCompletedAt      DateTime? // When profile was completed
+
+  // Migration tracking (wallet-only users)
+  emailAddedAt            DateTime? // When email was added to wallet account
+  emailReminderDismissedAt DateTime? // Last time migration reminder was dismissed
+
   // Privacy settings
   publicProfile  Boolean  @default(true)  // Profile visibility
   showPXPBalance Boolean  @default(false) // Show token balance publicly
@@ -162,6 +176,8 @@ model User {
   @@index([profileSlug])
   @@index([totalCAVEarned])
   @@index([role])
+  @@index([emailVerificationToken])
+  @@index([emailVerified])
 }
 
 // User reviews (PostgreSQL-only for performance)

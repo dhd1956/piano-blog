@@ -5,7 +5,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser, generateToken, getUserByWallet, upsertWalletUser } from '@/lib/auth'
+import { prisma } from '@/lib/database-simplified'
 import { z } from 'zod'
+
+// 7-day grace period for email verification (in milliseconds)
+const GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000
 
 // Validation schemas
 const usernameLoginSchema = z.object({
@@ -93,6 +97,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check email verification status with grace period
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        emailVerified: true,
+        createdAt: true,
+        walletAddress: true,
+        role: true,
+        displayName: true,
+      },
+    })
+
+    if (fullUser && fullUser.email && !fullUser.emailVerified) {
+      const accountAge = Date.now() - fullUser.createdAt.getTime()
+      const gracePeriodExpired = accountAge > GRACE_PERIOD_MS
+
+      if (gracePeriodExpired) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Email verification required',
+            message:
+              'Please verify your email address to continue. Check your inbox for the verification link.',
+            requiresVerification: true,
+            email: fullUser.email,
+          },
+          { status: 403 }
+        )
+      }
+    }
+
     // Generate JWT token
     const token = await generateToken(user)
 
@@ -106,8 +144,14 @@ export async function POST(request: NextRequest) {
           walletAddress: user.walletAddress,
           role: user.role,
           displayName: user.displayName,
+          emailVerified: fullUser?.emailVerified || false,
         },
         token,
+        // Warn if email is unverified but within grace period
+        warning:
+          fullUser && fullUser.email && !fullUser.emailVerified
+            ? 'Please verify your email address to ensure uninterrupted access'
+            : undefined,
       },
       {
         status: 200,

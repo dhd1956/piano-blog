@@ -318,6 +318,8 @@ export const UserService = {
       username?: string
       displayName?: string
       email?: string
+      emailVerified?: boolean
+      authProvider?: string
     }
   ) {
     const normalizedAddress = walletAddress.toLowerCase()
@@ -345,8 +347,17 @@ export const UserService = {
           hasClaimedNewUserReward,
           isAuthorizedVerifier,
           ...initialData,
+          // Set emailVerifiedAt if emailVerified is true
+          emailVerifiedAt: initialData?.emailVerified ? new Date() : null,
         },
       })
+
+      // Log OAuth user creation
+      if (initialData?.authProvider) {
+        console.log(
+          `[UserService] Created new OAuth user via ${initialData.authProvider}: ${normalizedAddress}`
+        )
+      }
     }
 
     return user

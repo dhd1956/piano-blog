@@ -282,3 +282,96 @@ export async function isSessionValid(token: string): Promise<boolean> {
 
   return true
 }
+
+/**
+ * Generate a cryptographically secure email verification token
+ */
+export function generateVerificationToken(): string {
+  // Generate 32 random bytes and convert to hex string
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Create email verification token for user
+ */
+export async function createEmailVerificationToken(userId: number): Promise<string> {
+  const token = generateVerificationToken()
+  const expiresAt = new Date()
+  expiresAt.setHours(expiresAt.getHours() + 24) // 24 hour expiration
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      emailVerificationToken: token,
+      emailVerificationExpiry: expiresAt,
+    },
+  })
+
+  return token
+}
+
+/**
+ * Verify email verification token and mark email as verified
+ */
+export async function verifyEmailToken(token: string): Promise<{
+  success: boolean
+  message: string
+  user?: AuthUser
+}> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { emailVerificationToken: token },
+      select: {
+        id: true,
+        username: true,
+        walletAddress: true,
+        role: true,
+        email: true,
+        displayName: true,
+        emailVerified: true,
+        emailVerificationExpiry: true,
+      },
+    })
+
+    if (!user) {
+      return { success: false, message: 'Invalid verification token' }
+    }
+
+    if (user.emailVerified) {
+      return { success: false, message: 'Email already verified' }
+    }
+
+    if (!user.emailVerificationExpiry || user.emailVerificationExpiry < new Date()) {
+      return { success: false, message: 'Verification token has expired' }
+    }
+
+    // Mark email as verified and clear token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+        emailVerificationToken: null,
+        emailVerificationExpiry: null,
+      },
+    })
+
+    return {
+      success: true,
+      message: 'Email verified successfully',
+      user: {
+        id: user.id,
+        username: user.username,
+        walletAddress: user.walletAddress,
+        role: user.role,
+        email: user.email,
+        displayName: user.displayName,
+      },
+    }
+  } catch (error) {
+    console.error('Email verification error:', error)
+    return { success: false, message: 'An error occurred during verification' }
+  }
+}

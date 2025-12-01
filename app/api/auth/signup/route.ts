@@ -5,7 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-simplified'
-import { hashPassword, generateToken } from '@/lib/auth'
+import { hashPassword, generateToken, createEmailVerificationToken } from '@/lib/auth'
+import { sendVerificationEmail } from '@/lib/email'
 import { UserRole } from '@prisma/client'
 import { z } from 'zod'
 
@@ -103,18 +104,39 @@ export async function POST(request: NextRequest) {
     // Generate JWT token
     const token = await generateToken(newUser)
 
+    // Send verification email if email was provided
+    let emailSent = false
+    if (email) {
+      try {
+        const verificationToken = await createEmailVerificationToken(newUser.id)
+        const emailResult = await sendVerificationEmail(email, verificationToken, username)
+        emailSent = emailResult.success
+
+        if (!emailSent) {
+          console.warn(`Failed to send verification email to ${email}`)
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError)
+        // Don't fail signup if email fails - just log it
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
-        message: 'Account created successfully',
+        message: email
+          ? 'Account created successfully. Please check your email to verify your account.'
+          : 'Account created successfully',
         user: {
           id: newUser.id,
           username: newUser.username,
           walletAddress: newUser.walletAddress,
           role: newUser.role,
           displayName: newUser.displayName,
+          emailVerified: false,
         },
         token,
+        emailSent,
       },
       {
         status: 201,

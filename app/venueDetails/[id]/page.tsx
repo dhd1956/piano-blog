@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import VenueDetailsView from '@/components/VenueDetailsView'
 import VenueEditForm from '@/components/VenueEditForm'
 import VenueQRCard from '@/components/qr/VenueQRCard'
+import VenueEvents from '@/components/venue/VenueEvents'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
 import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
 
@@ -408,6 +409,11 @@ export default function VenueDetailsPage() {
         ) : (
           <>
             <VenueDetailsView venue={venue} extendedData={extendedData} isLoading={loading} />
+
+            {/* Events Section */}
+            <div className="mt-8">
+              <VenueEvents venueId={venue.id} venueName={venue.name} />
+            </div>
 
             {/* Marketing Materials Section */}
             <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">

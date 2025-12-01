@@ -13,6 +13,8 @@ import { ThemeProviders } from './theme-providers'
 import { ReownProvider } from '@/context/ReownProvider'
 import { WorkingWeb3Provider } from '@/components/web3/WorkingWeb3Provider'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import OAuthEmailCapture from '@/components/OAuthEmailCapture'
+import MigrationBanner from '@/components/auth/MigrationBanner'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -100,8 +102,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ErrorBoundary>
           <ReownProvider>
+            <OAuthEmailCapture />
             <WorkingWeb3Provider>
               <ThemeProviders>
+                <MigrationBanner />
                 <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
                 <SectionContainer>
                   <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>

@@ -11,6 +11,12 @@ export async function GET(
   try {
     const { address } = await params
 
+    // Get optional email and verification status from query parameters (for OAuth auto-capture)
+    const { searchParams } = new URL(request.url)
+    const email = searchParams.get('email')
+    const emailVerified = searchParams.get('emailVerified') === 'true'
+    const authProvider = searchParams.get('authProvider')
+
     // Normalize address to lowercase for case-insensitive search
     const normalizedAddress = address.toLowerCase()
 
@@ -38,7 +44,11 @@ export async function GET(
 
     // If no user found and address looks like a wallet address (starts with 0x), create user
     if (!user && address.toLowerCase().startsWith('0x')) {
-      await UserService.findOrCreateUser(address)
+      await UserService.findOrCreateUser(address, {
+        email: email || undefined, // Auto-capture email from OAuth if provided
+        emailVerified, // Set emailVerified to true for OAuth users
+        authProvider, // Track which OAuth provider was used
+      })
 
       // Fetch full user data with relations after creation
       user = await prisma.user.findUnique({
@@ -75,6 +85,7 @@ export async function GET(
 
     // Remove sensitive data if profile is not public
     const profileData = {
+      id: user.id,
       walletAddress: user.walletAddress,
       username: user.username,
       displayName: user.displayName,
@@ -92,6 +103,9 @@ export async function GET(
       publicProfile: user.publicProfile,
       showPXPBalance: user.showPXPBalance,
       qrCardStyle: user.qrCardStyle,
+      emailVerified: user.emailVerified,
+      profileCompleted: user.profileCompleted,
+      passwordHash: user.passwordHash ? 'set' : null, // Don't expose actual hash, just indicate if set
       createdAt: user.createdAt,
       lastActive: user.lastActive,
     }
@@ -150,6 +164,38 @@ export async function PATCH(
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Email uniqueness validation
+    if (body.email) {
+      const existingUserWithEmail = await prisma.user.findFirst({
+        where: {
+          email: { equals: body.email, mode: 'insensitive' },
+          id: { not: user.id }, // Exclude current user
+        },
+        select: {
+          id: true,
+          walletAddress: true,
+          username: true,
+          displayName: true,
+        },
+      })
+
+      if (existingUserWithEmail) {
+        return NextResponse.json(
+          {
+            error: 'Email already in use by another account',
+            suggestMerge: true,
+            existingAccount: {
+              id: existingUserWithEmail.id,
+              walletAddress: existingUserWithEmail.walletAddress,
+              displayName: existingUserWithEmail.displayName,
+              username: existingUserWithEmail.username,
+            },
+          },
+          { status: 409 }
+        )
+      }
     }
 
     // Update user profile using the user's primary key (id)

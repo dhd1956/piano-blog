@@ -8,6 +8,7 @@ import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
 import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
 import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
+import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
 
 interface UserProfile {
   walletAddress: string
@@ -58,10 +59,44 @@ export default function ProfilePage() {
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [venuesDiscovered, setVenuesDiscovered] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
+  const [showMergeDialog, setShowMergeDialog] = useState(false)
+  const [existingAccount, setExistingAccount] = useState<any>(null)
 
   useEffect(() => {
     loadProfile()
   }, [address, connectedAddress, isConnected])
+
+  const checkForPotentialMerge = async (email: string, walletAddress: string) => {
+    try {
+      const response = await fetch(
+        `/api/profile/merge?email=${encodeURIComponent(email)}&walletAddress=${encodeURIComponent(walletAddress)}`
+      )
+
+      if (!response.ok) return
+
+      const data = await response.json()
+
+      if (data.hasPotentialMerge && data.existingAccount) {
+        setExistingAccount(data.existingAccount)
+        setShowMergeDialog(true)
+      }
+    } catch (error) {
+      console.error('Error checking for potential merge:', error)
+    }
+  }
+
+  const handleMergeComplete = () => {
+    setShowMergeDialog(false)
+    setExistingAccount(null)
+    // Reload profile to show merged data
+    loadProfile()
+  }
+
+  const handleMergeDecline = () => {
+    setShowMergeDialog(false)
+    setExistingAccount(null)
+    // User declined merge, keep accounts separate
+  }
 
   const loadProfile = async () => {
     try {
@@ -91,6 +126,12 @@ export default function ProfilePage() {
 
         // Allow editing if it's own profile OR if user is blog owner
         setIsOwnProfile(isProfileOwner || isBlogOwner)
+
+        // Check for potential account merge
+        // Only check if viewing own profile and user has email
+        if (isProfileOwner && data.profile.email) {
+          checkForPotentialMerge(data.profile.email, connectedAddress)
+        }
       }
     } catch (err: any) {
       console.error('Error loading profile:', err)
@@ -144,6 +185,16 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
+      {/* Account Merge Dialog */}
+      {showMergeDialog && existingAccount && connectedAddress && (
+        <AccountMergeDialog
+          existingAccount={existingAccount}
+          newWalletAddress={connectedAddress}
+          onMerge={handleMergeComplete}
+          onDecline={handleMergeDecline}
+        />
+      )}
+
       {/* Profile Header */}
       <div className="mb-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-6">

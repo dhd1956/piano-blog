@@ -191,6 +191,14 @@ export default function ProfileEditPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
+
+        // Handle email conflict (status 409)
+        if (response.status === 409 && errorData.suggestMerge) {
+          throw new Error(
+            `${errorData.error}. This email belongs to wallet ${errorData.existingAccount.walletAddress.slice(0, 6)}...${errorData.existingAccount.walletAddress.slice(-4)}. If you own both accounts, visit your profile to merge them.`
+          )
+        }
+
         throw new Error(errorData.error || 'Failed to save profile')
       }
 
