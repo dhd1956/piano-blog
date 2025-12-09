@@ -264,7 +264,7 @@ model Session {
 }
 
 // PXP payment tracking (blockchain transaction references)
-model CAVPayment {
+model PXPPayment {
   id               Int         @id @default(autoincrement())
 
   // Payment participants

@@ -9,7 +9,7 @@ The Piano Style Platform uses a **simplified hybrid architecture** where blockch
 ```
 piano-blog/
 ├── 🏗️ contracts/                     # Solidity Smart Contracts
-│   ├── CAVRewards.sol                # ⭐ Main rewards contract (simplified)
+│   ├── PXPRewards.sol                # ⭐ Main rewards contract
 │   ├── VenueRegistry_V3.sol          # Legacy venue registry
 │   ├── DrinkPayment.sol              # Payment utilities
 │   ├── DecentralizedBlog.sol         # Blog-related contracts
@@ -20,15 +20,23 @@ piano-blog/
 │       ├── VenueRegistry_Optimized.sol
 │       └── VenueRegistryEnhanced.sol
 │
+├── 🏗️ foundry-contracts/             # Foundry Smart Contracts (Primary)
+│   └── src/
+│       ├── PXPToken.sol              # ⭐ PXP ERC20 token contract
+│       ├── PXPRewards.sol            # ⭐ PXP rewards distribution
+│       └── VenueRegistry.sol         # Foundry venue registry
+│
 ├── 🗃️ lib/                           # Core Services
 │   ├── blockchain-sync.ts            # ⭐ Event processing engine
 │   ├── database-simplified.ts        # Database services with blockchain cache
-│   └── database.ts                   # Legacy database service
+│   ├── database.ts                   # Legacy database service
+│   ├── auth.ts                       # Authentication service
+│   ├── auth-middleware.ts            # Auth middleware
+│   └── email.ts                      # Email service
 │
 ├── 🛠️ utils/                         # Blockchain Utilities
 │   ├── rewards-contract.ts           # ⭐ PXP rewards service
 │   ├── contract.ts                   # Legacy contract utilities
-│   ├── contract-v2.ts                # Contract v2 utilities
 │   ├── ipfs.ts                       # IPFS storage service
 │   ├── permissions.ts                # Access control
 │   └── rpcErrorHandler.ts            # Web3 error handling
@@ -36,20 +44,28 @@ piano-blog/
 ├── 🔌 app/api/                       # API Endpoints
 │   ├── sync/route.ts                 # Blockchain sync API
 │   ├── venues/route.ts               # Venues API (uses blockchain cache)
-│   └── venues/[id]/route.ts          # Single venue API
+│   ├── venues/[id]/route.ts          # Single venue API
+│   ├── events/                       # Events API
+│   ├── auth/                         # Authentication API
+│   ├── account/                      # User account API
+│   ├── profile/                      # User profile API
+│   ├── admin/                        # Admin API
+│   ├── musicians/                    # Musicians API
+│   └── newsletter/                   # Newsletter API
 │
 ├── ⚛️ components/                    # React Components
 │   ├── web3/                         # Web3 Integration
-│   │   ├── WalletConnection.tsx      # Wallet management
-│   │   ├── Web3Provider.tsx          # Web3 context provider
-│   │   ├── MultiWalletProvider.tsx   # Multi-wallet support
-│   │   └── MinimalWeb3Provider.tsx   # Lightweight provider
+│   │   ├── WalletConnection.tsx      # Wallet management UI
+│   │   ├── WorkingWeb3Provider.tsx   # ⭐ Web3 context provider
+│   │   └── DebugInfo.tsx             # Web3 debugging utilities
 │   ├── payments/                     # Payment Components
-│   │   ├── UnifiedCAVPayment.tsx     # ⭐ Web3 + QR payments
-│   │   └── CAVQRScanner.tsx          # QR code scanning
+│   │   ├── UnifiedPXPPayment.tsx     # ⭐ Web3 + QR payments
+│   │   └── PXPQRScanner.tsx          # QR code scanning
 │   └── qr/                          # QR Code System
 │       ├── QRCodeGenerator.tsx       # Generate payment QRs
-│       └── QRCodeScanner.tsx         # Scan QR codes
+│       ├── QRCodeScanner.tsx         # Scan QR codes
+│       ├── VenueQRCard.tsx           # Venue QR display
+│       └── UserProfileQRCard.tsx     # User profile QR display
 │
 └── 🗄️ prisma/                       # Database Schema
     ├── schema.prisma                 # ⭐ Database schema with blockchain refs
@@ -63,7 +79,7 @@ piano-blog/
 ### 1. **Smart Contract Events (Solidity)**
 
 ```solidity
-// CAVRewards.sol - Event Structure
+// PXPRewards.sol - Event Structure
 event NewUserRewarded(address indexed user, uint256 amount);
 event ScoutRewarded(address indexed scout, bytes32 indexed venueHash, uint256 amount);
 event VerifierRewarded(address indexed verifier, bytes32 indexed venueHash, uint256 amount);
@@ -71,6 +87,8 @@ event VenueVerified(bytes32 indexed venueHash, address indexed verifier, bool ap
 event PaymentTracked(address indexed from, address indexed to, uint256 amount, string memo);
 event VerifierStatusUpdated(address indexed verifier, bool authorized);
 ```
+
+**Note**: TCoin is under consideration for future implementation but is not part of Sprint 2.
 
 ### 2. **Database Storage (PostgreSQL)**
 
@@ -91,10 +109,10 @@ CREATE TABLE "BlockchainEvent" (
 );
 ```
 
-#### **CAVPayment Table**
+#### **PXPPayment Table**
 
 ```sql
-CREATE TABLE "CAVPayment" (
+CREATE TABLE "PXPPayment" (
   "id" SERIAL PRIMARY KEY,
   "fromAddress" TEXT NOT NULL,         -- Sender wallet
   "toAddress" TEXT NOT NULL,           -- Recipient wallet
@@ -111,6 +129,8 @@ CREATE TABLE "CAVPayment" (
 );
 ```
 
+**Migration Note**: Run `npx prisma migrate deploy` to rename the existing `CAVPayment` table to `PXPPayment` (migration: `20251209150752_rename_cavpayment_to_pxppayment`).
+
 ### 3. **Event Data Structure Examples**
 
 #### **VenueVerified Event**
@@ -118,7 +138,7 @@ CREATE TABLE "CAVPayment" (
 ```json
 {
   "eventType": "VenueVerified",
-  "contractAddress": "0x1234...CAVRewards",
+  "contractAddress": "0x1234...PXPRewards",
   "transactionHash": "0xabc123def456...",
   "blockNumber": 12345678,
   "blockTimestamp": "2024-01-15T14:30:00.000Z",
@@ -137,7 +157,7 @@ CREATE TABLE "CAVPayment" (
 ```json
 {
   "eventType": "PaymentTracked",
-  "contractAddress": "0x1234...CAVRewards",
+  "contractAddress": "0x1234...PXPRewards",
   "transactionHash": "0xpayment123abc...",
   "blockNumber": 12345681,
   "blockTimestamp": "2024-01-15T14:30:00.000Z",
@@ -156,7 +176,7 @@ CREATE TABLE "CAVPayment" (
 ```json
 {
   "eventType": "NewUserRewarded",
-  "contractAddress": "0x1234...CAVRewards",
+  "contractAddress": "0x1234...PXPRewards",
   "transactionHash": "0xreward789xyz...",
   "blockNumber": 12345690,
   "blockTimestamp": "2024-01-16T10:15:00.000Z",
@@ -173,7 +193,7 @@ CREATE TABLE "CAVPayment" (
 ```mermaid
 graph TD
     %% Blockchain Layer
-    A[Celo Blockchain] --> B[CAVRewards Contract]
+    A[Celo Blockchain] --> B[PXPRewards Contract]
     B --> C[Contract Events]
 
     %% Event Processing
@@ -189,7 +209,7 @@ graph TD
     %% Database Updates
     I --> J[Update Venue Verification]
     I --> K[Update User PXP Cache]
-    I --> L[Create CAVPayment Records]
+    I --> L[Create PXPPayment Records]
 
     %% API Layer
     J --> M[Venues API]
@@ -202,7 +222,7 @@ graph TD
     O --> P
 
     %% Payment Flow
-    P --> Q[UnifiedCAVPayment]
+    P --> Q[UnifiedPXPPayment]
     Q --> R[Web3 Transfer]
     Q --> S[QR Code Payment]
     R --> B

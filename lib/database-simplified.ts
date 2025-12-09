@@ -534,7 +534,7 @@ export const BlockchainEventService = {
 
       case 'PaymentTracked':
         // Record PXP payment
-        await prisma.cAVPayment.create({
+        await prisma.pXPPayment.create({
           data: {
             fromAddress: event.eventData.from,
             toAddress: event.eventData.to,

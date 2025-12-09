@@ -150,6 +150,52 @@ The VenueRegistry contract manages:
 
 ## Current Implementation Status
 
+### Venue Events Display (Completed - 2025-12-01)
+
+**Feature**: Collapsible events section on individual venue detail pages
+
+**Implementation Plan**: See `.claude/plans/radiant-conjuring-peach.md` for full details
+
+**Status: ✅ Production Ready**
+
+**Components Implemented**:
+
+- ✅ `VenueEvents` component - Collapsible section with client-side data fetching
+- ✅ `EventCard` component - Compact event display with color-coded badges
+- ✅ TypeScript interfaces in `/types/event.ts` (Event, EventSummary, EventType, EventStatus)
+- ✅ Integration into `/app/venueDetails/[id]/page.tsx`
+
+**Features**:
+
+- Fetches events via `/api/events?venueId={venueId}`
+- Filters for upcoming + recent past (30 days)
+- Collapsible UI (collapsed by default, loads on expand)
+- Color-coded event type badges (JAM_SESSION, GIG, CONCERT, etc.)
+- Attendance tracking (shows X/Y attendees, "Full" indicator)
+- Status badges (cancelled events marked clearly)
+- Clickable cards navigate to `/events/[id]`
+- Loading states, error handling, empty states
+- Accessibility features (aria-expanded, aria-label)
+- Dark mode support
+
+**Key Files**:
+
+- `components/venue/VenueEvents.tsx` - Main collapsible events container
+- `components/venue/EventCard.tsx` - Individual event card component
+- `types/event.ts` - Centralized event type definitions
+- `app/venueDetails/[id]/page.tsx` - Venue detail page with events integration (line 414-416)
+
+**Data Flow**:
+
+1. User visits venue page → VenueEvents renders collapsed
+2. User clicks expand → `useEffect` triggers `fetchEvents()`
+3. API call to `/api/events?venueId={id}` returns all venue events
+4. Client filters for events with `startDate >= 30 days ago`
+5. Events sorted by date (earliest first)
+6. EventCard components render with proper styling and badges
+
+---
+
 ### Google Login & Profile Setup (In Progress)
 
 **Implementation Plan**: See `.claude/plans/radiant-conjuring-peach.md` for full details
