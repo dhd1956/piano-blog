@@ -4,27 +4,41 @@
 
 The Piano Style Platform uses a **simplified hybrid architecture** where blockchain is used only for **PXP token transactions and rewards**, while all venue content is stored in PostgreSQL for performance. Here's the complete file layout for blockchain data structures:
 
+### Contract Organization
+
+**Active Contracts (Deployed on Celo Sepolia):**
+
+- All production contracts are in `foundry-contracts/src/`
+- See [DEPLOYED_CONTRACTS.md](./DEPLOYED_CONTRACTS.md) for deployment details and addresses
+
+**Legacy Contracts:**
+
+- `contracts/` contains old pre-foundry development code (not deployed)
+- `contracts/archive/` contains archived iterations from development phase
+- These are kept for reference but are not actively used
+
 ## 📁 File Structure
 
 ```
 piano-blog/
-├── 🏗️ contracts/                     # Solidity Smart Contracts
-│   ├── PXPRewards.sol                # ⭐ Main rewards contract
-│   ├── VenueRegistry_V3.sol          # Legacy venue registry
-│   ├── DrinkPayment.sol              # Payment utilities
-│   ├── DecentralizedBlog.sol         # Blog-related contracts
-│   └── archive/                      # Historical contract versions
-│       ├── VenueRegistry.sol
-│       ├── VenueRegistryV2.sol
+├── 🏗️ foundry-contracts/             # ⭐ Active Smart Contracts (Deployed)
+│   └── src/
+│       ├── PXPToken.sol              # ⭐ PXP ERC20 token (0x04eA...1c75)
+│       ├── PXPRewards.sol            # ⭐ PXP rewards V1 (0x28aC...6128)
+│       └── VenueRegistry.sol         # ⭐ Venue registry V1 (0x325F...645E)
+│
+├── 🏗️ contracts/                     # Legacy/Development Contracts
+│   ├── PXPRewards.sol                # Old PXP rewards (pre-foundry)
+│   ├── DrinkPayment.sol              # Payment utilities (not deployed)
+│   ├── DecentralizedBlog.sol         # Blog contracts (not deployed)
+│   └── archive/                      # Archived development iterations
+│       ├── VenueRegistry_V3.sol      # Old venue registry v3
+│       ├── VenueRegistry_Fixed.sol   # Old venue registry iteration
+│       ├── VenueRegistry_Simple.sol  # Old venue registry iteration
+│       ├── VenueRegistry.sol         # Original venue registry
 │       ├── VenueRegistry_V1_Legacy.sol
 │       ├── VenueRegistry_Optimized.sol
 │       └── VenueRegistryEnhanced.sol
-│
-├── 🏗️ foundry-contracts/             # Foundry Smart Contracts (Primary)
-│   └── src/
-│       ├── PXPToken.sol              # ⭐ PXP ERC20 token contract
-│       ├── PXPRewards.sol            # ⭐ PXP rewards distribution
-│       └── VenueRegistry.sol         # Foundry venue registry
 │
 ├── 🗃️ lib/                           # Core Services
 │   ├── blockchain-sync.ts            # ⭐ Event processing engine
