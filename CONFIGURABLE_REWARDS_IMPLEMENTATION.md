@@ -318,14 +318,19 @@ PXPRewards V2
 
 ## Contract Addresses
 
-### Current (V1)
+### Current (V1) - Celo Sepolia Testnet
 
-- PXP Token: `0x7B1E3d40Acf8ea8717822E23096eFf8fE8573d35`
-- PXP Rewards V1: `0x79cC4705739c42628Ac93523AAaCe023B9520d38`
+- PXP Token: `0x04eAE71832147D75D4B69B3FFB5d9514e8471c75`
+- PXP Rewards V1: `0x28aCAf06E470Dad9890d75B7fD55fBDe913D6128`
+- Venue Registry V1: `0x325F81e26CF5A757dc63c85f2CE59621D1d1645E`
+
+**Network:** Celo Sepolia (Chain ID: 11142220)
 
 ### To Be Deployed (V2)
 
 - PXP Rewards V2: _Pending deployment_
+
+**Note:** V1 contracts were migrated from Celo Alfajores to Celo Sepolia in January 2025.
 
 ## Migration Plan
 
