@@ -56,11 +56,36 @@ export default function OAuthEmailCapture() {
           // Mark this address as processed to avoid duplicate calls
           hasProcessedRef.current.add(address)
 
-          // Check if profile setup is needed
-          if (data.profile && !data.profile.profileCompleted) {
-            console.log('[OAuthEmailCapture] New OAuth user - redirecting to profile setup')
-            // Redirect to profile setup for new users
+          // Smart completion logic: Check if user has essential fields
+          const profile = data.profile
+          const hasEssentialFields = !!(profile?.username && profile?.displayName && profile?.email)
+
+          // Auto-complete profile if user has essential fields but profileCompleted is false
+          if (profile && hasEssentialFields && !profile.profileCompleted) {
+            console.log('[OAuthEmailCapture] User has essential fields - auto-completing profile')
+            try {
+              await fetch(`/api/profile/${address}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  requesterAddress: address,
+                  profileCompleted: true,
+                  profileCompletedAt: new Date().toISOString(),
+                }),
+              })
+              console.log('[OAuthEmailCapture] Profile auto-completed')
+            } catch (err) {
+              console.error('[OAuthEmailCapture] Failed to auto-complete profile:', err)
+            }
+          }
+          // Only redirect to setup if user is truly new (no username)
+          else if (profile && !profile.username) {
+            console.log(
+              '[OAuthEmailCapture] New user without username - redirecting to profile setup'
+            )
             router.push('/profile/setup')
+          } else {
+            console.log('[OAuthEmailCapture] Returning user - no setup needed')
           }
         } else {
           console.warn(`[OAuthEmailCapture] Failed to capture email: ${response.statusText}`)

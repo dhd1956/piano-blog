@@ -25,12 +25,16 @@ async function main() {
       update: {
         role: UserRole.BLOG_OWNER,
         displayName: 'Blog Owner',
+        profileCompleted: true,
+        profileCompletedAt: new Date(),
       },
       create: {
         walletAddress: blogOwnerAddress,
         role: UserRole.BLOG_OWNER,
         displayName: 'Blog Owner',
         isActive: true,
+        profileCompleted: true,
+        profileCompletedAt: new Date(),
       },
     })
     console.log('✅ Blog Owner created/updated:', blogOwner.walletAddress)
@@ -43,6 +47,8 @@ async function main() {
     update: {
       passwordHash: curatorPassword,
       role: UserRole.CURATOR,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
     create: {
       username: 'curator',
@@ -52,6 +58,8 @@ async function main() {
       displayName: 'Test Curator',
       createdBy: 'seed-script',
       isActive: true,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
   })
   console.log('✅ Curator created/updated:', curator.username)
@@ -65,6 +73,8 @@ async function main() {
     update: {
       passwordHash: validator1Password,
       role: UserRole.VALIDATOR,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
     create: {
       username: 'validator1',
@@ -74,6 +84,8 @@ async function main() {
       displayName: 'Validator One',
       createdBy: 'seed-script',
       isActive: true,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
   })
   console.log('✅ Validator 1 created/updated:', validator1.username)
@@ -87,6 +99,8 @@ async function main() {
     update: {
       passwordHash: validator2Password,
       role: UserRole.VALIDATOR,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
     create: {
       username: 'validator2',
@@ -96,6 +110,8 @@ async function main() {
       displayName: 'Validator Two',
       createdBy: 'seed-script',
       isActive: true,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
   })
   console.log('✅ Validator 2 created/updated:', validator2.username)
@@ -109,6 +125,8 @@ async function main() {
     update: {
       passwordHash: validator3Password,
       role: UserRole.VALIDATOR,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
     create: {
       username: 'validator3',
@@ -118,6 +136,8 @@ async function main() {
       displayName: 'Validator Three',
       createdBy: 'seed-script',
       isActive: true,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
   })
   console.log('✅ Validator 3 created/updated:', validator3.username)
@@ -131,6 +151,8 @@ async function main() {
     update: {
       passwordHash: scoutPassword,
       role: UserRole.SCOUT,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
     create: {
       username: 'scout',
@@ -140,6 +162,8 @@ async function main() {
       displayName: 'Test Scout',
       createdBy: 'seed-script',
       isActive: true,
+      profileCompleted: true,
+      profileCompletedAt: new Date(),
     },
   })
   console.log('✅ Scout created/updated:', scout.username)
