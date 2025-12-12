@@ -406,8 +406,11 @@ Based on Sprint 2 learnings and incomplete items:
 3. Enhanced musician profiles (finish Sprint 2)
 4. Audio upload system (from JIRA_AUDIO_STORIES.md)
 5. Social features (from SPRINT_3_SOCIAL_FEATURES.md)
+6. **Gas sponsorship for users** ⭐ HIGH IMPACT - See `GAS_SPONSORSHIP_FEATURE.md`
 
 **Recommendation:** Consider splitting into Sprint 2 Cleanup + Sprint 3 New Features
+
+**Note:** Item #6 (Gas Sponsorship) is recommended as a **quick win** with huge UX impact. Estimated effort: 2-3 days, cost: ~$25-30/month for 100 daily users.
 
 ---
 
