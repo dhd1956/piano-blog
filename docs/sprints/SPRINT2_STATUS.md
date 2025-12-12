@@ -347,9 +347,27 @@ model Session {
    - **Effort:** 5-7 days
    - **Blocker:** Requires architectural decision
 
+### Sprint 2 Cleanup (Technical Debt)
+
+4. **Rename totalCAVEarned to totalPXPEarned** [ADDED: Dec 12, 2025]
+   - Create Prisma migration to rename User.totalCAVEarned → totalPXPEarned
+   - Update all code references (36 occurrences across codebase)
+   - Update database index
+   - Test all affected API routes and components
+   - **Effort:** 2-3 hours
+   - **Blocker:** None, straightforward schema migration
+   - **Impact:** Fixes naming inconsistency (CAVPayment already renamed to PXPPayment in Dec 2025)
+   - **Files affected:**
+     - prisma/schema.prisma (field + index)
+     - prisma/schema-simplified.prisma
+     - lib/database.ts, lib/database-simplified.ts
+     - API routes: profile, auth, musicians (5 files)
+     - Components: AccountMergeDialog, musicians page
+     - Seed data
+
 ### Low Priority (Sprint 3+)
 
-4. **Reward History & Analytics**
+5. **Reward History & Analytics**
    - Transaction history page
    - Reward leaderboard
    - Scout statistics
@@ -363,7 +381,7 @@ model Session {
 
 1. **Outdated field name:** `totalCAVEarned` should be renamed to `totalPXPEarned`
    - ✅ CAVPayment already renamed to PXPPayment (Dec 2025)
-   - ⏭️ User.totalCAVEarned still needs migration
+   - 🔄 User.totalCAVEarned → totalPXPEarned **added to Sprint 2 Cleanup** (see Recommendations section above)
 
 2. **Missing indexes:** Some queries could benefit from additional indexes
    - Event queries by date range
@@ -373,7 +391,7 @@ model Session {
 
 - ✅ Alfajores → Sepolia migration complete (Jan 2025)
 - ✅ CAVPayment → PXPPayment renamed (Dec 2025)
-- ⏭️ User.totalCAVEarned → totalPXPEarned pending
+- 🔄 User.totalCAVEarned → totalPXPEarned **tracked in Sprint 2 Cleanup** (Recommendation #4)
 
 ---
 
@@ -404,6 +422,7 @@ Sprint 2 delivered **substantial value beyond its original scope**, prioritizing
 ---
 
 **Report Generated:** December 9, 2025
+**Last Updated:** December 12, 2025
 **Sprint Status:** IN PROGRESS 🔄
-**Next Action:** Complete PXP rewards integration + musician profile enhancements
+**Next Action:** Complete PXP rewards integration + musician profile enhancements + totalCAVEarned migration
 **Document Owner:** Development Team
