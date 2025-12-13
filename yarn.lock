@@ -3051,6 +3051,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: d999b98acf1a6dba36a3e3693e02fde270c21b8d20333e2d458cf085e90508b24fad6c8d05d9475817fdf9d1ff1bf4082c86a4b09d2e59af739d391e59bca7ed
+  languageName: node
+  linkType: hard
+
 "@grpc/grpc-js@npm:^1.7.1":
   version: 1.13.4
   resolution: "@grpc/grpc-js@npm:1.13.4"
@@ -19694,6 +19701,7 @@ __metadata:
     "@celo/react-celo": ^5.0.4
     "@eslint/eslintrc": ^3.2.0
     "@eslint/js": ^9.16.0
+    "@google/generative-ai": ^0.24.1
     "@headlessui/react": 2.2.0
     "@next/bundle-analyzer": 15.2.6
     "@prisma/client": ^6.16.2

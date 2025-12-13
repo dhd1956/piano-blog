@@ -21,6 +21,7 @@
   "dependencies": {
     "@celo/contractkit": "^3.2.0",
     "@celo/react-celo": "^5.0.4",
+    "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "2.2.0",
     "@next/bundle-analyzer": "15.2.6",
     "@prisma/client": "^6.16.2",

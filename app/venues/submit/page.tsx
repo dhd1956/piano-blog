@@ -8,6 +8,7 @@ export default function SubmitVenue() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -68,6 +69,59 @@ export default function SubmitVenue() {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  /**
+   * Auto-fill address using Gemini AI
+   * Looks up the venue address based on name and city
+   */
+  const handleLookupAddress = async () => {
+    // Validate required fields
+    if (!formData.name.trim()) {
+      setErrors((prev) => ({ ...prev, name: 'Please enter venue name first' }))
+      return
+    }
+
+    if (!formData.city.trim()) {
+      setErrors((prev) => ({ ...prev, city: 'Please enter city first' }))
+      return
+    }
+
+    setIsLookingUpAddress(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/venues/lookup-address', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          venueName: formData.name,
+          city: formData.city,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.address) {
+        // Auto-fill the address field
+        setFormData((prev) => ({ ...prev, address: data.address }))
+        // Clear any address error
+        setErrors((prev) => {
+          const newErrors = { ...prev }
+          delete newErrors.address
+          return newErrors
+        })
+      } else {
+        setError(data.error || 'Could not find address. Please enter manually.')
+      }
+    } catch (err: any) {
+      console.error('Error looking up address:', err)
+      setError('Failed to lookup address. Please enter manually.')
+    } finally {
+      setIsLookingUpAddress(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -317,7 +371,29 @@ export default function SubmitVenue() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Address</label>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Address</label>
+                <button
+                  type="button"
+                  onClick={handleLookupAddress}
+                  disabled={isLookingUpAddress || !formData.name || !formData.city}
+                  className="text-sm text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:text-gray-400"
+                  title={
+                    !formData.name || !formData.city
+                      ? 'Enter venue name and city first'
+                      : 'Auto-fill address using AI'
+                  }
+                >
+                  {isLookingUpAddress ? (
+                    <>
+                      <span className="mr-1 inline-block animate-spin">⏳</span>
+                      Looking up...
+                    </>
+                  ) : (
+                    <>🤖 Auto-fill Address</>
+                  )}
+                </button>
+              </div>
               <input
                 type="text"
                 value={formData.address}
@@ -325,6 +401,9 @@ export default function SubmitVenue() {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                 placeholder="123 Main St, Toronto, ON"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                💡 Enter venue name and city above, then click "Auto-fill Address"
+              </p>
             </div>
 
             <div>
