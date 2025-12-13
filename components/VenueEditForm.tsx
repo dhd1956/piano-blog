@@ -60,6 +60,7 @@ export default function VenueEditForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
 
   // Update form data when props change (e.g., when extendedData loads)
   useEffect(() => {
@@ -110,6 +111,55 @@ export default function VenueEditForm({
         delete newErrors[field]
         return newErrors
       })
+    }
+  }
+
+  // Handle address lookup using OpenStreetMap
+  const handleAddressLookup = async () => {
+    if (!formData.name || !formData.city) {
+      setErrors((prev) => ({
+        ...prev,
+        fullAddress: 'Venue name and city are required for address lookup',
+      }))
+      return
+    }
+
+    setIsLookingUpAddress(true)
+
+    try {
+      const response = await fetch('/api/venues/lookup-address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venueName: formData.name,
+          city: formData.city,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.address) {
+        setFormData((prev) => ({ ...prev, fullAddress: data.address }))
+        // Clear error for address field
+        setErrors((prev) => {
+          const newErrors = { ...prev }
+          delete newErrors.fullAddress
+          return newErrors
+        })
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          fullAddress: data.error || 'Could not find address. Please enter manually.',
+        }))
+      }
+    } catch (err: any) {
+      console.error('Error looking up address:', err)
+      setErrors((prev) => ({
+        ...prev,
+        fullAddress: 'Failed to lookup address. Please enter manually.',
+      }))
+    } finally {
+      setIsLookingUpAddress(false)
     }
   }
 
@@ -189,13 +239,27 @@ export default function VenueEditForm({
 
         {/* Address */}
         <FormField label="Full Address" required error={errors.fullAddress}>
-          <input
-            type="text"
-            value={formData.fullAddress}
-            onChange={(e) => handleInputChange('fullAddress', e.target.value)}
-            className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-            placeholder="456 Queen Street West, Toronto, ON M5V 2A8"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={formData.fullAddress}
+              onChange={(e) => handleInputChange('fullAddress', e.target.value)}
+              className="focus:ring-primary-500 focus:border-primary-500 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              placeholder="456 Queen Street West, Toronto, ON M5V 2A8"
+            />
+            <button
+              type="button"
+              onClick={handleAddressLookup}
+              disabled={isLookingUpAddress}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+              title="Auto-fill address using OpenStreetMap"
+            >
+              {isLookingUpAddress ? '⏳' : '🤖'}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            💡 Click 🤖 to auto-fill address using venue name and city
+          </p>
         </FormField>
 
         {/* Venue Type */}
