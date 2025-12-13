@@ -58,6 +58,8 @@ export default function SubmitVenue() {
     city?: string
     address?: string
   }>({})
+  const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
+  const [showAddressTooltip, setShowAddressTooltip] = useState(false)
 
   // Fetch current venue count from PostgreSQL API
   const fetchVenueCount = async () => {
@@ -73,6 +75,79 @@ export default function SubmitVenue() {
       }
     } catch (error) {
       console.error('Error fetching venue count:', error)
+    }
+  }
+
+  /**
+   * Auto-fill address using Gemini AI
+   */
+  const handleLookupAddress = async () => {
+    if (!formData.name.trim()) {
+      setFieldErrors((prev) => ({ ...prev, name: 'Please enter venue name first' }))
+      return
+    }
+
+    if (!formData.city.trim()) {
+      setFieldErrors((prev) => ({ ...prev, city: 'Please enter city first' }))
+      return
+    }
+
+    setIsLookingUpAddress(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/venues/lookup-address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venueName: formData.name,
+          city: formData.city,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.address) {
+        // Update address and any available contact info
+        setFormData((prev) => ({
+          ...prev,
+          address: data.address,
+          ...(data.phone && { phone: data.phone }),
+          ...(data.website && { website: data.website }),
+          ...(data.email && { email: data.email }),
+        }))
+        setFieldErrors((prev) => ({
+          ...prev,
+          address: undefined,
+          ...(data.phone && { phone: undefined }),
+          ...(data.website && { website: undefined }),
+          ...(data.email && { email: undefined }),
+        }))
+
+        // Show success message with what was populated
+        const populated = ['address']
+        if (data.phone) populated.push('phone')
+        if (data.website) populated.push('website')
+        if (data.email) populated.push('email')
+        console.log(`✅ Auto-filled: ${populated.join(', ')}`)
+      } else {
+        setError(data.error || 'Could not find address. Please enter manually.')
+      }
+    } catch (err: any) {
+      console.error('Error looking up address:', err)
+      setError('Failed to lookup address. Please enter manually.')
+    } finally {
+      setIsLookingUpAddress(false)
+    }
+  }
+
+  /**
+   * Handle Enter key press in address field
+   */
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleLookupAddress()
     }
   }
 
@@ -421,23 +496,54 @@ export default function SubmitVenue() {
           {/* Address */}
           <div id="address-field">
             <label className="mb-2 block text-sm font-medium text-gray-700">Full Address *</label>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => {
-                setFormData({ ...formData, address: e.target.value })
-                if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: undefined })
-              }}
-              className={`w-full rounded-lg border px-3 py-2 text-base text-gray-900 focus:ring-2 ${
-                fieldErrors.address
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 bg-white focus:ring-blue-500'
-              }`}
-              placeholder="e.g., 456 Queen Street West, Toronto, ON M5V 2A8"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => {
+                  setFormData({ ...formData, address: e.target.value })
+                  if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: undefined })
+                }}
+                onKeyDown={handleAddressKeyDown}
+                onFocus={() => setShowAddressTooltip(true)}
+                onBlur={() => setTimeout(() => setShowAddressTooltip(false), 200)}
+                className={`w-full rounded-lg border px-3 py-2 pr-12 text-base text-gray-900 focus:ring-2 ${
+                  fieldErrors.address
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 bg-white focus:ring-blue-500'
+                }`}
+                placeholder="Type address or press Enter to auto-fill"
+              />
+              <button
+                type="button"
+                onClick={handleLookupAddress}
+                disabled={isLookingUpAddress || !formData.name || !formData.city}
+                className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xl transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40"
+                title={
+                  !formData.name || !formData.city
+                    ? 'Enter venue name and city first'
+                    : 'Click or press Enter to auto-fill address using AI'
+                }
+              >
+                {isLookingUpAddress ? (
+                  <span className="inline-block animate-spin">⏳</span>
+                ) : (
+                  <>🤖</>
+                )}
+              </button>
+              {showAddressTooltip && formData.name && formData.city && !formData.address && (
+                <div className="absolute top-full left-0 z-10 mt-1 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
+                  Press <kbd className="rounded bg-gray-700 px-1">Enter</kbd> or click 🤖 to
+                  auto-fill
+                </div>
+              )}
+            </div>
             {fieldErrors.address && (
               <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.address}</p>
             )}
+            <p className="mt-1 text-xs text-gray-500">
+              💡 Fill in venue name and city above, then press Enter or click 🤖 to auto-fill
+            </p>
           </div>
 
           {/* Contact Information */}

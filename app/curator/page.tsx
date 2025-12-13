@@ -57,6 +57,7 @@ export default function CuratorDashboard() {
   const [verificationNotes, setVerificationNotes] = useState('')
   const [existingCuratorNotes, setExistingCuratorNotes] = useState<any>(null)
   const [loadingNotes, setLoadingNotes] = useState(false)
+  const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
   const [editForm, setEditForm] = useState({
     name: '',
     contactInfo: '',
@@ -346,6 +347,42 @@ export default function CuratorDashboard() {
       console.error('Error loading curator notes:', error)
     } finally {
       setLoadingNotes(false)
+    }
+  }
+
+  // Handle address lookup using OpenStreetMap
+  const handleAddressLookup = async () => {
+    if (!selectedVenue || !editForm.name || !selectedVenue.city) {
+      setError('Venue name and city are required for address lookup')
+      return
+    }
+
+    setIsLookingUpAddress(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/venues/lookup-address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venueName: editForm.name, // Use edited name, not original
+          city: selectedVenue.city,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.address) {
+        setEditForm((prev) => ({ ...prev, address: data.address }))
+        setSuccessMessage(`✅ Address auto-filled: ${data.address}`)
+      } else {
+        setError(data.error || 'Could not find address. Please enter manually.')
+      }
+    } catch (err: any) {
+      console.error('Error looking up address:', err)
+      setError('Failed to lookup address. Please enter manually.')
+    } finally {
+      setIsLookingUpAddress(false)
     }
   }
 
@@ -686,13 +723,27 @@ export default function CuratorDashboard() {
 
                     <div>
                       <label className="mb-1 block text-sm font-medium">Address</label>
-                      <input
-                        type="text"
-                        value={editForm.address}
-                        onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                        className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                        placeholder="Street address"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={editForm.address}
+                          onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                          className="flex-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                          placeholder="Street address"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddressLookup}
+                          disabled={isLookingUpAddress}
+                          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+                          title="Auto-fill address using OpenStreetMap"
+                        >
+                          {isLookingUpAddress ? '⏳' : '🤖'}
+                        </button>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        💡 Click 🤖 to auto-fill address using venue name and city
+                      </p>
                     </div>
 
                     {/* Operational Details Section */}
