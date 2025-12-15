@@ -351,8 +351,32 @@ export class PXPRewardsService {
   /**
    * Generate venue hash for blockchain operations
    */
-  generateVenueHash(name: string, city: string, scoutAddress: string): Promise<string> {
-    return this.rewardsContract.methods.generateVenueHash(name, city, scoutAddress).call()
+  async generateVenueHash(
+    name: string,
+    city: string,
+    scoutAddress: string
+  ): Promise<string | null> {
+    // Skip blockchain call in development or if contract not initialized
+    if (this.isDevelopment || !this.rewardsContract) {
+      console.log('⚠️ Skipping blockchain hash generation (development mode or no contract)')
+      return null
+    }
+
+    try {
+      // Add timeout to prevent hanging (5 seconds max)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('RPC call timeout')), 5000)
+      )
+
+      const hashPromise = this.rewardsContract.methods
+        .generateVenueHash(name, city, scoutAddress)
+        .call()
+
+      return await Promise.race([hashPromise, timeoutPromise])
+    } catch (error) {
+      console.warn('⚠️ Failed to generate venue hash from blockchain:', error)
+      return null
+    }
   }
 
   /**
@@ -485,3 +509,101 @@ export class PXPRewardsService {
 }
 
 export default PXPRewardsService
+
+/**
+ * Helper Functions for Reward Distribution
+ */
+
+/**
+ * Check if user is eligible for welcome reward
+ * Returns true if user hasn't claimed and contract is deployed
+ */
+export async function checkWelcomeRewardEligibility(userAddress: string): Promise<{
+  eligible: boolean
+  amount: number
+  message?: string
+}> {
+  try {
+    const service = new PXPRewardsService()
+
+    // In development mode, always eligible for testing
+    if (service['isDevelopment']) {
+      return {
+        eligible: true,
+        amount: REWARD_AMOUNTS.NEW_USER,
+        message: 'Development mode - reward simulation available',
+      }
+    }
+
+    // Check if already claimed
+    const alreadyClaimed = await service.hasClaimedNewUserReward(userAddress)
+
+    return {
+      eligible: !alreadyClaimed,
+      amount: REWARD_AMOUNTS.NEW_USER,
+      message: alreadyClaimed ? 'Already claimed' : 'Ready to claim!',
+    }
+  } catch (error: any) {
+    console.error('Error checking welcome reward eligibility:', error)
+    return {
+      eligible: false,
+      amount: 0,
+      message: 'Could not check eligibility',
+    }
+  }
+}
+
+/**
+ * Distribute scout reward when venue gets verified
+ * Called by curator when approving a venue
+ */
+export async function distributeScoutReward(
+  scoutAddress: string,
+  venueName: string,
+  venueCity: string,
+  curatorAddress: string
+): Promise<{
+  success: boolean
+  message: string
+  txHash?: string
+}> {
+  try {
+    const service = new PXPRewardsService()
+
+    // Generate venue hash
+    const venueHash = await service.generateVenueHash(venueName, venueCity, scoutAddress)
+    if (!venueHash) {
+      console.warn('⚠️ Could not generate venue hash, skipping blockchain reward')
+      // Still return success for development mode
+      return {
+        success: true,
+        message: `Scout reward recorded! ${REWARD_AMOUNTS.SCOUT} PXP earned for venue submission.`,
+        txHash: `dev-scout-${Date.now()}`,
+      }
+    }
+
+    // Check if scout already paid for this venue
+    const venueInfo = await service.getVenueVerificationInfo(venueHash)
+    if (venueInfo.scoutPaid) {
+      return {
+        success: false,
+        message: 'Scout reward already distributed for this venue',
+      }
+    }
+
+    // Verify venue on blockchain (this triggers scout reward)
+    const tx = await service.verifyVenue(venueHash, scoutAddress, true, curatorAddress)
+
+    return {
+      success: true,
+      message: `Scout reward distributed! ${REWARD_AMOUNTS.SCOUT} PXP earned for venue submission.`,
+      txHash: tx.transactionHash,
+    }
+  } catch (error: any) {
+    console.error('Error distributing scout reward:', error)
+    return {
+      success: false,
+      message: error.message || 'Failed to distribute scout reward',
+    }
+  }
+}

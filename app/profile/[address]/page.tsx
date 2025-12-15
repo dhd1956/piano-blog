@@ -9,6 +9,7 @@ import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
 import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
 import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
+import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
 
 interface UserProfile {
   walletAddress: string
@@ -185,6 +186,11 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
+      {/* Welcome Reward Banner (only show on own profile) */}
+      {isOwnProfile && profile.walletAddress && (
+        <WelcomeRewardBanner userAddress={profile.walletAddress} />
+      )}
+
       {/* Account Merge Dialog */}
       {showMergeDialog && existingAccount && connectedAddress && (
         <AccountMergeDialog
