@@ -132,6 +132,9 @@ export async function PATCH(
     const { address } = await params
     const body = await request.json()
 
+    console.log('[Profile Update] Starting update for address:', address)
+    console.log('[Profile Update] Request body:', JSON.stringify(body, null, 2))
+
     // Authentication: Check if requester is profile owner OR blog owner (admin)
     const requesterAddress = body.requesterAddress?.toLowerCase()
     const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
@@ -164,6 +167,29 @@ export async function PATCH(
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Username uniqueness validation
+    if (body.username) {
+      const existingUserWithUsername = await prisma.user.findFirst({
+        where: {
+          username: { equals: body.username, mode: 'insensitive' },
+          id: { not: user.id }, // Exclude current user
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      })
+
+      if (existingUserWithUsername) {
+        return NextResponse.json(
+          {
+            error: 'Username already taken. Please choose a different username.',
+          },
+          { status: 409 }
+        )
+      }
     }
 
     // Email uniqueness validation
@@ -217,6 +243,8 @@ export async function PATCH(
         publicProfile: body.publicProfile,
         showPXPBalance: body.showPXPBalance,
         qrCardStyle: body.qrCardStyle,
+        profileCompleted: body.profileCompleted,
+        profileCompletedAt: body.profileCompleted ? new Date() : undefined,
         lastActive: new Date(),
       },
     })
@@ -257,10 +285,21 @@ export async function PATCH(
       })
     }
 
+    console.log('[Profile Update] Successfully updated profile for user:', updatedUser.id)
     return NextResponse.json({ profile: updatedUser })
   } catch (error) {
-    console.error('Error updating profile:', error)
-    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+    console.error('[Profile Update] Error updating profile:', error)
+    console.error('[Profile Update] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to update profile. Please try again.',
+      },
+      { status: 500 }
+    )
   } finally {
     await prisma.$disconnect()
   }
