@@ -1,11 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
 
 interface AddEmailModalProps {
   walletAddress: string
   onClose: () => void
   onSuccess: () => void
+}
+
+interface ExistingAccount {
+  id: number
+  walletAddress: string | null
+  username: string | null
+  displayName: string | null
 }
 
 /**
@@ -19,6 +27,8 @@ export default function AddEmailModal({ walletAddress, onClose, onSuccess }: Add
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [showMergeDialog, setShowMergeDialog] = useState(false)
+  const [existingAccount, setExistingAccount] = useState<ExistingAccount | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +56,19 @@ export default function AddEmailModal({ walletAddress, onClose, onSuccess }: Add
 
       const data = await response.json()
 
+      // Check if merge is suggested (email conflict)
+      if (response.status === 409 && data.suggestMerge && data.existingAccount) {
+        setExistingAccount({
+          id: data.existingAccount.id,
+          walletAddress: data.existingAccount.walletAddress || '',
+          username: data.existingAccount.username,
+          displayName: data.existingAccount.displayName,
+        })
+        setShowMergeDialog(true)
+        setLoading(false)
+        return
+      }
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to add email')
       }
@@ -61,6 +84,36 @@ export default function AddEmailModal({ walletAddress, onClose, onSuccess }: Add
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleMergeSuccess = () => {
+    setShowMergeDialog(false)
+    setSuccess(true)
+    setTimeout(() => {
+      onSuccess()
+    }, 2000)
+  }
+
+  const handleMergeDecline = () => {
+    setShowMergeDialog(false)
+    setError('Please use a different email address or merge with the existing account.')
+  }
+
+  // Show merge dialog if account conflict detected
+  if (showMergeDialog && existingAccount) {
+    return (
+      <AccountMergeDialog
+        existingAccount={{
+          ...existingAccount,
+          email: email,
+          createdAt: new Date(),
+          totalCAVEarned: 0,
+        }}
+        newWalletAddress={walletAddress}
+        onMerge={handleMergeSuccess}
+        onDecline={handleMergeDecline}
+      />
+    )
   }
 
   return (
