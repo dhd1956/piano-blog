@@ -9,6 +9,7 @@ export default function SubmitVenue() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
+  const [showAddressTooltip, setShowAddressTooltip] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -121,6 +122,16 @@ export default function SubmitVenue() {
       setError('Failed to lookup address. Please enter manually.')
     } finally {
       setIsLookingUpAddress(false)
+    }
+  }
+
+  /**
+   * Handle Enter key press in address field to trigger auto-fill
+   */
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Prevent form submission
+      handleLookupAddress()
     }
   }
 
@@ -371,38 +382,44 @@ export default function SubmitVenue() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Address</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Address</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  onKeyDown={handleAddressKeyDown}
+                  onFocus={() => setShowAddressTooltip(true)}
+                  onBlur={() => setTimeout(() => setShowAddressTooltip(false), 200)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Type address or press Enter to auto-fill"
+                />
                 <button
                   type="button"
                   onClick={handleLookupAddress}
                   disabled={isLookingUpAddress || !formData.name || !formData.city}
-                  className="text-sm text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:text-gray-400"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xl transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40"
                   title={
                     !formData.name || !formData.city
                       ? 'Enter venue name and city first'
-                      : 'Auto-fill address using AI'
+                      : 'Click or press Enter to auto-fill address using AI'
                   }
                 >
                   {isLookingUpAddress ? (
-                    <>
-                      <span className="mr-1 inline-block animate-spin">⏳</span>
-                      Looking up...
-                    </>
+                    <span className="inline-block animate-spin">⏳</span>
                   ) : (
-                    <>🤖 Auto-fill Address</>
+                    <>🤖</>
                   )}
                 </button>
+                {showAddressTooltip && formData.name && formData.city && !formData.address && (
+                  <div className="absolute top-full left-0 z-10 mt-1 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
+                    Press <kbd className="rounded bg-gray-700 px-1">Enter</kbd> or click 🤖 to
+                    auto-fill
+                  </div>
+                )}
               </div>
-              <input
-                type="text"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                placeholder="123 Main St, Toronto, ON"
-              />
               <p className="mt-1 text-xs text-gray-500">
-                💡 Enter venue name and city above, then click "Auto-fill Address"
+                💡 Fill in venue name and city, then press Enter or click 🤖 to auto-fill
               </p>
             </div>
 

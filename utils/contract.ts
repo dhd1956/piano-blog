@@ -1,6 +1,6 @@
 /**
  * Smart Contract Configuration and ABI Definitions
- * for VenueRegistry Contract on Celo Alfajores Testnet
+ * for VenueRegistry Contract on Celo Sepolia Testnet
  */
 
 import { Contract } from 'web3-eth-contract'
@@ -8,16 +8,15 @@ import Web3 from 'web3'
 
 // Contract Configuration
 export const VENUE_REGISTRY_ADDRESS =
-  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x29FC1Cc9D4451896CaDD41ceA7C6aBd1E71Ab3B2'
-export const CELO_TESTNET_RPC = 'https://alfajores-forno.celo-testnet.org'
-export const CELO_TESTNET_RPC_BACKUP =
-  'https://celo-alfajores.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'
+  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x325F81e26CF5A757dc63c85f2CE59621D1d1645E'
+export const CELO_TESTNET_RPC = 'https://rpc.ankr.com/celo_sepolia'
+export const CELO_TESTNET_RPC_BACKUP = 'https://forno.celo-sepolia.celo-testnet.org'
 export const CELO_TESTNET_RPC_LIST = [
   CELO_TESTNET_RPC,
   CELO_TESTNET_RPC_BACKUP,
-  'https://celo-alfajores.infura.io/v3/demo',
+  'https://celo-sepolia.gateway.tatum.io',
 ]
-export const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
+export const CELO_CHAIN_ID = '0xaa044c' // 11142220 in hex (Celo Sepolia)
 
 // VenueRegistry V3 ABI - Actual Deployed Contract
 export const VENUE_REGISTRY_ABI = [
@@ -219,14 +218,14 @@ export const TX_CONFIG = {
 // Network configuration for Celo
 export const CELO_NETWORK_CONFIG = {
   chainId: CELO_CHAIN_ID,
-  chainName: 'Celo Alfajores Testnet',
+  chainName: 'Celo Sepolia Testnet',
   nativeCurrency: {
     name: 'CELO',
     symbol: 'CELO',
     decimals: 18,
   },
   rpcUrls: [CELO_TESTNET_RPC],
-  blockExplorerUrls: ['https://alfajores.celoscan.io/'],
+  blockExplorerUrls: ['https://celo-sepolia.blockscout.com/'],
 } as const
 
 // Utility functions for contract interactions
@@ -352,7 +351,7 @@ export interface ContractMethods {
 }
 
 // Export default configuration
-export default {
+const contractConfig = {
   address: VENUE_REGISTRY_ADDRESS,
   abi: VENUE_REGISTRY_ABI,
   readAbi: VENUE_REGISTRY_READ_ABI,
@@ -362,3 +361,5 @@ export default {
   txConfig: TX_CONFIG,
   networkConfig: CELO_NETWORK_CONFIG,
 }
+
+export default contractConfig

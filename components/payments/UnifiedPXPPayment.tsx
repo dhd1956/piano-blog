@@ -25,8 +25,8 @@ export interface UnifiedPXPPaymentProps {
 
 // Default PXP token configuration
 const DEFAULT_PXP_CONFIG = {
-  tokenAddress: '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F',
-  chainId: 44787, // Celo Alfajores
+  tokenAddress: '0x04eAE71832147D75D4B69B3FFB5d9514e8471c75',
+  chainId: 11142220, // Celo Sepolia
   decimals: 18,
 }
 

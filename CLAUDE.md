@@ -220,3 +220,10 @@ The VenueRegistry contract manages:
 - `components/profile/ProfileSetupBanner.tsx` - Profile completion prompt
 - `app/profile/[address]/page.tsx` - Profile display page
 - `next.config.js` - CSP configuration (critical for OAuth)
+
+  ## Current Sprint Information
+
+  Current sprint documentation is located in:
+  - `docs/sprints/SPRINT2_STATUS.md` - Current sprint status
+  - `docs/sprints/SPRINT2_COMPLETION_ROADMAP.md` - Roadmap
+  - Sprint planning and feature specs in `docs/sprints/`

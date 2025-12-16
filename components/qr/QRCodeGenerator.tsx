@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import QRCode from 'qrcode'
 
@@ -40,7 +40,7 @@ export interface CeloPaymentURIProps {
   tokenAddress?: string
   /** Optional memo/description */
   memo?: string
-  /** Chain ID (default: 44787 for Celo Alfajores) */
+  /** Chain ID (default: 11142220 for Celo Sepolia) */
   chainId?: number
 }
 
@@ -53,7 +53,7 @@ export function generateCeloPaymentURI({
   amount,
   tokenAddress,
   memo,
-  chainId = 44787,
+  chainId = 11142220,
 }: CeloPaymentURIProps): string {
   const params = new URLSearchParams()
 
@@ -101,12 +101,7 @@ export default function QRCodeGenerator({
   const [error, setError] = useState<string>('')
   const [copied, setCopied] = useState(false)
 
-  // Generate QR code whenever data changes
-  useEffect(() => {
-    generateQRCode()
-  }, [data, size, errorCorrectionLevel, color, backgroundColor])
-
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     if (!data) {
       setError('No data provided')
       setLoading(false)
@@ -134,7 +129,12 @@ export default function QRCodeGenerator({
     } finally {
       setLoading(false)
     }
-  }
+  }, [data, size, errorCorrectionLevel, color, backgroundColor])
+
+  // Generate QR code whenever data changes
+  useEffect(() => {
+    generateQRCode()
+  }, [generateQRCode])
 
   const handleCopy = async () => {
     try {

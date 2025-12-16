@@ -31,17 +31,17 @@ export interface Web3Actions {
 
 const Web3Context = createContext<(Web3State & Web3Actions) | undefined>(undefined)
 
-const CELO_CHAIN_ID = '0xaef3' // 44787 in hex
+const CELO_CHAIN_ID = '0xaa044c' // 11142220 in hex (Celo Sepolia)
 const CELO_NETWORK_CONFIG = {
   chainId: CELO_CHAIN_ID,
-  chainName: 'Celo Alfajores Testnet',
+  chainName: 'Celo Sepolia Testnet',
   nativeCurrency: {
     name: 'CELO',
     symbol: 'CELO',
     decimals: 18,
   },
-  rpcUrls: ['https://alfajores-forno.celo-testnet.org'],
-  blockExplorerUrls: ['https://alfajores.celoscan.io/'],
+  rpcUrls: ['https://rpc.ankr.com/celo_sepolia'],
+  blockExplorerUrls: ['https://celo-sepolia.blockscout.com/'],
 }
 
 export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
@@ -297,6 +297,7 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
         console.warn('Failed to remove event listeners:', error)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.walletAddress])
 
   // Safe auto-connect

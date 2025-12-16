@@ -1,6 +1,6 @@
 # Sprint 2 - Current Status Report
 
-**Last Updated:** December 9, 2025
+**Last Updated:** December 15, 2025
 **Sprint Status:** 🟡 IN PROGRESS
 
 ---
@@ -387,6 +387,66 @@ model Session {
    - Event queries by date range
    - User queries by skills/badges
 
+### Venue Rejection Workflow Gaps [ADDED: Dec 15, 2025]
+
+**Current Implementation:**
+
+- ✅ Curators can reject venues with required rejection reason
+- ✅ Database tracks rejection (rejectedAt, rejectedBy, rejectionReason)
+- ✅ Venue details page displays "✗ Rejected" badge
+- ✅ Rejection reason shown in red box on venue details
+
+**Critical Gaps Identified:**
+
+1. **No Scout Notification System** ⚠️ HIGH PRIORITY
+   - Scouts are NOT notified when their venue is rejected
+   - No email, in-app notification, or alert of any kind
+   - Scout must manually check submission to discover rejection
+   - **Impact:** Poor user experience, scouts may never know why submission failed
+   - **Recommendation:** Integrate with notification system from onboarding implementation
+
+2. **Rejected Venues Visible in Public List** ⚠️ MEDIUM PRIORITY
+   - Rejected venues appear in `/venues` alongside verified ones
+   - No automatic filtering from public view
+   - Users must manually filter by "Verified" to exclude
+   - **Impact:** Confuses end users, degrades venue quality perception
+   - **Recommendation:** Filter rejected venues by default, show only in curator view
+
+3. **No Scout Dashboard** ⚠️ MEDIUM PRIORITY
+   - Scouts cannot see list of their submissions
+   - No way to filter by status (pending/approved/rejected)
+   - No "My Submissions" page
+   - **Impact:** No visibility into submission history
+   - **Recommendation:** Create `/my-submissions` page showing all user's venues with status badges
+
+4. **No Resubmission Workflow** ⚠️ LOW PRIORITY
+   - Rejected venues cannot be edited and resubmitted
+   - Scout must create entirely new submission
+   - No "Fix and Resubmit" button
+   - **Impact:** Duplicates effort, doesn't allow for improvement
+   - **Recommendation:** Add edit/resubmit workflow that clears rejection fields
+
+5. **No Rejection Analytics** ⚠️ LOW PRIORITY
+   - No tracking of common rejection reasons
+   - No way to help scouts improve submissions
+   - No curator rejection rate metrics
+   - **Recommendation:** Add analytics dashboard for rejection patterns
+
+**Technical Details:**
+
+- Database fields already exist in `Venue` model (lines 74-76 in schema.prisma)
+- Rejection logic in `app/api/venues/[id]/route.ts` (lines 136-153)
+- Display logic in `components/VenueDetailsView.tsx` (lines 61-207)
+- Public list query in `lib/database-simplified.ts` (lines 30-112) - no rejection filter
+
+**Recommended Priority for Sprint 3:**
+
+1. 🔴 Scout notification system (integrate with new onboarding notification infrastructure)
+2. 🟡 Filter rejected venues from public list
+3. 🟡 Scout submissions dashboard (`/my-submissions`)
+4. 🟢 Resubmission workflow (Sprint 4+)
+5. 🟢 Rejection analytics (Sprint 4+)
+
 ### Migration Status
 
 - ✅ Alfajores → Sepolia migration complete (Jan 2025)
@@ -425,7 +485,7 @@ Sprint 2 delivered **substantial value beyond its original scope**, prioritizing
 ---
 
 **Report Generated:** December 9, 2025
-**Last Updated:** December 12, 2025
+**Last Updated:** December 15, 2025
 **Sprint Status:** IN PROGRESS 🔄
-**Next Action:** Complete PXP rewards integration + musician profile enhancements + totalCAVEarned migration
+**Next Action:** Complete PXP rewards integration + musician profile enhancements + totalCAVEarned migration + venue rejection workflow improvements
 **Document Owner:** Development Team

@@ -49,7 +49,7 @@ export function DebugInfo() {
       </div>
       <div className="mt-2 text-gray-400">
         <div>
-          <strong>Expected Chain:</strong> 0xaef3 (44787)
+          <strong>Expected Chain:</strong> 0xaa044c (11142220)
         </div>
         <div>
           <strong>Contract:</strong> {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.slice(0, 6)}...

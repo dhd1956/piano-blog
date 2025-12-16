@@ -4,7 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken, getUserByWallet, AuthUser } from './auth'
+import { cookies } from 'next/headers'
+import { verifyToken, getUserByWallet, getUserById, AuthUser } from './auth'
 import { UserRole } from '@prisma/client'
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -227,4 +228,31 @@ export function forbiddenResponse(message?: string) {
     },
     { status: 403 }
   )
+}
+
+/**
+ * Get current session user for server components
+ * Extracts token from cookies and returns user if authenticated
+ */
+export async function getSessionUser(): Promise<AuthUser | null> {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('auth_token')?.value
+
+    if (!token) {
+      return null
+    }
+
+    const payload = await verifyToken(token)
+    if (!payload || !payload.userId) {
+      return null
+    }
+
+    // Get full user data from database
+    const user = await getUserById(payload.userId)
+    return user
+  } catch (error) {
+    console.error('Error getting session user:', error)
+    return null
+  }
 }

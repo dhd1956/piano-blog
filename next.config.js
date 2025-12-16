@@ -98,6 +98,12 @@ module.exports = () => {
       // Add externals for Reown AppKit (prevents bundling issues)
       config.externals.push('pino-pretty', 'lokijs', 'encoding')
 
+      // Fix MetaMask SDK React Native dependencies for web
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        '@react-native-async-storage/async-storage': false,
+      }
+
       return config
     },
   })

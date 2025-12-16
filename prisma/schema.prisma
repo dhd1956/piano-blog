@@ -147,6 +147,12 @@ model User {
   profileCompleted        Boolean   @default(false)  // Profile setup completed
   profileCompletedAt      DateTime? // When profile was completed
 
+  // Onboarding tracking (new users)
+  onboardingCompleted     Boolean   @default(false)  // Onboarding wizard completed
+  onboardingStep          Int?      // Current step in onboarding (1-4)
+  userInterests           String[]  @default([])     // Selected interests during onboarding
+  lastOnboardingNudge     DateTime? // Last time onboarding reminder was shown
+
   // Migration tracking (wallet-only users)
   emailAddedAt            DateTime? // When email was added to wallet account
   emailReminderDismissedAt DateTime? // Last time migration reminder was dismissed

@@ -215,20 +215,28 @@ export const VenueService = {
     const pxpService = new PXPRewardsService()
     let venueHash: string | undefined
     try {
-      venueHash = await pxpService.generateVenueHash(data.name, data.city, data.submittedBy)
+      const hash = await pxpService.generateVenueHash(data.name, data.city, data.submittedBy)
 
-      // Check if venue hash already exists
-      const existingHash = await prisma.venue.findUnique({
-        where: { venueHash },
-      })
+      // Only check for duplicates if hash was successfully generated
+      if (hash) {
+        venueHash = hash
 
-      if (existingHash) {
-        const error: any = new Error(
-          `This venue has already been submitted. The combination of venue name, city, and your address creates a unique identifier that matches an existing venue.`
+        const existingHash = await prisma.venue.findUnique({
+          where: { venueHash },
+        })
+
+        if (existingHash) {
+          const error: any = new Error(
+            `This venue has already been submitted. The combination of venue name, city, and your address creates a unique identifier that matches an existing venue.`
+          )
+          error.code = 'DUPLICATE_VENUE_HASH'
+          error.existingVenueId = existingHash.id
+          throw error
+        }
+      } else {
+        console.log(
+          'ℹ️ Venue hash generation skipped - venue will be created without blockchain hash'
         )
-        error.code = 'DUPLICATE_VENUE_HASH'
-        error.existingVenueId = existingHash.id
-        throw error
       }
     } catch (error: any) {
       if (error.code === 'DUPLICATE_VENUE_HASH') {
