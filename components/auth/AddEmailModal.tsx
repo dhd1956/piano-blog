@@ -105,6 +105,7 @@ export default function AddEmailModal({ walletAddress, onClose, onSuccess }: Add
       <AccountMergeDialog
         existingAccount={{
           ...existingAccount,
+          walletAddress: existingAccount.walletAddress || '',
           email: email,
           createdAt: new Date(),
           totalCAVEarned: 0,
