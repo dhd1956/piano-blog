@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
 
     // Create venue in PostgreSQL only
     const venue = await VenueService.createVenue({
-      name: body.name,
-      city: body.city,
+      name: body.name.trim(),
+      city: body.city.trim(),
       contactInfo: body.contactInfo,
       contactType: body.contactType || 'email',
       submittedBy: body.submittedBy.toLowerCase(),
