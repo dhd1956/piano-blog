@@ -143,6 +143,10 @@ model User {
   emailVerificationToken  String?   @unique          // Token for email verification
   emailVerificationExpiry DateTime? // Token expiration time
 
+  // Password reset
+  passwordResetToken      String?   @unique          // Token for password reset
+  passwordResetExpiry     DateTime? // Password reset token expiration time
+
   // Profile completion tracking
   profileCompleted        Boolean   @default(false)  // Profile setup completed
   profileCompletedAt      DateTime? // When profile was completed
@@ -184,6 +188,7 @@ model User {
   @@index([role])
   @@index([emailVerificationToken])
   @@index([emailVerified])
+  @@index([passwordResetToken])
 }
 
 // User reviews (PostgreSQL-only for performance)

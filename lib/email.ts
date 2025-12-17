@@ -302,3 +302,82 @@ export async function sendSecurityAlertEmail(
     text,
   })
 }
+
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(email: string, token: string, username?: string) {
+  const resetUrl = `${APP_URL}/auth/reset-password?token=${token}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Your Password</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🔑 Reset Your Password</h1>
+        </div>
+
+        <div style="background: #fff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1f2937; margin-top: 0;">Password Reset Request</h2>
+
+          ${username ? `<p>Hi ${username},</p>` : '<p>Hi there,</p>'}
+
+          <p>We received a request to reset your password for your Piano Blog account. Click the button below to create a new password:</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+              Reset Password
+            </a>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            Or copy and paste this link into your browser:<br>
+            <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
+          </p>
+
+          <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #991b1b; font-weight: 600;">
+              This link will expire in 1 hour.
+            </p>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
+          <p>© ${new Date().getFullYear()} Piano Blog. All rights reserved.</p>
+        </div>
+      </body>
+    </html>
+  `
+
+  const text = `
+    Reset Your Password
+
+    ${username ? `Hi ${username},` : 'Hi there,'}
+
+    We received a request to reset your password for your Piano Blog account. Click the link below to create a new password:
+
+    ${resetUrl}
+
+    ⚠️ This link will expire in 1 hour.
+
+    If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+
+    © ${new Date().getFullYear()} Piano Blog. All rights reserved.
+  `
+
+  return sendEmail({
+    to: email,
+    subject: 'Reset your password - Piano Blog',
+    html,
+    text,
+  })
+}
