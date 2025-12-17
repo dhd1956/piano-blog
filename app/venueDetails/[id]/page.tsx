@@ -133,8 +133,8 @@ export default function VenueDetailsPage() {
           contactInfo: venueData.contactInfo || '',
           ipfsHash: venueData.ipfsHash || '',
           submittedBy: venueData.submittedBy,
-          verifiedBy: venueData.verifiedBy || '',
-          lastUpdatedBy: venueData.lastUpdatedBy || venueData.submittedBy,
+          verifiedBy: '', // Field removed from schema
+          lastUpdatedBy: venueData.submittedBy, // Default to submitter
           submissionDate: new Date(venueData.createdAt || venueData.submissionDate),
           verificationDate:
             venueData.verifiedAt || venueData.verificationDate
