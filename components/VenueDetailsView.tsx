@@ -493,22 +493,57 @@ function SocialMediaLinks({ socialMedia }: { socialMedia: any }) {
 }
 
 function OperatingHoursDisplay({ hours }: { hours: any }) {
+  // Handle if hours is a string
+  if (typeof hours === 'string') {
+    return <div className="mt-1 text-sm text-gray-900 dark:text-gray-100">{hours}</div>
+  }
+
+  // Handle if hours is not an object
+  if (!hours || typeof hours !== 'object') {
+    return null
+  }
+
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
+  // Check if it's the day-of-week format
+  const hasDays = days.some((day) => day in hours)
+
+  if (hasDays) {
+    // Render day-of-week format
+    return (
+      <div className="mt-1 space-y-1 text-sm text-gray-900 dark:text-gray-100">
+        {days.map((day) => {
+          const dayHours = hours[day]
+          if (!dayHours) return null
+
+          return (
+            <div key={day} className="flex justify-between">
+              <span className="capitalize">{day}:</span>
+              <span>{dayHours}</span>
+            </div>
+          )
+        })}
+        {hours.notes && (
+          <div className="mt-2 text-xs text-gray-600 italic dark:text-gray-400">{hours.notes}</div>
+        )}
+      </div>
+    )
+  }
+
+  // Handle other formats (open/close/closed, or just display as JSON)
   return (
-    <div className="mt-1 space-y-1 text-sm text-gray-900">
-      {days.map((day) => {
-        const dayHours = hours[day]
-        if (!dayHours) return null
+    <div className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+      {Object.entries(hours).map(([key, value]) => {
+        // Skip if value is an object (can't render nested objects)
+        if (typeof value === 'object') return null
 
         return (
-          <div key={day} className="flex justify-between">
-            <span className="capitalize">{day}:</span>
-            <span>{dayHours}</span>
+          <div key={key} className="flex justify-between">
+            <span className="capitalize">{key.replace(/_/g, ' ')}:</span>
+            <span>{String(value)}</span>
           </div>
         )
       })}
-      {hours.notes && <div className="mt-2 text-xs text-gray-600 italic">{hours.notes}</div>}
     </div>
   )
 }
