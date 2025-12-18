@@ -19,7 +19,7 @@ async function fixTorontoSpace() {
     })
 
     console.log('All Toronto venues:')
-    allVenues.forEach(v => {
+    allVenues.forEach((v) => {
       console.log(`  ID ${v.id}: ${v.name}`)
       console.log(`    City: "${v.city}" (length: ${v.city.length})`)
       console.log(`    Has trailing space: ${v.city !== v.city.trim()}`)
@@ -40,7 +40,6 @@ async function fixTorontoSpace() {
     }
 
     console.log(`\n📊 Summary: Updated ${updated} venue(s)`)
-
   } catch (error) {
     console.error('Error:', error)
   } finally {

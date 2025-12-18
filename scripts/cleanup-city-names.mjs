@@ -69,12 +69,11 @@ async function cleanupCityNames() {
       .sort(([a], [b]) => b.localeCompare(a))
       .forEach(([city, venues]) => {
         console.log(`  ${city}: ${venues.length} venue(s)`)
-        venues.forEach(name => console.log(`    - ${name}`))
+        venues.forEach((name) => console.log(`    - ${name}`))
         console.log()
       })
 
     console.log(`\n✨ Summary: Updated ${updated} venue(s)`)
-
   } catch (error) {
     console.error('❌ Error:', error)
     process.exit(1)

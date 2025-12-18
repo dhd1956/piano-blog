@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import EventCard from './EventCard'
 import { EventSummary } from '@/types/event'
 
@@ -15,14 +15,7 @@ export default function VenueEvents({ venueId, venueName }: VenueEventsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch events when expanded
-  useEffect(() => {
-    if (isOpen && events.length === 0) {
-      fetchEvents()
-    }
-  }, [isOpen])
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -56,7 +49,14 @@ export default function VenueEvents({ venueId, venueName }: VenueEventsProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [venueId])
+
+  // Fetch events when expanded
+  useEffect(() => {
+    if (isOpen && events.length === 0) {
+      fetchEvents()
+    }
+  }, [isOpen, events.length, fetchEvents])
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">

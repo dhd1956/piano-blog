@@ -19,7 +19,6 @@ async function testVenueFix() {
     console.log('   Has verifiedBy field:', 'verifiedBy' in venue ? 'YES (ERROR!)' : 'NO (correct)')
     console.log('')
     console.log('✅ Fix should work - verifiedBy field not accessed from database')
-
   } catch (error) {
     console.error('Error:', error.message)
   } finally {
