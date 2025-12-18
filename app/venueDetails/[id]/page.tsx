@@ -183,11 +183,7 @@ export default function VenueDetailsPage() {
             jamGenres: venueData.jamGenres || [],
           },
           operationalInfo: {
-            operatingHours: venueData.operatingHours
-              ? {
-                  notes: venueData.operatingHours,
-                }
-              : undefined,
+            operatingHours: venueData.operatingHours || undefined,
             accessibility: {
               wheelchairAccessible: venueData.wheelchairAccessible || false,
               parkingAvailable: venueData.parkingAvailable || false,
