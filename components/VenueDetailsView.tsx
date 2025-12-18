@@ -143,7 +143,7 @@ function OperationalDetails({ extendedData }: { extendedData?: VenueMetadata }) 
       <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         {operational.operatingHours && (
           <div>
-            <span className="font-medium text-gray-600">Operating Hours:</span>
+            <span className="font-medium text-gray-600 dark:text-gray-400">Operating Hours:</span>
             <OperatingHoursDisplay hours={operational.operatingHours} />
           </div>
         )}
@@ -516,10 +516,24 @@ function OperatingHoursDisplay({ hours }: { hours: any }) {
           const dayHours = hours[day]
           if (!dayHours) return null
 
+          // If dayHours is an object (e.g., {open, close, closed}), format it
+          let displayHours: string
+          if (typeof dayHours === 'object' && dayHours !== null) {
+            if (dayHours.closed) {
+              displayHours = 'Closed'
+            } else if (dayHours.open && dayHours.close) {
+              displayHours = `${dayHours.open} - ${dayHours.close}`
+            } else {
+              displayHours = JSON.stringify(dayHours)
+            }
+          } else {
+            displayHours = String(dayHours)
+          }
+
           return (
             <div key={day} className="flex justify-between">
               <span className="capitalize">{day}:</span>
-              <span>{dayHours}</span>
+              <span>{displayHours}</span>
             </div>
           )
         })}
