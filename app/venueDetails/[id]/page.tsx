@@ -159,13 +159,13 @@ export default function VenueDetailsPage() {
           venueDetails: {
             fullName: venueData.name,
             description: venueData.description || '',
-            fullAddress: venueData.fullAddress || '',
+            fullAddress: venueData.fullAddress || venueData.address || '',
             city: venueData.city,
             contactInfo: venueData.contactInfo,
             contactType: venueData.contactType,
             phone: venueData.phone || '',
             website: venueData.website || '',
-            socialMedia: {
+            socialMedia: venueData.socialLinks || {
               facebook: venueData.facebook,
               instagram: venueData.instagram,
               twitter: venueData.twitter,
