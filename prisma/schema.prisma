@@ -421,10 +421,9 @@ model Event {
   eventType       EventType // Jam Session, Gig, Concert, Meetup, etc.
 
   // Location
-  venue           Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
-  venueId         Int?     // Optional - link to verified venue
-  customLocation  String?  // For events not at registered venues
-  address         String?  // Physical address
+  venue           Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId         Int      // Required - every event must have a venue
+  address         String?  // Physical address (optional additional details)
   latitude        Float?   // For map display
   longitude       Float?   // For map display
 

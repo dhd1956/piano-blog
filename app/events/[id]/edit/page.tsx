@@ -40,8 +40,6 @@ export default function EditEventPage() {
   const [description, setDescription] = useState('')
   const [eventType, setEventType] = useState('JAM_SESSION')
   const [venueId, setVenueId] = useState<number | null>(null)
-  const [customLocation, setCustomLocation] = useState('')
-  const [address, setAddress] = useState('')
   const [startDate, setStartDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -62,7 +60,6 @@ export default function EditEventPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [useCustomLocation, setUseCustomLocation] = useState(false)
   const [username, setUsername] = useState<string | null>(null)
 
   // Check for username session
@@ -124,9 +121,6 @@ export default function EditEventPage() {
       setDescription(event.description || '')
       setEventType(event.eventType || 'JAM_SESSION')
       setVenueId(event.venue?.id || null)
-      setCustomLocation(event.customLocation || '')
-      setUseCustomLocation(!event.venue)
-      setAddress(event.address || '')
       setGenres(event.genres || [])
       setCoverImage(event.coverImage || '')
       setExternalLink(event.externalLink || '')
@@ -197,15 +191,20 @@ export default function EditEventPage() {
         return
       }
 
+      // Validate venue selection
+      if (!venueId) {
+        setError('Please select a venue for this event')
+        setSubmitting(false)
+        return
+      }
+
       // Prepare request body
       const requestBody = {
         requesterAddress,
         title,
         description,
         eventType,
-        venueId: useCustomLocation ? null : venueId,
-        customLocation: useCustomLocation ? customLocation : null,
-        address: useCustomLocation ? address : null,
+        venueId, // Required - always set
         startDate: startDateTime.toISOString(),
         endDate: endDateTime.toISOString(),
         maxAttendees,
@@ -342,66 +341,35 @@ export default function EditEventPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">Location</h2>
 
-          <div className="mb-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={useCustomLocation}
-                onChange={(e) => setUseCustomLocation(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">
-                Use custom location (not a registered venue)
-              </span>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Select Venue *
             </label>
+            <select
+              value={venueId || ''}
+              onChange={(e) => setVenueId(e.target.value ? parseInt(e.target.value) : null)}
+              required
+              className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
+            >
+              <option value="">Select a venue...</option>
+              {venues.map((venue) => (
+                <option key={venue.id} value={venue.id}>
+                  {venue.name} - {venue.city}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              All events must be associated with a registered venue.{' '}
+              <a href="/venues" className="text-blue-600 hover:underline dark:text-blue-400">
+                Browse venues
+              </a>{' '}
+              or{' '}
+              <a href="/submit" className="text-blue-600 hover:underline dark:text-blue-400">
+                submit a new venue
+              </a>{' '}
+              if yours isn't listed.
+            </p>
           </div>
-
-          {!useCustomLocation ? (
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Select Venue
-              </label>
-              <select
-                value={venueId || ''}
-                onChange={(e) => setVenueId(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-              >
-                <option value="">Select a venue...</option>
-                {venues.map((venue) => (
-                  <option key={venue.id} value={venue.id}>
-                    {venue.name} - {venue.city}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Location Name
-                </label>
-                <input
-                  type="text"
-                  value={customLocation}
-                  onChange={(e) => setCustomLocation(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-                  placeholder="My Studio, Community Center, etc."
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-                  placeholder="123 Main St, City, State"
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Date & Time */}

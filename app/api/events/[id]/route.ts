@@ -153,14 +153,39 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       )
     }
 
+    // Validate venue if being updated
+    if (updateData.venueId !== undefined) {
+      if (!updateData.venueId) {
+        return NextResponse.json(
+          { error: 'Venue is required - cannot be removed from event' },
+          { status: 400 }
+        )
+      }
+
+      const venue = await prisma.venue.findUnique({ where: { id: updateData.venueId } })
+      if (!venue) {
+        return NextResponse.json({ error: 'Venue not found' }, { status: 404 })
+      }
+
+      if (!venue.verified) {
+        return NextResponse.json(
+          { error: 'Events can only be associated with verified venues' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Remove customLocation from update data (field no longer exists)
+    const { customLocation, ...safeUpdateData } = updateData as any
+
     // Update event
     const updatedEvent = await prisma.event.update({
       where: { id: eventId },
       data: {
-        ...updateData,
+        ...safeUpdateData,
         // Convert date strings to Date objects if provided
-        startDate: updateData.startDate ? new Date(updateData.startDate) : undefined,
-        endDate: updateData.endDate ? new Date(updateData.endDate) : undefined,
+        startDate: safeUpdateData.startDate ? new Date(safeUpdateData.startDate) : undefined,
+        endDate: safeUpdateData.endDate ? new Date(safeUpdateData.endDate) : undefined,
       },
       include: {
         organizer: {

@@ -13,8 +13,7 @@ export interface Event {
   startDate: string
   endDate: string
   status: EventStatus
-  venueId: number | null
-  customLocation: string | null
+  venueId: number
   address: string | null
   latitude: number | null
   longitude: number | null
@@ -99,7 +98,7 @@ export interface EventWithDetails extends Event {
     username: string | null
     displayName: string | null
   }
-  venue?: {
+  venue: {
     id: number
     name: string
     slug: string

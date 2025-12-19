@@ -59,7 +59,6 @@ export async function GET(request: NextRequest) {
         startDate: true,
         endDate: true,
         timezone: true,
-        customLocation: true,
         address: true,
         latitude: true,
         longitude: true,
@@ -184,11 +183,19 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!organizerAddress || !title || !description || !eventType || !startDate || !endDate) {
+    if (
+      !organizerAddress ||
+      !title ||
+      !description ||
+      !eventType ||
+      !venueId ||
+      !startDate ||
+      !endDate
+    ) {
       return NextResponse.json(
         {
           error:
-            'Missing required fields: organizerAddress, title, description, eventType, startDate, endDate',
+            'Missing required fields: organizerAddress, title, description, eventType, venueId, startDate, endDate',
         },
         { status: 400 }
       )
@@ -216,12 +223,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'End date must be after start date' }, { status: 400 })
     }
 
-    // Validate venue if provided
-    if (venueId) {
-      const venue = await prisma.venue.findUnique({ where: { id: venueId } })
-      if (!venue) {
-        return NextResponse.json({ error: 'Venue not found' }, { status: 404 })
-      }
+    // Validate venue (required)
+    const venue = await prisma.venue.findUnique({ where: { id: venueId } })
+    if (!venue) {
+      return NextResponse.json({ error: 'Venue not found' }, { status: 404 })
+    }
+
+    // Optional: Enforce verified venues only
+    if (!venue.verified) {
+      return NextResponse.json(
+        { error: 'Events can only be created at verified venues' },
+        { status: 400 }
+      )
     }
 
     // Create event
@@ -231,8 +244,7 @@ export async function POST(request: NextRequest) {
         title,
         description,
         eventType,
-        venueId: venueId || null,
-        customLocation: customLocation || null,
+        venueId, // Required - never null
         address: address || null,
         latitude: latitude || null,
         longitude: longitude || null,

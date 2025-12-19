@@ -51,12 +51,10 @@ export default function VenueEvents({ venueId, venueName }: VenueEventsProps) {
     }
   }, [venueId])
 
-  // Fetch events when expanded
+  // Fetch events on mount to display correct count immediately
   useEffect(() => {
-    if (isOpen && events.length === 0) {
-      fetchEvents()
-    }
-  }, [isOpen, events.length, fetchEvents])
+    fetchEvents()
+  }, [fetchEvents])
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">

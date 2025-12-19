@@ -32,7 +32,6 @@ interface Event {
   eventType: string
   startDate: string
   endDate: string
-  customLocation: string | null
   address: string | null
   isFree: boolean
   price: number | null
@@ -44,7 +43,7 @@ interface Event {
   spotsRemaining: number | null
   isFull: boolean
   organizer: Organizer
-  venue: Venue | null
+  venue: Venue
 }
 
 interface PaginationMeta {
@@ -285,7 +284,7 @@ function EventCard({ event }: { event: Event }) {
   const eventTypeLabel = EVENT_TYPE_LABELS[event.eventType] || '📌 Event'
   const organizerName =
     event.organizer.displayName || event.organizer.username || 'Anonymous Organizer'
-  const location = event.venue ? event.venue.name : event.customLocation || 'Location TBD'
+  const location = event.venue.name // Venue is always required now
 
   return (
     <Link href={`/events/${event.id}`}>

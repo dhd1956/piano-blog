@@ -57,7 +57,6 @@ interface Event {
   startDate: string
   endDate: string
   timezone: string
-  customLocation: string | null
   address: string | null
   maxAttendees: number | null
   requireApproval: boolean
@@ -70,7 +69,7 @@ interface Event {
   streamingLink: string | null
   status: string
   organizer: Organizer
-  venue: Venue | null
+  venue: Venue
   rsvps: RSVP[]
 }
 
@@ -254,9 +253,18 @@ export default function EventDetailPage() {
         <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center dark:border-red-900 dark:bg-red-950">
           <h2 className="mb-4 text-2xl font-bold text-red-900 dark:text-red-100">Error</h2>
           <p className="mb-4 text-red-800 dark:text-red-200">{error}</p>
-          <Link href="/events" className="text-blue-600 hover:underline dark:text-blue-400">
-            ← Back to Events
-          </Link>
+          <div className="flex items-center justify-center gap-4">
+            <Link href="/events" className="text-blue-600 hover:underline dark:text-blue-400">
+              ← Back to Events
+            </Link>
+            <span className="text-gray-400">|</span>
+            <Link
+              href="/venues"
+              className="text-sm text-gray-600 hover:underline dark:text-gray-400"
+            >
+              Browse Venues
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -269,7 +277,7 @@ export default function EventDetailPage() {
   const eventTypeLabel = EVENT_TYPE_LABELS[event.eventType] || '📌 Event'
   const organizerName =
     event.organizer.displayName || event.organizer.username || 'Anonymous Organizer'
-  const location = event.venue ? event.venue.name : event.customLocation || 'Location TBD'
+  const location = event.venue.name // Venue is always required now
 
   // Check if current user is the organizer (by user ID or wallet address)
   const isOrganizer =
@@ -300,9 +308,18 @@ export default function EventDetailPage() {
     <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Back Link and Edit Button */}
       <div className="mb-4 flex items-center justify-between">
-        <Link href="/events" className="text-blue-600 hover:underline dark:text-blue-400">
-          ← Back to Events
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/venueDetails/${event.venue.id}`}
+            className="text-blue-600 hover:underline dark:text-blue-400"
+          >
+            ← Back to {event.venue.name}
+          </Link>
+          <span className="text-gray-400">|</span>
+          <Link href="/events" className="text-sm text-gray-600 hover:underline dark:text-gray-400">
+            All Events
+          </Link>
+        </div>
         {isOrganizer && event.status !== 'CANCELLED' && (
           <Link
             href={`/events/${eventId}/edit`}
@@ -364,7 +381,7 @@ export default function EventDetailPage() {
               {event.address && <p className="text-sm">{event.address}</p>}
               {event.venue && (
                 <Link
-                  href={`/venues/${event.venue.slug}`}
+                  href={`/venueDetails/${event.venue.id}`}
                   className="inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
                 >
                   View Venue Details →
