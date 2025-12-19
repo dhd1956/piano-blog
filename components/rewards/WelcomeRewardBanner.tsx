@@ -40,7 +40,17 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
     setMessage('')
 
     try {
-      const service = new PXPRewardsService()
+      // Check if wallet is connected via browser provider
+      if (!window.ethereum) {
+        setMessage('❌ Please connect your wallet first')
+        setClaiming(false)
+        return
+      }
+
+      // Use browser's ethereum provider for transactions
+      const Web3 = (await import('web3')).default
+      const web3 = new Web3(window.ethereum as any)
+      const service = new PXPRewardsService(web3)
 
       // Call blockchain to claim reward
       const tx = await service.claimNewUserReward(walletAddress)
@@ -58,7 +68,9 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
       })
     } catch (error: any) {
       console.error('Error claiming reward:', error)
-      setMessage(`❌ ${error.message || 'Failed to claim reward. Please try again.'}`)
+      setMessage(
+        `❌ Returned error: ${error.message || 'Failed to claim reward. Please try again.'}`
+      )
     } finally {
       setClaiming(false)
     }
