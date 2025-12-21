@@ -10,11 +10,13 @@ import SectionContainer from '@/components/SectionContainer'
 import Footer from '@/components/Footer'
 import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
+import { AuthProvider } from '@/context/AuthContext'
 import { ReownProvider } from '@/context/ReownProvider'
 import { WorkingWeb3Provider } from '@/components/web3/WorkingWeb3Provider'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthEmailCapture from '@/components/OAuthEmailCapture'
 import MigrationBanner from '@/components/auth/MigrationBanner'
+import MigrationPrompt from '@/components/auth/MigrationPrompt'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -101,22 +103,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ErrorBoundary>
-          <ReownProvider>
-            <OAuthEmailCapture />
-            <WorkingWeb3Provider>
-              <ThemeProviders>
-                <MigrationBanner />
-                <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-                <SectionContainer>
-                  <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                    <Header />
-                    <main className="mb-auto">{children}</main>
-                  </SearchProvider>
-                  <Footer />
-                </SectionContainer>
-              </ThemeProviders>
-            </WorkingWeb3Provider>
-          </ReownProvider>
+          <AuthProvider>
+            <ReownProvider>
+              <OAuthEmailCapture />
+              <WorkingWeb3Provider>
+                <ThemeProviders>
+                  <MigrationBanner />
+                  <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+                  <SectionContainer>
+                    <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                      <Header />
+                      <main className="mb-auto">
+                        <MigrationPrompt className="container mx-auto px-4 pt-6" />
+                        {children}
+                      </main>
+                    </SearchProvider>
+                    <Footer />
+                  </SectionContainer>
+                </ThemeProviders>
+              </WorkingWeb3Provider>
+            </ReownProvider>
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>

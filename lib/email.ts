@@ -381,3 +381,82 @@ export async function sendPasswordResetEmail(email: string, token: string, usern
     text,
   })
 }
+
+/**
+ * Send magic link login email
+ */
+export async function sendMagicLinkEmail(email: string, token: string, username?: string) {
+  const loginUrl = `${APP_URL}/api/auth/magic-link/verify?token=${token}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Magic Link Login</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">✨ Magic Link Login</h1>
+        </div>
+
+        <div style="background: #fff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #1f2937; margin-top: 0;">Sign in to Piano Blog</h2>
+
+          ${username ? `<p>Hi ${username},</p>` : '<p>Hi there,</p>'}
+
+          <p>Click the button below to securely sign in to your Piano Blog account. No password needed!</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${loginUrl}" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+              Sign In to Piano Blog
+            </a>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            Or copy and paste this link into your browser:<br>
+            <a href="${loginUrl}" style="color: #667eea; word-break: break-all;">${loginUrl}</a>
+          </p>
+
+          <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #991b1b; font-weight: 600;">
+              This link will expire in 15 minutes.
+            </p>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            If you didn't request this login link, you can safely ignore this email.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
+          <p>© ${new Date().getFullYear()} Piano Blog. All rights reserved.</p>
+        </div>
+      </body>
+    </html>
+  `
+
+  const text = `
+    Magic Link Login
+
+    ${username ? `Hi ${username},` : 'Hi there,'}
+
+    Click the link below to securely sign in to your Piano Blog account. No password needed!
+
+    ${loginUrl}
+
+    ⚠️ This link will expire in 15 minutes.
+
+    If you didn't request this login link, you can safely ignore this email.
+
+    © ${new Date().getFullYear()} Piano Blog. All rights reserved.
+  `
+
+  return sendEmail({
+    to: email,
+    subject: 'Sign in to Piano Blog - Magic Link',
+    html,
+    text,
+  })
+}

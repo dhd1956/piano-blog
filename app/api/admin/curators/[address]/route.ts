@@ -5,16 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-simplified'
-
-// Helper function to check if requester is blog owner
-function isBlogOwner(walletAddress: string | null): boolean {
-  if (!walletAddress) return false
-
-  const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
-  if (!blogOwnerAddress) return false
-
-  return walletAddress.toLowerCase() === blogOwnerAddress.toLowerCase()
-}
+import { requireRole } from '@/lib/auth-middleware'
+import { UserRole } from '@prisma/client'
 
 /**
  * DELETE /api/admin/curators/[address]
@@ -27,10 +19,9 @@ export async function DELETE(
   try {
     const { address } = await params
 
-    // Verify blog owner authentication
-    const walletAddress = request.headers.get('x-wallet-address')
-
-    if (!isBlogOwner(walletAddress)) {
+    // Use role-based middleware
+    const authResult = await requireRole(request, [UserRole.BLOG_OWNER])
+    if (!authResult.authorized) {
       return NextResponse.json(
         {
           success: false,
@@ -74,7 +65,7 @@ export async function DELETE(
       )
     }
 
-    if (!user.isAuthorizedVerifier) {
+    if (user.role !== UserRole.CURATOR && user.role !== UserRole.BLOG_OWNER) {
       return NextResponse.json(
         {
           success: false,
@@ -85,25 +76,26 @@ export async function DELETE(
       )
     }
 
-    // Remove curator permissions
+    // Demote to SCOUT role
     const updatedUser = await prisma.user.update({
       where: {
         walletAddress: normalizedAddress,
       },
       data: {
-        isAuthorizedVerifier: false,
+        role: UserRole.SCOUT,
+        isAuthorizedVerifier: false, // Keep flag synced for backward compat
         updatedAt: new Date(),
       },
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Curator removed successfully',
+      message: 'Curator removed successfully - demoted to SCOUT role',
       user: {
         id: updatedUser.id,
         walletAddress: updatedUser.walletAddress,
         username: updatedUser.username,
-        isAuthorizedVerifier: updatedUser.isAuthorizedVerifier,
+        role: updatedUser.role,
       },
     })
   } catch (error: any) {

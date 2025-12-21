@@ -6,16 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-simplified'
-
-// Helper function to check if requester is blog owner
-function isBlogOwner(walletAddress: string | null): boolean {
-  if (!walletAddress) return false
-
-  const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
-  if (!blogOwnerAddress) return false
-
-  return walletAddress.toLowerCase() === blogOwnerAddress.toLowerCase()
-}
+import { requireRole } from '@/lib/auth-middleware'
+import { UserRole } from '@prisma/client'
 
 /**
  * GET /api/admin/curators
@@ -23,10 +15,9 @@ function isBlogOwner(walletAddress: string | null): boolean {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify blog owner authentication
-    const walletAddress = request.headers.get('x-wallet-address')
-
-    if (!isBlogOwner(walletAddress)) {
+    // Use role-based middleware
+    const authResult = await requireRole(request, [UserRole.BLOG_OWNER])
+    if (!authResult.authorized) {
       return NextResponse.json(
         {
           success: false,
@@ -37,10 +28,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get all users who are authorized curators
+    // Get all users with CURATOR role
     const curators = await prisma.user.findMany({
       where: {
-        isAuthorizedVerifier: true,
+        role: { in: [UserRole.CURATOR, UserRole.BLOG_OWNER] },
       },
       select: {
         id: true,
@@ -48,6 +39,7 @@ export async function GET(request: NextRequest) {
         username: true,
         displayName: true,
         avatar: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -81,10 +73,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify blog owner authentication
-    const walletAddress = request.headers.get('x-wallet-address')
-
-    if (!isBlogOwner(walletAddress)) {
+    // Use role-based middleware
+    const authResult = await requireRole(request, [UserRole.BLOG_OWNER])
+    if (!authResult.authorized) {
       return NextResponse.json(
         {
           success: false,
@@ -134,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     if (user) {
       // User exists, update their curator status
-      if (user.isAuthorizedVerifier) {
+      if (user.role === UserRole.CURATOR || user.role === UserRole.BLOG_OWNER) {
         return NextResponse.json(
           {
             success: false,
@@ -150,7 +141,8 @@ export async function POST(request: NextRequest) {
           walletAddress: normalizedAddress,
         },
         data: {
-          isAuthorizedVerifier: true,
+          role: UserRole.CURATOR,
+          isAuthorizedVerifier: true, // Keep flag synced for backward compat
           updatedAt: new Date(),
         },
       })
@@ -159,7 +151,8 @@ export async function POST(request: NextRequest) {
       user = await prisma.user.create({
         data: {
           walletAddress: normalizedAddress,
-          isAuthorizedVerifier: true,
+          role: UserRole.CURATOR,
+          isAuthorizedVerifier: true, // Keep flag synced for backward compat
           publicProfile: true,
         },
       })
@@ -173,7 +166,7 @@ export async function POST(request: NextRequest) {
           walletAddress: user.walletAddress,
           username: user.username,
           displayName: user.displayName,
-          isAuthorizedVerifier: user.isAuthorizedVerifier,
+          role: user.role,
         },
         message: 'Curator added successfully',
       },

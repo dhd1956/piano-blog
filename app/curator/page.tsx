@@ -44,7 +44,7 @@ const VENUE_TYPES = [
 export default function CuratorDashboard() {
   const { isConnected, walletAddress, connect } = useWallet()
 
-  const { isBlogOwner, isAuthorizedCurator, canAccessCurator } = usePermissions()
+  const { role, isBlogOwner, isCurator, canAccessCurator } = usePermissions()
 
   const [venues, setVenues] = useState<Venue[]>([])
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null)
@@ -540,8 +540,9 @@ export default function CuratorDashboard() {
               <div>
                 Blog Owner Address: {process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS || 'Not Set'}
               </div>
+              <div>User Role: {role || 'SCOUT'}</div>
               <div>Is Blog Owner: {isBlogOwner ? '✅ YES' : '❌ NO'}</div>
-              <div>Is Authorized Curator: {isAuthorizedCurator ? '✅ YES' : '❌ NO'}</div>
+              <div>Is Curator: {isCurator ? '✅ YES' : '❌ NO'}</div>
               <div>Can Access Curator: {canAccessCurator ? '✅ YES' : '❌ NO'}</div>
             </div>
           </div>

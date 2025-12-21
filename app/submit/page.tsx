@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { useAuth } from '@/context/AuthContext'
+import LoginModal from '@/components/auth/LoginModal'
 
 interface VenueFormData {
   name: string
@@ -32,7 +33,8 @@ const VENUE_TYPES = [
 ]
 
 export default function SubmitVenue() {
-  const { isConnected, walletAddress, connectWallet, disconnectWallet } = useHybridWallet()
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
@@ -161,25 +163,15 @@ export default function SubmitVenue() {
     setPhoneError('')
     setError('')
 
-    // Re-check wallet connection status before submitting
-    let currentWalletAddress = walletAddress
-    if (isConnected && typeof window !== 'undefined' && window.ethereum) {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' })
-        if (accounts.length === 0) {
-          // Wallet was disconnected but React state hasn't updated yet
-          console.log('Wallet disconnected - submitting as anonymous')
-          currentWalletAddress = null
-        } else {
-          currentWalletAddress = accounts[0]
-        }
-      } catch (error) {
-        console.error('Error checking wallet:', error)
-        currentWalletAddress = null
-      }
-    } else {
-      currentWalletAddress = null
+    // Check authentication - require login for venue submission
+    if (!isAuthenticated || !user) {
+      setError('Please sign in to submit a venue')
+      setShowLoginModal(true)
+      return
     }
+
+    // Use username or user ID as submitter (no wallet required)
+    const submittedBy = user.username || `user_${user.id}`
 
     // Validate required fields with specific error messages
     const errors: { name?: string; city?: string; address?: string } = {}
@@ -264,13 +256,14 @@ export default function SubmitVenue() {
         phone: formData.phone,
         website: websiteUrl,
         hasPiano: formData.hasPiano,
-        submittedBy: currentWalletAddress || 'anonymous',
+        submittedBy: submittedBy,
       })
 
       // Submit to PostgreSQL API
       const response = await fetch('/api/venues', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include auth cookies
         body: JSON.stringify({
           name: formData.name,
           city: formData.city,
@@ -283,7 +276,7 @@ export default function SubmitVenue() {
           venueType: formData.venueType,
           description: formData.description,
           fullAddress: formData.address,
-          submittedBy: currentWalletAddress || 'anonymous',
+          submittedBy: submittedBy,
         }),
       })
 
@@ -734,6 +727,17 @@ export default function SubmitVenue() {
             </p>
           </div>
         </div>
+
+        {/* Login Modal */}
+        {showLoginModal && (
+          <LoginModal
+            onClose={() => setShowLoginModal(false)}
+            onSuccess={() => {
+              setShowLoginModal(false)
+              setError('')
+            }}
+          />
+        )}
       </div>
     </div>
   )

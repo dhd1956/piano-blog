@@ -107,8 +107,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Welcome Reward Banner */}
-      {user.walletAddress && <WelcomeRewardBanner userAddress={user.walletAddress} />}
+      {/* Welcome Reward Banner - shows even without wallet, prompts to link if needed */}
+      <WelcomeRewardBanner userAddress={user.walletAddress || undefined} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content Area */}

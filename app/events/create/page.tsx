@@ -7,7 +7,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { useAuth } from '@/context/AuthContext'
+import { useRole } from '@/hooks/useRole'
+import LoginModal from '@/components/auth/LoginModal'
 
 interface Venue {
   id: number
@@ -31,7 +33,9 @@ const EVENT_TYPES = [
 
 export default function CreateEventPage() {
   const router = useRouter()
-  const { walletAddress, isConnected, isLoading, connectWallet } = useHybridWallet()
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const { role, canCreateEvent } = useRole()
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
   // Form state
   const [title, setTitle] = useState('')
@@ -57,21 +61,6 @@ export default function CreateEventPage() {
   const [loadingVenues, setLoadingVenues] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [username, setUsername] = useState<string | null>(null)
-
-  // Check for username session
-  useEffect(() => {
-    const checkSession = async () => {
-      const response = await fetch('/api/auth/session')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.user && data.user.username) {
-          setUsername(data.user.username)
-        }
-      }
-    }
-    checkSession()
-  }, [])
 
   // Load verified venues
   useEffect(() => {
@@ -110,13 +99,16 @@ export default function CreateEventPage() {
     setSubmitting(true)
 
     try {
-      // Get organizer address (wallet or username)
-      const organizerAddress = walletAddress || username
-      if (!organizerAddress) {
-        setError('Please connect your wallet or sign in to create an event')
+      // Check authentication - require login for event creation
+      if (!isAuthenticated || !user) {
+        setError('Please sign in to create an event')
+        setShowLoginModal(true)
         setSubmitting(false)
         return
       }
+
+      // Use username as organizer identifier (API will look up user ID)
+      const organizerAddress = user.username || `user_${user.id}`
 
       // Validate dates
       if (!startDate || !startTime || !endDate || !endTime) {
@@ -166,6 +158,7 @@ export default function CreateEventPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include auth cookies
         body: JSON.stringify(requestBody),
       })
 
@@ -184,7 +177,7 @@ export default function CreateEventPage() {
     }
   }
 
-  // Show connect wallet message if not connected
+  // Show login prompt if not authenticated
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-16 text-center">
@@ -193,19 +186,48 @@ export default function CreateEventPage() {
     )
   }
 
-  if (!isConnected && !username) {
+  if (!isAuthenticated) {
     return (
-      <div className="container mx-auto max-w-4xl px-4 py-16 text-center">
-        <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">Create Event</h1>
-        <p className="mb-6 text-lg text-gray-600 dark:text-gray-400">
-          Please connect your wallet or sign in to create an event
-        </p>
-        <button
-          onClick={connectWallet}
-          className="rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-        >
-          Connect Wallet
-        </button>
+      <>
+        <div className="container mx-auto max-w-4xl px-4 py-16 text-center">
+          <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">Create Event</h1>
+          <p className="mb-6 text-lg text-gray-600 dark:text-gray-400">
+            Please sign in to create an event
+          </p>
+          <button
+            onClick={() => setShowLoginModal(true)}
+            className="rounded-md bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
+          >
+            Sign In
+          </button>
+        </div>
+
+        {showLoginModal && (
+          <LoginModal
+            onClose={() => setShowLoginModal(false)}
+            onSuccess={() => setShowLoginModal(false)}
+          />
+        )}
+      </>
+    )
+  }
+
+  // Check if user has permission to create events
+  if (!canCreateEvent()) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-16">
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-8 text-center dark:border-yellow-900 dark:bg-yellow-950">
+          <h2 className="mb-4 text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+            Permission Required
+          </h2>
+          <p className="mb-4 text-yellow-800 dark:text-yellow-200">
+            Only curators and blog owners can create events. Your current role is:{' '}
+            <strong>{role}</strong>
+          </p>
+          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            Contact the blog owner to request curator permissions.
+          </p>
+        </div>
       </div>
     )
   }

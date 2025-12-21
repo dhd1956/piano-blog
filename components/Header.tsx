@@ -7,7 +7,7 @@ import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
-import ConnectButton from './ConnectButton'
+import AuthButton from './AuthButton'
 import DropdownNav from './DropdownNav'
 
 const Header = () => {
@@ -53,7 +53,7 @@ const Header = () => {
         </div>
         <SearchButton />
         <ThemeSwitch />
-        <ConnectButton />
+        <AuthButton />
         <MobileNav />
       </div>
     </header>

@@ -5,13 +5,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database-simplified'
+import { UserRole } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const walletAddress = searchParams.get('address')
+    const address = searchParams.get('address')
 
-    if (!walletAddress) {
+    if (!address) {
       return NextResponse.json(
         {
           success: false,
@@ -22,37 +23,49 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const normalizedAddress = walletAddress.toLowerCase()
+    const normalizedAddress = address.toLowerCase()
 
-    // Check if user is blog owner
-    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-    const isBlogOwner = normalizedAddress === blogOwnerAddress
+    // Get user with role from database
+    const user = await prisma.user.findUnique({
+      where: { walletAddress: normalizedAddress },
+      select: {
+        id: true,
+        role: true,
+        username: true,
+        walletAddress: true,
+      },
+    })
 
-    // Check if user is in database as authorized curator
-    let isAuthorizedCurator = isBlogOwner // Blog owner is always a curator
-
-    if (!isAuthorizedCurator) {
-      const user = await prisma.user.findUnique({
-        where: {
-          walletAddress: normalizedAddress,
-        },
-        select: {
-          isAuthorizedVerifier: true,
+    // Default to SCOUT role for non-registered users
+    if (!user) {
+      return NextResponse.json({
+        success: true,
+        permissions: {
+          role: UserRole.SCOUT,
+          isBlogOwner: false,
+          isCurator: false,
+          isValidator: false,
+          canAccessCurator: false,
+          canAccessValidator: false,
+          canAccessAdmin: false,
         },
       })
-
-      isAuthorizedCurator = user?.isAuthorizedVerifier || false
     }
 
-    const canAccessCurator = isBlogOwner || isAuthorizedCurator
+    // Role-based permissions
+    const permissions = {
+      role: user.role,
+      isBlogOwner: user.role === UserRole.BLOG_OWNER,
+      isCurator: user.role === UserRole.CURATOR || user.role === UserRole.BLOG_OWNER,
+      isValidator: user.role === UserRole.VALIDATOR || user.role === UserRole.BLOG_OWNER,
+      canAccessCurator: user.role === UserRole.CURATOR || user.role === UserRole.BLOG_OWNER,
+      canAccessValidator: user.role === UserRole.VALIDATOR || user.role === UserRole.BLOG_OWNER,
+      canAccessAdmin: user.role === UserRole.BLOG_OWNER,
+    }
 
     return NextResponse.json({
       success: true,
-      permissions: {
-        isBlogOwner,
-        isAuthorizedCurator,
-        canAccessCurator,
-      },
+      permissions,
     })
   } catch (error: any) {
     console.error('Error checking permissions:', error)

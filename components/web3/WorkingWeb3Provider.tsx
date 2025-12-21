@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import Web3 from 'web3'
+import { UserRole } from '@prisma/client'
 
 export type WalletStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 export type NetworkStatus = 'unknown' | 'correct' | 'wrong' | 'switching'
@@ -13,8 +14,13 @@ export interface Web3State {
   chainId: string | null
   networkStatus: NetworkStatus
   isOnCorrectNetwork: boolean
+  role: UserRole
   isBlogOwner: boolean
-  isAuthorizedCurator: boolean
+  isCurator: boolean
+  isValidator: boolean
+  canAccessCurator: boolean
+  canAccessValidator: boolean
+  canAccessAdmin: boolean
   web3: Web3 | null
   error: string | null
   hasTriedAutoConnect: boolean
@@ -52,8 +58,13 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
     chainId: null,
     networkStatus: 'unknown',
     isOnCorrectNetwork: false,
+    role: UserRole.SCOUT,
     isBlogOwner: false,
-    isAuthorizedCurator: false,
+    isCurator: false,
+    isValidator: false,
+    canAccessCurator: false,
+    canAccessValidator: false,
+    canAccessAdmin: false,
     web3: null,
     error: null,
     hasTriedAutoConnect: false,
@@ -75,36 +86,47 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
 
   const updatePermissions = async (address: string) => {
     try {
-      // First, check blog owner locally
-      const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-      const isBlogOwner = Boolean(
-        BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
-      )
-
-      // Then check database for curator status
+      // Fetch role-based permissions from API
       const response = await fetch(`/api/auth/permissions?address=${encodeURIComponent(address)}`)
 
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.permissions) {
           updateState({
+            role: data.permissions.role,
             isBlogOwner: data.permissions.isBlogOwner,
-            isAuthorizedCurator: data.permissions.isAuthorizedCurator,
+            isCurator: data.permissions.isCurator,
+            isValidator: data.permissions.isValidator,
+            canAccessCurator: data.permissions.canAccessCurator,
+            canAccessValidator: data.permissions.canAccessValidator,
+            canAccessAdmin: data.permissions.canAccessAdmin,
           })
           return
         }
       }
 
-      // Fallback to local check only if API fails
-      updateState({ isBlogOwner, isAuthorizedCurator: isBlogOwner })
+      // Fallback to SCOUT role if API fails
+      updateState({
+        role: UserRole.SCOUT,
+        isBlogOwner: false,
+        isCurator: false,
+        isValidator: false,
+        canAccessCurator: false,
+        canAccessValidator: false,
+        canAccessAdmin: false,
+      })
     } catch (error) {
       console.warn('Permission update failed:', error)
-      // Fallback to local blog owner check
-      const BLOG_OWNER_ADDRESS = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-      const isBlogOwner = Boolean(
-        BLOG_OWNER_ADDRESS && address.toLowerCase() === BLOG_OWNER_ADDRESS
-      )
-      updateState({ isBlogOwner, isAuthorizedCurator: isBlogOwner })
+      // Fallback to SCOUT role
+      updateState({
+        role: UserRole.SCOUT,
+        isBlogOwner: false,
+        isCurator: false,
+        isValidator: false,
+        canAccessCurator: false,
+        canAccessValidator: false,
+        canAccessAdmin: false,
+      })
     }
   }
 
@@ -174,8 +196,13 @@ export function WorkingWeb3Provider({ children }: { children: ReactNode }) {
       chainId: null,
       networkStatus: 'unknown',
       isOnCorrectNetwork: false,
+      role: UserRole.SCOUT,
       isBlogOwner: false,
-      isAuthorizedCurator: false,
+      isCurator: false,
+      isValidator: false,
+      canAccessCurator: false,
+      canAccessValidator: false,
+      canAccessAdmin: false,
       web3: null,
       error: null,
     })
@@ -369,11 +396,23 @@ export function useNetwork() {
 }
 
 export function usePermissions() {
-  const { isBlogOwner, isAuthorizedCurator } = useWeb3()
-  return {
+  const {
+    role,
     isBlogOwner,
-    isAuthorizedCurator,
-    hasAnyPermissions: isBlogOwner || isAuthorizedCurator,
-    canAccessCurator: isBlogOwner || isAuthorizedCurator,
+    isCurator,
+    isValidator,
+    canAccessCurator,
+    canAccessValidator,
+    canAccessAdmin,
+  } = useWeb3()
+  return {
+    role,
+    isBlogOwner,
+    isCurator,
+    isValidator,
+    canAccessCurator,
+    canAccessValidator,
+    canAccessAdmin,
+    hasAnyPermissions: isBlogOwner || isCurator || isValidator,
   }
 }

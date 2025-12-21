@@ -186,10 +186,8 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      {/* Welcome Reward Banner (only show on own profile) */}
-      {isOwnProfile && profile.walletAddress && (
-        <WelcomeRewardBanner userAddress={profile.walletAddress} />
-      )}
+      {/* Welcome Reward Banner (only show on own profile) - shows even without wallet, prompts to link if needed */}
+      {isOwnProfile && <WelcomeRewardBanner userAddress={profile.walletAddress || undefined} />}
 
       {/* Account Merge Dialog */}
       {showMergeDialog && existingAccount && connectedAddress && (
