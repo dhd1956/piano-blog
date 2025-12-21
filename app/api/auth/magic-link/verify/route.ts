@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { signToken } from '@/lib/auth'
+import { generateToken, getUserById } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Valid token - clear it and log user in
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerificationToken: null,
@@ -81,21 +81,19 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Create JWT session token
-    const jwtToken = signToken({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      walletAddress: user.walletAddress,
-      role: user.role,
-      displayName: user.displayName,
-    })
+    // Get full user data and create JWT session token
+    const fullUser = await getUserById(updatedUser.id)
+    if (!fullUser) {
+      return NextResponse.json({ error: 'User not found after update' }, { status: 500 })
+    }
+
+    const jwtToken = await generateToken(fullUser)
 
     // Create response with redirect
     const response = NextResponse.redirect(new URL('/dashboard', request.url))
 
     // Set HTTP-only cookie for session
-    response.cookies.set('auth-token', jwtToken, {
+    response.cookies.set('auth_token', jwtToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

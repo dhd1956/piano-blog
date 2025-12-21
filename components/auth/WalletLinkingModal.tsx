@@ -72,6 +72,11 @@ export default function WalletLinkingModal({
    */
   const linkWalletToAccount = async (address: string) => {
     try {
+      // Check if ethereum provider is available
+      if (!window.ethereum) {
+        throw new Error('MetaMask or Web3 wallet not detected. Please install MetaMask.')
+      }
+
       // Request signature from user to prove wallet ownership
       const message = `Link wallet to your Piano Blog account: @${user?.username || user?.id}\n\nTimestamp: ${Date.now()}`
 

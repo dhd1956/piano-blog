@@ -3,16 +3,8 @@
 import { useWeb3 } from './WorkingWeb3Provider'
 
 export function DebugInfo() {
-  const {
-    status,
-    walletAddress,
-    chainId,
-    networkStatus,
-    isOnCorrectNetwork,
-    error,
-    isBlogOwner,
-    isAuthorizedCurator,
-  } = useWeb3()
+  const { status, walletAddress, chainId, networkStatus, isOnCorrectNetwork, error, isBlogOwner } =
+    useWeb3()
 
   if (process.env.NODE_ENV === 'production') return null
 
@@ -37,9 +29,6 @@ export function DebugInfo() {
         </div>
         <div>
           <strong>Blog Owner:</strong> {isBlogOwner ? '✅' : '❌'}
-        </div>
-        <div>
-          <strong>Curator:</strong> {isAuthorizedCurator ? '✅' : '❌'}
         </div>
         {error && (
           <div className="text-red-400">

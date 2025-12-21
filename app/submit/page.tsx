@@ -380,32 +380,31 @@ export default function SubmitVenue() {
 
         {/* Optional Wallet Connection Section */}
         <div className="mb-8 rounded-lg bg-blue-50 p-4">
-          {!isConnected ? (
+          {!isAuthenticated ? (
             <div>
               <p className="mb-3 text-blue-800">
-                Optionally connect your wallet to get credit for submissions
+                Optionally sign in to get credit for your submissions
               </p>
               <button
-                onClick={connectWallet}
+                onClick={() => setShowLoginModal(true)}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
               >
-                Connect Wallet (Optional)
+                Sign In (Optional)
               </button>
             </div>
           ) : (
             <div>
               <p className="mb-2 text-green-800">
-                ✅ Wallet Connected - You'll get credit for this submission
+                ✅ Signed In - You'll get credit for this submission
               </p>
               <p className="mb-3 text-sm text-gray-600">
-                Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+                Logged in as:{' '}
+                {user?.displayName ||
+                  user?.username ||
+                  user?.email ||
+                  (user?.walletAddress &&
+                    `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`)}
               </p>
-              <button
-                onClick={disconnectWallet}
-                className="rounded-lg bg-gray-600 px-4 py-2 text-sm text-white hover:bg-gray-700"
-              >
-                Disconnect Wallet
-              </button>
             </div>
           )}
         </div>

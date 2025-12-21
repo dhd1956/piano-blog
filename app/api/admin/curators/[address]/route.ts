@@ -21,16 +21,14 @@ export async function DELETE(
 
     // Use role-based middleware
     const authResult = await requireRole(request, [UserRole.BLOG_OWNER])
-    if (!authResult.authorized) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized',
-          message: 'Only the blog owner can manage curators',
-        },
-        { status: 403 }
-      )
+
+    // If authentication failed, return the error response
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
+
+    // User is authenticated as BLOG_OWNER
+    const { user: authUser } = authResult
 
     const normalizedAddress = address.toLowerCase()
 

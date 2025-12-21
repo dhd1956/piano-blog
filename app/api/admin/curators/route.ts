@@ -17,16 +17,14 @@ export async function GET(request: NextRequest) {
   try {
     // Use role-based middleware
     const authResult = await requireRole(request, [UserRole.BLOG_OWNER])
-    if (!authResult.authorized) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized',
-          message: 'Only the blog owner can manage curators',
-        },
-        { status: 403 }
-      )
+
+    // If authentication failed, return the error response
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
+
+    // User is authenticated as BLOG_OWNER
+    const { user: authUser } = authResult
 
     // Get all users with CURATOR role
     const curators = await prisma.user.findMany({
@@ -75,16 +73,14 @@ export async function POST(request: NextRequest) {
   try {
     // Use role-based middleware
     const authResult = await requireRole(request, [UserRole.BLOG_OWNER])
-    if (!authResult.authorized) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Unauthorized',
-          message: 'Only the blog owner can manage curators',
-        },
-        { status: 403 }
-      )
+
+    // If authentication failed, return the error response
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
+
+    // User is authenticated as BLOG_OWNER
+    const { user: authUser } = authResult
 
     const body = await request.json()
     const { curatorAddress } = body

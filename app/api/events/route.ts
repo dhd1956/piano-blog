@@ -158,12 +158,14 @@ export async function POST(request: NextRequest) {
   try {
     // Only CURATOR and BLOG_OWNER can create events
     const authResult = await requireRole(request, [UserRole.CURATOR, UserRole.BLOG_OWNER])
-    if (!authResult.authorized) {
-      return NextResponse.json(
-        { error: 'Only curators and blog owners can create events' },
-        { status: 403 }
-      )
+
+    // If authentication failed, return the error response
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
+
+    // User is authenticated as CURATOR or BLOG_OWNER
+    const { user: authUser } = authResult
 
     const body = await request.json()
 
