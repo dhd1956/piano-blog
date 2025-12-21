@@ -17,7 +17,7 @@ async function checkPXP() {
 
     console.log('Recent users and their PXP:\n')
     users.forEach((user) => {
-      const displayName = user.username || (user.walletAddress?.slice(0, 10) + '...')
+      const displayName = user.username || user.walletAddress?.slice(0, 10) + '...'
       console.log(`User: ${displayName}`)
       console.log(`  Total PXP: ${user.totalCAVEarned}`)
       console.log(`  Claimed Welcome Reward: ${user.hasClaimedNewUserReward}\n`)

@@ -47,7 +47,9 @@ async function createTestUsers() {
         create: userData,
       })
 
-      console.log(`✅ ${user.role.padEnd(10)} | ${user.username.padEnd(15)} | ${user.walletAddress}`)
+      console.log(
+        `✅ ${user.role.padEnd(10)} | ${user.username.padEnd(15)} | ${user.walletAddress}`
+      )
     } catch (error) {
       console.error(`❌ Failed to create ${userData.username}:`, error.message)
     }

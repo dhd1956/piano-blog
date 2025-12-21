@@ -6,10 +6,7 @@ async function checkUser() {
     // Find user by username "daved"
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { username: 'daved' },
-          { displayName: 'Blog Owner' }
-        ]
+        OR: [{ username: 'daved' }, { displayName: 'Blog Owner' }],
       },
       select: {
         id: true,
