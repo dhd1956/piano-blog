@@ -21,7 +21,7 @@ export default function WalletConnection({
   const { connect, disconnect, switchNetwork, requestAccountChange, clearError } = useWeb3()
   const { status, isConnected, walletAddress, error, isLoading } = useWalletConnection()
   const { isOnCorrectNetwork, needsNetworkSwitch } = useNetwork()
-  const { isBlogOwner, isAuthorizedCurator, hasAnyPermissions } = usePermissions()
+  const { isBlogOwner, isCurator, hasAnyPermissions } = usePermissions()
 
   // Size classes
   const sizeClasses = {
@@ -153,7 +153,7 @@ export default function WalletConnection({
               👑 Blog Owner
             </span>
           )}
-          {isAuthorizedCurator && !isBlogOwner && (
+          {isCurator && !isBlogOwner && (
             <span className={`text-blue-600 ${sizes.badge} rounded bg-blue-50`}>🎯 Curator</span>
           )}
         </div>

@@ -45,7 +45,7 @@ export function useWallet() {
     refreshConnection,
     error,
     isBlogOwner,
-    isAuthorizedCurator,
+    isCurator,
   } = useWeb3()
 
   // Get read-only contract (doesn't require wallet connection)
@@ -289,7 +289,7 @@ export function useWallet() {
     ): Promise<{ success: boolean; transactionHash?: string; error?: string }> => {
       try {
         // Check permissions
-        if (!isBlogOwner && !isAuthorizedCurator) {
+        if (!isBlogOwner && !isCurator) {
           return { success: false, error: 'Not authorized to update venues' }
         }
 
@@ -334,7 +334,7 @@ export function useWallet() {
         }
       }
     },
-    [ensureConnection, walletAddress, getConnectedContract, web3, isBlogOwner, isAuthorizedCurator]
+    [ensureConnection, walletAddress, getConnectedContract, web3, isBlogOwner, isCurator]
   )
 
   // Update venue with IPFS metadata storage
@@ -352,7 +352,7 @@ export function useWallet() {
     }> => {
       try {
         // Check permissions
-        if (!isBlogOwner && !isAuthorizedCurator) {
+        if (!isBlogOwner && !isCurator) {
           return { success: false, error: 'Not authorized to update venues' }
         }
 
@@ -449,7 +449,7 @@ export function useWallet() {
       getConnectedContract,
       web3,
       isBlogOwner,
-      isAuthorizedCurator,
+      isCurator,
       getReadOnlyContract,
     ]
   )
@@ -477,8 +477,8 @@ export function useWallet() {
 
       try {
         // Check permissions
-        console.log('🔧 [verifyVenue] Checking permissions:', { isBlogOwner, isAuthorizedCurator })
-        if (!isBlogOwner && !isAuthorizedCurator) {
+        console.log('🔧 [verifyVenue] Checking permissions:', { isBlogOwner, isCurator })
+        if (!isBlogOwner && !isCurator) {
           console.error('❌ [verifyVenue] Permission denied')
           return { success: false, error: 'Not authorized to verify venues' }
         }
@@ -600,7 +600,7 @@ export function useWallet() {
       getConnectedContract,
       web3,
       isBlogOwner,
-      isAuthorizedCurator,
+      isCurator,
       updateVenueWithMetadata,
     ]
   )
@@ -864,8 +864,8 @@ export function useWallet() {
 
     // Permissions
     isBlogOwner,
-    isAuthorizedCurator,
-    hasAnyPermissions: isBlogOwner || isAuthorizedCurator,
+    isCurator,
+    hasAnyPermissions: isBlogOwner || isCurator,
 
     // Connection methods
     connect,

@@ -61,22 +61,22 @@ export async function checkVenuePermissions(
  */
 export async function checkCuratorPermissions(
   userAddress: string | undefined
-): Promise<{ isBlogOwner: boolean; isAuthorizedCurator: boolean }> {
+): Promise<{ isBlogOwner: boolean; isCurator: boolean }> {
   if (!userAddress) {
-    return { isBlogOwner: false, isAuthorizedCurator: false }
+    return { isBlogOwner: false, isCurator: false }
   }
 
   const normalizedAddress = userAddress.toLowerCase()
   const blogOwner = isBlogOwner(normalizedAddress)
 
   if (blogOwner) {
-    return { isBlogOwner: true, isAuthorizedCurator: true }
+    return { isBlogOwner: true, isCurator: true }
   }
 
   // For client-side, we can't check contract state directly
   // This should be handled by the Web3Provider with proper Web3 instance
   console.log('Contract-based curator check should be handled by Web3Provider')
-  return { isBlogOwner: false, isAuthorizedCurator: false }
+  return { isBlogOwner: false, isCurator: false }
 }
 
 /**
