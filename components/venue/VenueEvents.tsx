@@ -15,45 +15,59 @@ export default function VenueEvents({ venueId, venueName }: VenueEventsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchEvents = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
+  const fetchEvents = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        setLoading(true)
+        setError(null)
 
-      const response = await fetch(`/api/events?venueId=${venueId}`)
+        const response = await fetch(`/api/events?venueId=${venueId}`, { signal })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch events')
+        if (!response.ok) {
+          throw new Error('Failed to fetch events')
+        }
+
+        const data = await response.json()
+
+        // Filter for upcoming + recent past (30 days)
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+        const filtered = (data.events || []).filter((event: EventSummary) => {
+          const eventDate = new Date(event.startDate)
+          return eventDate >= thirtyDaysAgo
+        })
+
+        // Sort by start date (earliest first)
+        filtered.sort((a: EventSummary, b: EventSummary) => {
+          return new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        })
+
+        setEvents(filtered)
+      } catch (err) {
+        // Don't set error state if request was aborted (component unmounted)
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.log('Events fetch aborted')
+          return
+        }
+        console.error('Error fetching events:', err)
+        setError('Failed to load events')
+      } finally {
+        setLoading(false)
       }
-
-      const data = await response.json()
-
-      // Filter for upcoming + recent past (30 days)
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-      const filtered = (data.events || []).filter((event: EventSummary) => {
-        const eventDate = new Date(event.startDate)
-        return eventDate >= thirtyDaysAgo
-      })
-
-      // Sort by start date (earliest first)
-      filtered.sort((a: EventSummary, b: EventSummary) => {
-        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      })
-
-      setEvents(filtered)
-    } catch (err) {
-      console.error('Error fetching events:', err)
-      setError('Failed to load events')
-    } finally {
-      setLoading(false)
-    }
-  }, [venueId])
+    },
+    [venueId]
+  )
 
   // Fetch events on mount to display correct count immediately
   useEffect(() => {
-    fetchEvents()
+    const abortController = new AbortController()
+    fetchEvents(abortController.signal)
+
+    // Cleanup: abort fetch when component unmounts
+    return () => {
+      abortController.abort()
+    }
   }, [fetchEvents])
 
   return (
