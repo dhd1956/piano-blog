@@ -86,7 +86,7 @@ export default function VenueDetailsPage() {
   })
 
   // Load venue data
-  const loadVenueData = async () => {
+  const loadVenueData = async (signal?: AbortSignal) => {
     if (venueId === null || venueId < 0) {
       setError('Invalid venue ID')
       setLoading(false)
@@ -102,6 +102,7 @@ export default function VenueDetailsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal,
       })
 
       if (!response.ok) {
@@ -225,6 +226,11 @@ export default function VenueDetailsPage() {
         })
       }
     } catch (error) {
+      // Don't set error state if request was aborted (component unmounted)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Venue fetch aborted')
+        return
+      }
       console.error('Error loading venue:', error)
       setError('Failed to load venue data')
     } finally {
@@ -311,7 +317,14 @@ export default function VenueDetailsPage() {
 
   // Load venue data when venueId or wallet connection changes
   useEffect(() => {
-    loadVenueData()
+    const abortController = new AbortController()
+
+    loadVenueData(abortController.signal)
+
+    // Cleanup: abort fetch when component unmounts or dependencies change
+    return () => {
+      abortController.abort()
+    }
   }, [venueId, isConnected, walletAddress])
 
   if (loading) {
@@ -337,7 +350,7 @@ export default function VenueDetailsPage() {
             Go Back
           </button>
           <button
-            onClick={loadVenueData}
+            onClick={() => loadVenueData()}
             className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-500"
           >
             Retry
