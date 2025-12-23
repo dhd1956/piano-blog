@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 import LoginModal from '@/components/auth/LoginModal'
 
 interface Venue {
@@ -32,6 +33,9 @@ const EVENT_TYPES = [
 ]
 
 export default function CreateEventPage() {
+  // Require authentication to access this page
+  const { isLoading: authLoading } = useRequireAuth()
+
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
   const { role, canCreateEvent } = useRole()
@@ -66,6 +70,18 @@ export default function CreateEventPage() {
   useEffect(() => {
     loadVenues()
   }, [])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const loadVenues = async () => {
     try {

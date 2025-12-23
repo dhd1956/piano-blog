@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 interface Venue {
   id: number
@@ -30,6 +31,9 @@ const EVENT_TYPES = [
 ]
 
 export default function EditEventPage() {
+  // Require authentication to access this page
+  const { isLoading: authLoading } = useRequireAuth()
+
   const router = useRouter()
   const params = useParams()
   const eventId = params?.id as string
@@ -87,6 +91,18 @@ export default function EditEventPage() {
       loadEvent()
     }
   }, [eventId])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const loadVenues = async () => {
     try {

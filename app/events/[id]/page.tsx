@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
 
 interface Organizer {
@@ -96,6 +97,9 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 }
 
 export default function EventDetailPage() {
+  // Require authentication to access this page
+  const { isLoading: authLoading } = useRequireAuth()
+
   const params = useParams()
   const eventId = params?.id as string
   const { walletAddress, isConnected } = useHybridWallet()
@@ -145,6 +149,18 @@ export default function EventDetailPage() {
       }
     }
   }, [event, currentUserId])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const loadEvent = async () => {
     try {

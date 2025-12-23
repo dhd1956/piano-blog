@@ -2,18 +2,7 @@
   "markdown": 10,
   "code": 10,
   "piano": 10,
-  "next-js": 6,
-  "math": 1,
-  "ols": 1,
-  "github": 1,
-  "guide": 5,
-  "tailwind": 3,
-  "holiday": 1,
-  "canada": 1,
-  "images": 1,
-  "feature": 2,
-  "writings": 1,
-  "book": 1,
-  "reflection": 1,
-  "multi-author": 1
+  "multi-author": 1,
+  "next-js": 1,
+  "feature": 1
 }
