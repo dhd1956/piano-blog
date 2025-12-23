@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
+import { useAuth } from '@/context/AuthContext'
 import ChangeEmailModal from '@/components/account/ChangeEmailModal'
 import ChangePasswordModal from '@/components/account/ChangePasswordModal'
 
@@ -19,6 +20,7 @@ interface UserProfile {
 export default function AccountSettingsPage() {
   const router = useRouter()
   const { address, isConnected } = useAppKitAccount()
+  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'email' | 'wallet' | 'security'>('email')
@@ -32,17 +34,25 @@ export default function AccountSettingsPage() {
 
   useEffect(() => {
     fetchProfile()
-  }, [address, isConnected])
+  }, [address, isConnected, currentUser, isAuthenticated])
 
   const fetchProfile = async () => {
-    if (!isConnected && !address) {
+    // Check session authentication first
+    if (!authLoading && !isAuthenticated) {
       router.push('/auth/login')
+      return
+    }
+
+    // Wait for auth to load
+    if (authLoading || !currentUser) {
       return
     }
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/profile/${address}`)
+      // Use username, wallet address, or user ID to fetch profile
+      const identifier = currentUser.username || currentUser.walletAddress || currentUser.id
+      const response = await fetch(`/api/profile/${identifier}`)
       if (response.ok) {
         const data = await response.json()
         setProfile(data.profile)
