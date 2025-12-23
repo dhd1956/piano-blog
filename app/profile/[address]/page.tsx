@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { useAppKitAccount } from '@reown/appkit/react'
+import { useAuth } from '@/context/AuthContext'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
 import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
@@ -12,6 +13,7 @@ import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
 import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
 
 interface UserProfile {
+  id: number
   walletAddress: string
   username?: string
   displayName?: string
@@ -51,6 +53,7 @@ export default function ProfilePage() {
   const params = useParams()
   const address = params.address as string
   const { address: connectedAddress, isConnected } = useAppKitAccount()
+  const { user: currentUser, isAuthenticated } = useAuth()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [musicianProfile, setMusicianProfile] = useState<MusicianProfile | null>(null)
@@ -65,7 +68,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile()
-  }, [address, connectedAddress, isConnected])
+  }, [address, connectedAddress, isConnected, currentUser, isAuthenticated])
 
   const checkForPotentialMerge = async (email: string, walletAddress: string) => {
     try {
@@ -118,20 +121,35 @@ export default function ProfilePage() {
       setReviewCount(data.reviewCount || 0)
 
       // Check if this is the user's own profile OR if user is blog owner (admin)
-      // Use Reown AppKit account info (works for MetaMask, Google login, email, etc.)
-      if (isConnected && connectedAddress) {
+      // Support both session-based auth (username/email) and wallet-based auth
+      if (isAuthenticated && currentUser) {
         const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
+
+        // Check ownership via multiple methods:
+        // 1. Session user ID matches profile user ID
+        // 2. Session username matches profile username (case-insensitive)
+        // 3. Session wallet matches profile wallet (case-insensitive)
+        // 4. User is the blog owner (admin access)
         const isProfileOwner =
-          connectedAddress.toLowerCase() === data.profile.walletAddress?.toLowerCase()
-        const isBlogOwner = connectedAddress.toLowerCase() === blogOwner
+          currentUser.id === data.profile.id ||
+          (currentUser.username &&
+            data.profile.username &&
+            currentUser.username.toLowerCase() === data.profile.username.toLowerCase()) ||
+          (currentUser.walletAddress &&
+            data.profile.walletAddress &&
+            currentUser.walletAddress.toLowerCase() === data.profile.walletAddress.toLowerCase())
+
+        const isBlogOwner =
+          currentUser.walletAddress?.toLowerCase() === blogOwner ||
+          (isConnected && connectedAddress?.toLowerCase() === blogOwner)
 
         // Allow editing if it's own profile OR if user is blog owner
         setIsOwnProfile(isProfileOwner || isBlogOwner)
 
         // Check for potential account merge
         // Only check if viewing own profile and user has email
-        if (isProfileOwner && data.profile.email) {
-          checkForPotentialMerge(data.profile.email, connectedAddress)
+        if (isProfileOwner && data.profile.email && currentUser.walletAddress) {
+          checkForPotentialMerge(data.profile.email, currentUser.walletAddress)
         }
       }
     } catch (err: any) {
