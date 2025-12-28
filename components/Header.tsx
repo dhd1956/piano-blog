@@ -14,10 +14,11 @@ import DropdownNav from './DropdownNav'
 const Header = () => {
   const pathname = usePathname()
 
-  // Show blog title on blog pages, network title everywhere else
-  const isBlogPage = pathname?.startsWith('/blog') || pathname?.startsWith('/tags')
-  const displayTitle = isBlogPage ? siteMetadata.blogTitle : siteMetadata.networkTitle
-  const linkHref = isBlogPage ? '/blog' : '/'
+  // Show blog title on home and blog pages, network title on community pages
+  const isBlogSection =
+    pathname === '/' || pathname?.startsWith('/blog') || pathname?.startsWith('/tags')
+  const displayTitle = isBlogSection ? siteMetadata.blogTitle : siteMetadata.networkTitle
+  const linkHref = isBlogSection ? '/' : '/'
 
   let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
   if (siteMetadata.stickyNav) {
