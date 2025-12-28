@@ -161,7 +161,7 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome to Piano Blog
+            Welcome to the Global Piano Network
           </h2>
           <button
             onClick={onClose}
