@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import siteMetadata from '@/data/siteMetadata'
 import headerNavLinks from '@/data/headerNavLinks'
 import Logo from '@/data/logo.svg'
@@ -11,6 +12,13 @@ import AuthButton from './AuthButton'
 import DropdownNav from './DropdownNav'
 
 const Header = () => {
+  const pathname = usePathname()
+
+  // Show blog title on blog pages, network title everywhere else
+  const isBlogPage = pathname?.startsWith('/blog') || pathname?.startsWith('/tags')
+  const displayTitle = isBlogPage ? siteMetadata.blogTitle : siteMetadata.networkTitle
+  const linkHref = isBlogPage ? '/blog' : '/'
+
   let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
   if (siteMetadata.stickyNav) {
     headerClass += ' sticky top-0 z-50'
@@ -18,17 +26,15 @@ const Header = () => {
 
   return (
     <header className={headerClass}>
-      <Link href="/" aria-label={siteMetadata.headerTitle}>
+      <Link href={linkHref} aria-label={displayTitle}>
         <div className="flex items-center justify-between">
           <div className="mr-3">
             <Logo />
           </div>
-          {typeof siteMetadata.headerTitle === 'string' ? (
-            <div className="hidden h-6 text-2xl font-semibold sm:block">
-              {siteMetadata.headerTitle}
-            </div>
+          {typeof displayTitle === 'string' ? (
+            <div className="hidden h-6 text-2xl font-semibold sm:block">{displayTitle}</div>
           ) : (
-            siteMetadata.headerTitle
+            displayTitle
           )}
         </div>
       </Link>

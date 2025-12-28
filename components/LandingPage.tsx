@@ -27,11 +27,11 @@ export default function LandingPage({ posts }: LandingPageProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl dark:text-gray-100">
-              Developing My Piano Style
+              Welcome to the Global Piano Network
             </h1>
             <p className="mx-auto mb-8 max-w-3xl text-xl leading-8 text-gray-700 dark:text-gray-300">
-              Join me on a journey exploring piano technique, discovering venues with pianos, and
-              building a community of musicians and music lovers
+              Discover venues with publicly accessible pianos, connect with musicians worldwide, and
+              share the joy of piano in your community
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <Link

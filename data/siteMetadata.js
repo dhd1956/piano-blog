@@ -1,9 +1,12 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Developing My Piano Style',
+  title: 'Global Piano Network',
+  networkTitle: 'Global Piano Network',
+  blogTitle: 'Developing My Piano Style',
   author: 'David Davies',
-  headerTitle: 'Developing My Piano Style',
-  description: 'This blog chronicles my musical journey playing piano as a serious hobby',
+  headerTitle: 'Global Piano Network',
+  description:
+    'A global community for piano enthusiasts to discover venues, connect with musicians, and share the joy of piano',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
