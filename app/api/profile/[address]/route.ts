@@ -136,25 +136,34 @@ export async function PATCH(
     console.log('[Profile Update] Request body:', JSON.stringify(body, null, 2))
 
     // Authentication: Check if requester is profile owner OR blog owner (admin)
-    const requesterAddress = body.requesterAddress?.toLowerCase()
+    const requesterIdentifier = body.requesterAddress
     const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-    const profileAddress = address.toLowerCase()
 
-    if (!requesterAddress) {
+    if (!requesterIdentifier) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const isProfileOwner = requesterAddress === profileAddress
-    const isBlogOwner = requesterAddress === blogOwnerAddress
+    // Look up the requester user by wallet/username/ID
+    const requesterUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { walletAddress: { equals: requesterIdentifier, mode: 'insensitive' } },
+          { username: { equals: requesterIdentifier, mode: 'insensitive' } },
+          { id: isNaN(Number(requesterIdentifier)) ? undefined : Number(requesterIdentifier) },
+        ],
+      },
+    })
 
-    if (!isProfileOwner && !isBlogOwner) {
-      return NextResponse.json(
-        { error: 'Unauthorized: You can only edit your own profile' },
-        { status: 403 }
-      )
+    if (!requesterUser) {
+      return NextResponse.json({ error: 'Requester not found' }, { status: 401 })
     }
 
-    // First, get the user to find their userId (support wallet address, username, or profile slug)
+    // Check if requester is blog owner (by wallet address or role)
+    const isBlogOwner =
+      requesterUser.walletAddress?.toLowerCase() === blogOwnerAddress ||
+      requesterUser.role === 'BLOG_OWNER'
+
+    // Look up the profile being edited by wallet/username/profile slug
     const user = await prisma.user.findFirst({
       where: {
         OR: [
@@ -167,6 +176,16 @@ export async function PATCH(
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Check if requester is the profile owner (compare user IDs)
+    const isProfileOwner = requesterUser.id === user.id
+
+    if (!isProfileOwner && !isBlogOwner) {
+      return NextResponse.json(
+        { error: 'Unauthorized: You can only edit your own profile' },
+        { status: 403 }
+      )
     }
 
     // Username uniqueness validation
