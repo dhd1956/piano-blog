@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 interface MusicianProfile {
   instruments: string[]
@@ -27,6 +28,7 @@ export default function ProfileEditPage() {
   const params = useParams()
   const router = useRouter()
   const address = params.address as string
+  const { user: currentUser, isAuthenticated } = useAuth()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -122,17 +124,27 @@ export default function ProfileEditPage() {
         }
       }
 
-      // Check if user is blog owner
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' })
-        if (accounts.length > 0) {
-          const connectedAddress = accounts[0].toLowerCase()
-          const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-          const profileAddress = data.profile.walletAddress?.toLowerCase()
+      // Check if user is blog owner or profile owner using session auth
+      if (currentUser) {
+        const blogOwner = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
 
-          setIsBlogOwner(connectedAddress === blogOwner)
-          setIsOwnProfile(connectedAddress === profileAddress)
-        }
+        // Check if user is blog owner (via wallet address or role)
+        const isBlogOwnerCheck =
+          currentUser.walletAddress?.toLowerCase() === blogOwner ||
+          currentUser.role === 'BLOG_OWNER'
+
+        // Check if user is profile owner (via ID, username, or wallet)
+        const isOwnProfileCheck =
+          currentUser.id === data.profile.id ||
+          (currentUser.username &&
+            data.profile.username &&
+            currentUser.username.toLowerCase() === data.profile.username.toLowerCase()) ||
+          (currentUser.walletAddress &&
+            data.profile.walletAddress &&
+            currentUser.walletAddress.toLowerCase() === data.profile.walletAddress.toLowerCase())
+
+        setIsBlogOwner(isBlogOwnerCheck)
+        setIsOwnProfile(isOwnProfileCheck)
       }
     } catch (err: any) {
       console.error('Error loading profile:', err)
@@ -148,14 +160,16 @@ export default function ProfileEditPage() {
       setError(null)
       setSuccess(false)
 
-      // Get connected wallet address for authentication
-      let requesterAddress = ''
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' })
-        if (accounts.length > 0) {
-          requesterAddress = accounts[0]
-        }
+      // Check authentication and get requester identifier
+      if (!isAuthenticated || !currentUser) {
+        setError('You must be logged in to edit your profile')
+        setSaving(false)
+        return
       }
+
+      // Use wallet address if available, otherwise use username or user ID
+      const requesterAddress =
+        currentUser.walletAddress || currentUser.username || String(currentUser.id)
 
       const response = await fetch(`/api/profile/${address}`, {
         method: 'PATCH',
@@ -235,14 +249,16 @@ export default function ProfileEditPage() {
       setDeleting(true)
       setError(null)
 
-      // Get connected wallet address for authentication
-      let requesterAddress = ''
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' })
-        if (accounts.length > 0) {
-          requesterAddress = accounts[0]
-        }
+      // Check authentication and get requester identifier
+      if (!isAuthenticated || !currentUser) {
+        setError('You must be logged in to delete a profile')
+        setDeleting(false)
+        return
       }
+
+      // Use wallet address if available, otherwise use username or user ID
+      const requesterAddress =
+        currentUser.walletAddress || currentUser.username || String(currentUser.id)
 
       const response = await fetch(`/api/profile/${address}/delete`, {
         method: 'DELETE',
