@@ -1,0 +1,41 @@
+name: YouTube Milestone Tracker
+
+# Runs every 6 hours to check video view counts and award milestone PXP
+on:
+  schedule:
+    # Every 6 hours (0, 6, 12, 18 UTC)
+    - cron: '0 */6 * * *'
+
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  check-milestones:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check YouTube Video Milestones
+        run: |
+          echo "Checking YouTube video milestones..."
+
+          # Call the milestone checking endpoint
+          response=$(curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.APP_URL }}/api/content/youtube/check-milestones)
+
+          echo "Response: $response"
+
+          # Check if successful
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✅ Milestone check completed successfully"
+          else
+            echo "❌ Milestone check failed"
+            exit 1
+          fi
+
+      - name: Report Results
+        if: always()
+        run: |
+          echo "Milestone tracking cron job completed"
+          echo "Timestamp: $(date)"

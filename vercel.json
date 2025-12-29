@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/content/youtube/check-milestones",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
