@@ -1,4 +1,5 @@
 {
+  "installCommand": "yarn install --no-immutable",
   "crons": [
     {
       "path": "/api/content/youtube/check-milestones",
