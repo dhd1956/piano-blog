@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { getSessionUser } from '@/lib/auth-middleware'
 import { redirect } from 'next/navigation'
 import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
+import WalletLinkingDashboardSection from '@/components/wallet/WalletLinkingDashboardSection'
 
 export const metadata: Metadata = {
   title: 'Dashboard | Piano Blog',
@@ -109,6 +110,12 @@ export default async function DashboardPage() {
 
       {/* Welcome Reward Banner - shows even without wallet, prompts to link if needed */}
       <WelcomeRewardBanner userAddress={user.walletAddress || undefined} />
+
+      {/* Wallet Linking Prompt - encourages users with PXP to link a wallet */}
+      <WalletLinkingDashboardSection
+        hasWallet={!!user.walletAddress}
+        pxpBalance={user.totalCAVEarned}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content Area */}

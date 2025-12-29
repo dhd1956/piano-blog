@@ -161,6 +161,11 @@ model User {
   emailAddedAt            DateTime? // When email was added to wallet account
   emailReminderDismissedAt DateTime? // Last time migration reminder was dismissed
 
+  // Wallet linking tracking (for username/password users)
+  walletLinkingPromptDismissedAt DateTime? // When user dismissed wallet linking prompt
+  walletLinkingPromptShownCount  Int       @default(0) // Number of times prompt was shown
+  firstPXPEarnedAt               DateTime? // When user earned their first PXP
+
   // Privacy settings
   publicProfile  Boolean  @default(true)  // Profile visibility
   showPXPBalance Boolean  @default(false) // Show token balance publicly
