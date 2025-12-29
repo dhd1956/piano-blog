@@ -166,6 +166,14 @@ model User {
   walletLinkingPromptShownCount  Int       @default(0) // Number of times prompt was shown
   firstPXPEarnedAt               DateTime? // When user earned their first PXP
 
+  // YouTube OAuth integration (for channel verification)
+  youtubeChannelId       String?   @unique // Verified YouTube channel ID
+  youtubeChannelName     String?   // Channel display name
+  youtubeAccessToken     String?   // OAuth access token (encrypted)
+  youtubeRefreshToken    String?   // OAuth refresh token (encrypted)
+  youtubeTokenExpiry     DateTime? // When access token expires
+  youtubeVerifiedAt      DateTime? // When channel was verified
+
   // Privacy settings
   publicProfile  Boolean  @default(true)  // Profile visibility
   showPXPBalance Boolean  @default(false) // Show token balance publicly

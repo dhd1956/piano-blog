@@ -13,6 +13,7 @@ import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
 import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
 import YouTubeUploadForm from '@/components/content/YouTubeUploadForm'
 import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
+import YouTubeChannelVerification from '@/components/content/YouTubeChannelVerification'
 
 interface UserProfile {
   id: number
@@ -695,6 +696,13 @@ export default function ProfilePage() {
             Share your piano performances and earn PXP rewards
           </p>
         </div>
+
+        {/* Channel Verification - Only show on own profile */}
+        {isOwnProfile && (
+          <div className="mb-6">
+            <YouTubeChannelVerification />
+          </div>
+        )}
 
         {/* Upload Form - Only show on own profile */}
         {isOwnProfile && (
