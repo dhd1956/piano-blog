@@ -244,6 +244,7 @@ export async function PATCH(
     }
 
     // Update user profile using the user's primary key (id)
+    const wasProfileCompleted = user.profileCompleted
     const updatedUser = await prisma.user.update({
       where: {
         id: user.id,
@@ -267,6 +268,24 @@ export async function PATCH(
         lastActive: new Date(),
       },
     })
+
+    // Award PXP for profile completion (first time only)
+    if (body.profileCompleted && !wasProfileCompleted) {
+      try {
+        const { awardProfileCompletion, awardReferralProfileCompleted } = await import(
+          '@/lib/pxp-rewards'
+        )
+
+        // Award PXP to user for completing their profile
+        await awardProfileCompletion(user.id)
+
+        // Award referral PXP to referrer if applicable
+        await awardReferralProfileCompleted(user.id)
+      } catch (error) {
+        console.error('Error awarding profile completion PXP:', error)
+        // Don't fail the profile update if PXP award fails
+      }
+    }
 
     // Update or create musician profile if provided
     if (body.musicianProfile) {

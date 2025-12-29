@@ -21,6 +21,7 @@ const signupSchema = z.object({
   password: z.string().min(6),
   email: z.string().email().optional(),
   displayName: z.string().max(100).optional(),
+  referralCode: z.string().optional(), // Referral code from inviter
 })
 
 export async function POST(request: NextRequest) {
@@ -40,7 +41,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { username, password, email, displayName } = validation.data
+    const { username, password, email, displayName, referralCode } = validation.data
+
+    // Validate referral code if provided
+    let referrer = null
+    if (referralCode) {
+      referrer = await prisma.user.findUnique({
+        where: { referralCode },
+        select: { id: true, referralCode: true, displayName: true },
+      })
+
+      if (!referrer) {
+        console.warn(`Invalid referral code provided: ${referralCode}`)
+        // Don't fail signup - just ignore invalid referral code
+      }
+    }
 
     // Check if username already exists
     const existingUsername = await prisma.user.findUnique({
@@ -79,7 +94,7 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await hashPassword(password)
 
-    // Create user
+    // Create user with referral tracking
     const newUser = await prisma.user.create({
       data: {
         username,
@@ -90,6 +105,7 @@ export async function POST(request: NextRequest) {
         isActive: true,
         publicProfile: true, // Default to public profile
         showPXPBalance: true, // Default to showing PXP balance
+        referredBy: referrer?.referralCode, // Link to referrer
       },
       select: {
         id: true,
@@ -100,6 +116,17 @@ export async function POST(request: NextRequest) {
         displayName: true,
       },
     })
+
+    // Update referrer's stats if this was a referral signup
+    if (referrer) {
+      await prisma.user.update({
+        where: { id: referrer.id },
+        data: {
+          referralCount: { increment: 1 },
+        },
+      })
+      console.log(`✓ Referral tracked: ${newUser.username} referred by ${referrer.displayName}`)
+    }
 
     // Generate JWT token
     const token = await generateToken(newUser)

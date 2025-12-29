@@ -129,6 +129,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
+    // Award PXP for event attendance (only for CONFIRMED status)
+    if (finalStatus === 'CONFIRMED') {
+      try {
+        const { awardEventAttendance, awardReferralFirstEvent } = await import('@/lib/pxp-rewards')
+
+        // Award PXP to user for attending event
+        await awardEventAttendance(user.id, eventId)
+
+        // Award referral PXP to referrer if this is user's first event
+        await awardReferralFirstEvent(user.id)
+      } catch (error) {
+        console.error('Error awarding event RSVP PXP:', error)
+        // Don't fail the RSVP if PXP award fails
+      }
+    }
+
     return NextResponse.json({
       rsvp,
       message:
