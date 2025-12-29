@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions'
+import { getSessionUser } from '@/lib/auth-middleware'
 import prisma from '@/lib/prisma'
 
 // Gas metrics interface (matches dashboard)
@@ -52,20 +51,20 @@ interface GasMetrics {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    const sessionUser = await getSessionUser()
 
-    if (!session?.user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user from database to check role
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email || undefined },
+      where: { id: sessionUser.id },
       select: { id: true, role: true },
     })
 
-    // Check if user is admin
-    if (!user || user.role !== 'ADMIN') {
+    // Check if user is blog owner
+    if (!user || user.role !== 'BLOG_OWNER') {
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
     }
 

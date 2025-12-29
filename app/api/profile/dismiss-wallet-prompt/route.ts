@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions'
+import { getSessionUser } from '@/lib/auth-middleware'
 import prisma from '@/lib/prisma'
 
 /**
@@ -20,15 +19,15 @@ import prisma from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    const sessionUser = await getSessionUser()
 
-    if (!session?.user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email || undefined },
+      where: { id: sessionUser.id },
       select: {
         id: true,
         walletAddress: true,
@@ -92,15 +91,15 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    const sessionUser = await getSessionUser()
 
-    if (!session?.user) {
+    if (!sessionUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email || undefined },
+      where: { id: sessionUser.id },
       select: {
         id: true,
         walletAddress: true,

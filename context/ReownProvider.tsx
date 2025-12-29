@@ -43,7 +43,7 @@ createAppKit({
     email: true, // Enable email login
     socials: ['google'], // Re-enabled: CSP fix resolved hanging issue (added WalletConnect domains to frame-src)
     emailShowWallets: true, // Show wallet options in email flow
-    onramp: { enabled: !paymasterUrl }, // Disable onramp when gas is sponsored (users don't need to buy tokens)
+    onramp: !paymasterUrl, // Disable onramp when gas is sponsored (users don't need to buy tokens)
   },
   themeMode: 'light', // or 'dark' - can be made dynamic later
   themeVariables: {

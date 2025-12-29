@@ -42,12 +42,12 @@ export default function GasSponsorshipDashboard() {
       return
     }
 
-    if (user && user.role !== 'ADMIN') {
+    if (user && user.role !== 'BLOG_OWNER') {
       router.push('/')
       return
     }
 
-    if (user && user.role === 'ADMIN') {
+    if (user && user.role === 'BLOG_OWNER') {
       fetchMetrics()
     }
   }, [user, isAuthenticated, isLoading, router])
