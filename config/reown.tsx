@@ -54,6 +54,9 @@ export const metadata = {
   icons: ['https://piano-blog.vercel.app/static/favicons/favicon.ico'],
 }
 
+// Get paymaster configuration from environment
+const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_URL || ''
+
 // Create Wagmi adapter with cookie storage for SSR support
 // Configure transports with retry logic for Celo Sepolia
 // Using Ankr as primary (fastest according to chainlist)
@@ -72,6 +75,24 @@ export const wagmiAdapter = new WagmiAdapter({
       timeout: 30000,
     }),
   },
+  // Account abstraction with gas sponsorship
+  // Only enabled when NEXT_PUBLIC_PAYMASTER_URL is configured
+  ...(paymasterUrl && {
+    accountAbstraction: {
+      sponsorGas: true,
+      paymasterUrl,
+      paymasterContext: {
+        // Sponsor specific methods only (defined in lib/gas-sponsorship.ts)
+        sponsoredMethods: [
+          'submitVenue',
+          'verifyVenue',
+          'rsvpToEvent',
+          'updateProfile',
+          'createEvent',
+        ],
+      },
+    },
+  }),
 })
 
 export const config = wagmiAdapter.wagmiConfig

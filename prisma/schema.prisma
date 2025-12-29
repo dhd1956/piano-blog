@@ -520,6 +520,53 @@ enum RSVPStatus {
   WAITLIST     // On waitlist (when event is full)
 }
 
+// Gas-sponsored transaction tracking (for monitoring and rate limiting)
+model GasSponsoredTransaction {
+  id              Int      @id @default(autoincrement())
+
+  // User who made the transaction
+  userId          Int
+  userAddress     String   // Wallet address of user (for tracking across accounts)
+
+  // Transaction details
+  method          String   // submitVenue, rsvpToEvent, updateProfile, etc.
+  transactionHash String   @unique // Blockchain transaction hash
+  blockNumber     Int?     // Block number
+
+  // Cost tracking (estimated)
+  gasUsed         Int?     // Actual gas used (if available)
+  gasCostUSD      Float?   // Estimated cost in USD
+  gasCostCELO     Float?   // Estimated cost in CELO
+
+  // Context
+  relatedEntityId Int?     // ID of venue/event/etc. related to this transaction
+  relatedEntityType String? // "venue", "event", "profile", etc.
+
+  // Rate limiting tracking
+  dailyCount      Int      @default(1) // Count for rate limit tracking
+
+  // Status
+  status          GasTransactionStatus @default(CONFIRMED)
+  errorMessage    String?  @db.Text // Error if transaction failed
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  processedAt     DateTime? // When cost was calculated/processed
+
+  @@index([userId, createdAt])
+  @@index([userAddress, createdAt])
+  @@index([method, createdAt])
+  @@index([transactionHash])
+  @@index([createdAt]) // For time-based queries (daily/weekly/monthly)
+}
+
+enum GasTransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  REFUNDED
+}
+
 enum VenueType {
   CAFE
   RESTAURANT
