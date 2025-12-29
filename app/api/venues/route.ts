@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { VenueService } from '@/lib/database-simplified'
+import { getSessionUser } from '@/lib/auth-middleware'
+import prisma from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,11 +107,57 @@ export async function POST(request: NextRequest) {
       tags: body.tags || [],
     })
 
+    // Award PXP for venue submission
+    const sessionUser = await getSessionUser()
+    let showFirstPXPToast = false
+    let pxpEarned = 0
+
+    if (sessionUser?.id) {
+      try {
+        // Get user's current PXP status
+        const user = await prisma.user.findUnique({
+          where: { id: sessionUser.id },
+          select: {
+            id: true,
+            totalCAVEarned: true,
+            firstPXPEarnedAt: true,
+          },
+        })
+
+        if (user) {
+          // Check if this is the user's first PXP
+          const isFirstPXP = !user.firstPXPEarnedAt && user.totalCAVEarned === 0
+
+          // Award 50 PXP for venue submission
+          pxpEarned = 50
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              totalCAVEarned: { increment: pxpEarned },
+              firstPXPEarnedAt: isFirstPXP ? new Date() : undefined,
+            },
+          })
+
+          // Set flag to show celebration toast
+          showFirstPXPToast = isFirstPXP
+
+          console.log(
+            `✅ Awarded ${pxpEarned} PXP to user ${user.id} for venue submission${isFirstPXP ? ' (FIRST PXP!)' : ''}`
+          )
+        }
+      } catch (pxpError) {
+        // Don't fail the venue submission if PXP awarding fails
+        console.error('Error awarding PXP:', pxpError)
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
         venue,
         message: 'Venue submitted successfully! It will be reviewed by our curators.',
+        pxpEarned,
+        showFirstPXPToast,
       },
       {
         status: 201,
