@@ -174,6 +174,14 @@ model User {
   youtubeTokenExpiry     DateTime? // When access token expires
   youtubeVerifiedAt      DateTime? // When channel was verified
 
+  // Referral system
+  referralCode           String?   @unique // User's unique referral code (e.g., "PIANIST123")
+  referredBy             String?   // Referral code of who invited them
+  referredByUser         User?     @relation("Referrals", fields: [referredBy], references: [referralCode])
+  referrals              User[]    @relation("Referrals") // Users this user referred
+  referralPXPEarned      Float     @default(0) // Total PXP earned from referrals
+  referralCount          Int       @default(0) // Count of successful referrals
+
   // Privacy settings
   publicProfile  Boolean  @default(true)  // Profile visibility
   showPXPBalance Boolean  @default(false) // Show token balance publicly
@@ -203,6 +211,8 @@ model User {
   @@index([emailVerificationToken])
   @@index([emailVerified])
   @@index([passwordResetToken])
+  @@index([referralCode])
+  @@index([referredBy])
 }
 
 // User reviews (PostgreSQL-only for performance)
@@ -353,6 +363,22 @@ model AppConfig {
   updatedAt     DateTime @updatedAt
 
   @@index([key])
+}
+
+// PXP Reward Configuration (database-tracked rewards)
+model PXPConfig {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique // e.g., "referral_profile_created", "youtube_1000_views"
+  value       Float    // PXP amount
+  label       String   // Display name for admin UI
+  description String?  // Description of when this reward is earned
+  category    String   // "referral", "youtube", "event", "venue", etc.
+  enabled     Boolean  @default(true) // Allow disabling specific rewards
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // Admin who last updated (wallet address or username)
+
+  @@index([category])
+  @@index([enabled])
 }
 
 // Blockchain event log (for tracking important events)
