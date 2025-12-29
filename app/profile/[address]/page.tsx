@@ -11,6 +11,8 @@ import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
 import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
 import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
 import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
+import YouTubeUploadForm from '@/components/content/YouTubeUploadForm'
+import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 
 interface UserProfile {
   id: number
@@ -681,6 +683,39 @@ export default function ProfilePage() {
           )}
         </>
       )}
+
+      {/* YouTube Videos Section */}
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <h2 className="mb-2 flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <span className="text-3xl">🎹</span>
+            YouTube Videos
+          </h2>
+          <p className="text-sm text-gray-600">
+            Share your piano performances and earn PXP rewards
+          </p>
+        </div>
+
+        {/* Upload Form - Only show on own profile */}
+        {isOwnProfile && (
+          <div className="mb-8">
+            <YouTubeUploadForm
+              onSuccess={(video) => {
+                console.log('Video submitted:', video)
+                // The gallery will refresh automatically when refetched
+              }}
+              onError={(error) => {
+                console.error('Video submission error:', error)
+              }}
+            />
+          </div>
+        )}
+
+        {/* Video Gallery */}
+        <div>
+          <YouTubeVideoGallery userId={profile.id} limit={20} />
+        </div>
+      </div>
 
       {/* QR Code Modal */}
       {showQRModal && (
