@@ -49,18 +49,20 @@ async function fetchVideoMetadata(videoId: string) {
 /**
  * POST /api/content/youtube/submit
  *
- * Submit a YouTube video for PXP rewards
+ * Submit a YouTube video for PXP rewards (event-based)
  *
  * Request Body:
  * {
  *   youtubeUrl: string // Full YouTube URL
+ *   eventId: number    // Event this video is from (required)
  * }
  *
  * Response:
  * {
  *   success: boolean
  *   video: YouTubeVideo
- *   pxpEarned: number
+ *   performerPXP: number      // PXP awarded to performer
+ *   organizerPXP: number      // PXP awarded to event organizer
  *   showFirstPXPToast: boolean
  *   message: string
  * }
@@ -82,7 +84,51 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
-    const { youtubeUrl } = body
+    const { youtubeUrl, eventId } = body
+
+    // Validate event ID
+    if (!eventId || typeof eventId !== 'number') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Event ID is required. Please select which event this performance is from.',
+        },
+        { status: 400 }
+      )
+    }
+
+    // Verify event exists
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true,
+        title: true,
+        organizerId: true,
+        organizer: {
+          select: {
+            id: true,
+            displayName: true,
+            username: true,
+          },
+        },
+        venue: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    })
+
+    if (!event) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Event not found. Please select a valid event.',
+        },
+        { status: 404 }
+      )
+    }
 
     // Validate YouTube URL
     if (!youtubeUrl || typeof youtubeUrl !== 'string') {
@@ -160,6 +206,7 @@ export async function POST(request: NextRequest) {
     const video = await prisma.youTubeVideo.create({
       data: {
         userId: sessionUser.id,
+        eventId: eventId,
         youtubeUrl,
         youtubeId,
         title: videoMetadata.title,
@@ -169,9 +216,11 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Award initial PXP for video submission (100 PXP)
+    // Award PXP for video submission
+    // Performer: 100 PXP, Event Organizer: 50 PXP
     let showFirstPXPToast = false
-    let pxpEarned = 0
+    let performerPXP = 0
+    let organizerPXP = 0
 
     try {
       // Get user's current PXP status
@@ -188,13 +237,13 @@ export async function POST(request: NextRequest) {
         // Check if this is the user's first PXP
         const isFirstPXP = !user.firstPXPEarnedAt && user.totalCAVEarned === 0
 
-        // Award 100 PXP for video submission
-        pxpEarned = 100
+        // Award 100 PXP to performer for video submission
+        performerPXP = 100
 
         await prisma.user.update({
           where: { id: user.id },
           data: {
-            totalCAVEarned: { increment: pxpEarned },
+            totalCAVEarned: { increment: performerPXP },
             firstPXPEarnedAt: isFirstPXP ? new Date() : undefined,
           },
         })
@@ -203,7 +252,7 @@ export async function POST(request: NextRequest) {
         await prisma.youTubeVideo.update({
           where: { id: video.id },
           data: {
-            pxpAwarded: pxpEarned,
+            pxpAwarded: performerPXP,
             initialPXPAwarded: true,
           },
         })
@@ -212,8 +261,27 @@ export async function POST(request: NextRequest) {
         showFirstPXPToast = isFirstPXP
 
         console.log(
-          `✅ Awarded ${pxpEarned} PXP to user ${user.id} for YouTube video submission${isFirstPXP ? ' (FIRST PXP!)' : ''}`
+          `✅ Awarded ${performerPXP} PXP to performer ${user.id} for YouTube video submission${isFirstPXP ? ' (FIRST PXP!)' : ''}`
         )
+
+        // Award 50 PXP to event organizer (if different from performer)
+        if (event.organizerId !== sessionUser.id) {
+          organizerPXP = 50
+
+          await prisma.user.update({
+            where: { id: event.organizerId },
+            data: {
+              totalCAVEarned: { increment: organizerPXP },
+            },
+          })
+
+          const organizerName =
+            event.organizer.displayName || event.organizer.username || `User ${event.organizerId}`
+
+          console.log(
+            `✅ Awarded ${organizerPXP} PXP to event organizer ${organizerName} (${event.organizerId})`
+          )
+        }
       }
     } catch (pxpError) {
       // Don't fail the video submission if PXP awarding fails
@@ -225,18 +293,26 @@ export async function POST(request: NextRequest) {
         success: true,
         video: {
           id: video.id,
+          eventId: video.eventId,
           youtubeId: video.youtubeId,
           youtubeUrl: video.youtubeUrl,
           title: video.title,
           channelName: video.channelName,
           thumbnailUrl: video.thumbnailUrl,
           status: video.status,
-          pxpAwarded: pxpEarned,
+          pxpAwarded: performerPXP,
           createdAt: video.createdAt,
         },
-        pxpEarned,
+        event: {
+          id: event.id,
+          title: event.title,
+          venue: event.venue.name,
+        },
+        performerPXP,
+        organizerPXP,
+        totalPXP: performerPXP + organizerPXP,
         showFirstPXPToast,
-        message: `Video submitted successfully! You earned ${pxpEarned} PXP. Verify channel ownership to unlock view milestone rewards.`,
+        message: `Video submitted successfully! Performance at "${event.title}" @ ${event.venue.name}. You earned ${performerPXP} PXP${organizerPXP > 0 ? `, and ${event.organizer.displayName || event.organizer.username} earned ${organizerPXP} PXP as event organizer` : ''}. Verify channel ownership to unlock view milestone rewards.`,
       },
       { status: 201 }
     )
@@ -257,10 +333,11 @@ export async function POST(request: NextRequest) {
 /**
  * GET /api/content/youtube/submit
  *
- * Get user's submitted YouTube videos
+ * Get YouTube videos (by user or event)
  *
  * Query Parameters:
- * - userId?: number (optional, defaults to session user)
+ * - userId?: number (optional, fetch user's videos)
+ * - eventId?: number (optional, fetch event's videos)
  * - limit?: number (default: 10, max: 50)
  * - offset?: number (default: 0)
  *
@@ -281,20 +358,27 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const userIdParam = searchParams.get('userId')
+    const eventIdParam = searchParams.get('eventId')
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
     const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0)
 
-    // Determine which user's videos to fetch
-    let userId: number
-    if (userIdParam) {
-      userId = parseInt(userIdParam)
+    // Build where clause
+    const whereClause: any = {}
+
+    if (eventIdParam) {
+      // Filter by event
+      whereClause.eventId = parseInt(eventIdParam)
+    } else if (userIdParam) {
+      // Filter by user
+      whereClause.userId = parseInt(userIdParam)
     } else if (sessionUser?.id) {
-      userId = sessionUser.id
+      // Default to session user's videos
+      whereClause.userId = sessionUser.id
     } else {
       return NextResponse.json(
         {
           success: false,
-          error: 'Authentication required or userId must be provided',
+          error: 'Authentication required or userId/eventId must be provided',
         },
         { status: 401 }
       )
@@ -303,12 +387,13 @@ export async function GET(request: NextRequest) {
     // Fetch videos
     const [videos, totalCount] = await Promise.all([
       prisma.youTubeVideo.findMany({
-        where: { userId },
+        where: whereClause,
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
         select: {
           id: true,
+          eventId: true,
           youtubeId: true,
           youtubeUrl: true,
           title: true,
@@ -323,10 +408,23 @@ export async function GET(request: NextRequest) {
           status: true,
           createdAt: true,
           updatedAt: true,
+          event: {
+            select: {
+              id: true,
+              title: true,
+              startDate: true,
+              venue: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       }),
       prisma.youTubeVideo.count({
-        where: { userId },
+        where: whereClause,
       }),
     ])
 

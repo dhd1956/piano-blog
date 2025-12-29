@@ -473,6 +473,7 @@ model Event {
 
   // Relations
   rsvps           EventRSVP[]
+  youtubeVideos   YouTubeVideo[] // Performance videos from this event
 
   @@index([organizerId])
   @@index([venueId])
@@ -538,7 +539,11 @@ enum RSVPStatus {
 model YouTubeVideo {
   id            Int      @id @default(autoincrement())
 
-  // User relationship
+  // Event relationship (required - videos document performances at events)
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId       Int
+
+  // User relationship (performer/uploader)
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int
 
@@ -578,7 +583,8 @@ model YouTubeVideo {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([userId, createdAt])
+  @@index([eventId, createdAt]) // Videos by event
+  @@index([userId, createdAt])  // Videos by user
   @@index([youtubeId])
   @@index([status, verified])
   @@index([viewCount])

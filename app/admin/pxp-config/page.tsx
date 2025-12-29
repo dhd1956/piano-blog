@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useReadContract, useBlockNumber } from 'wagmi'
+import { useAuth } from '@/context/AuthContext'
 import { PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS } from '@/utils/rewards-contract'
 
 interface PXPConfig {
@@ -21,6 +22,7 @@ interface PXPConfig {
 
 export default function PXPConfigPage() {
   const { address, isConnected } = useAccount()
+  const { user, isAuthenticated, hasWallet } = useAuth()
   const { writeContract, isPending: isWritePending } = useWriteContract()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
@@ -133,15 +135,26 @@ export default function PXPConfigPage() {
     balanceError,
   ])
 
-  // Auto-authenticate with wallet when connected
+  // Check authentication status (session or wallet)
   useEffect(() => {
-    if (isConnected && address) {
+    if (isAuthenticated && user) {
+      // User is logged in via database session (username/password, email, Google OAuth)
+      if (hasWallet || user.walletAddress) {
+        setAuthStatus(
+          `Authenticated as ${user.role} (Wallet: ${user.walletAddress?.slice(0, 6)}...${user.walletAddress?.slice(-4)})`
+        )
+      } else {
+        setAuthStatus(`Authenticated as ${user.role} (No wallet linked)`)
+      }
+      setLoading(false)
+    } else if (isConnected && address) {
+      // User connected wallet directly (no database session)
       authenticateWithWallet()
     } else {
-      setAuthStatus('Wallet not connected')
+      setAuthStatus('Not authenticated - Please sign in')
       setLoading(false)
     }
-  }, [isConnected, address])
+  }, [isAuthenticated, user, hasWallet, isConnected, address])
 
   const authenticateWithWallet = async () => {
     if (!address) return
@@ -177,8 +190,15 @@ export default function PXPConfigPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Check authentication
+    if (!isAuthenticated && !isConnected) {
+      setError('Please sign in to update rewards')
+      return
+    }
+
+    // Check wallet availability for blockchain transaction
     if (!isConnected || !address) {
-      setError('Please connect your wallet to update rewards')
+      setError('Please connect your wallet to sign the blockchain transaction')
       return
     }
 
@@ -395,10 +415,25 @@ export default function PXPConfigPage() {
         </div>
 
         {/* Wallet Connection Warning */}
-        {!isConnected && (
+        {!isConnected && !hasWallet && (
           <div className="mt-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
             <p className="font-semibold">⚠ Wallet Not Connected</p>
-            <p>Please connect your wallet to update reward amounts</p>
+            <p>
+              {isAuthenticated
+                ? 'You need to connect your wallet to update reward amounts. Link your wallet in your profile or connect via Reown AppKit.'
+                : 'Please sign in and connect your wallet to update reward amounts'}
+            </p>
+          </div>
+        )}
+
+        {/* Session Auth Info - Can view but not update without wallet */}
+        {isAuthenticated && !isConnected && !hasWallet && (
+          <div className="mt-6 rounded-lg border border-blue-300 bg-blue-50 p-4 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+            <p className="font-semibold">ℹ️ Viewing Mode</p>
+            <p>
+              You're logged in but need to connect your wallet to make blockchain transactions. You
+              can view current configuration but cannot update rewards.
+            </p>
           </div>
         )}
 
@@ -415,7 +450,7 @@ export default function PXPConfigPage() {
           </button>
           <button
             type="submit"
-            disabled={!isConnected || saving}
+            disabled={(!isAuthenticated && !isConnected) || !isConnected || saving}
             className="bg-primary-600 hover:bg-primary-700 rounded-lg px-6 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Update Rewards'}

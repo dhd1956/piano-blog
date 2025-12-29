@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
+import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 
 interface Organizer {
   id: number
@@ -689,6 +690,19 @@ export default function EventDetailPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Performance Videos Section */}
+      {event && (
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-gray-100">
+            <svg className="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+            </svg>
+            Performance Videos
+          </h2>
+          <YouTubeVideoGallery eventId={event.id} limit={20} showEventContext={false} />
         </div>
       )}
     </div>

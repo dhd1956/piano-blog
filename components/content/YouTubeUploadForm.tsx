@@ -1,8 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import WalletLinkingToast from '@/components/wallet/WalletLinkingToast'
+
+interface Event {
+  id: number
+  title: string
+  startDate: string
+  venue: {
+    name: string
+  }
+}
 
 interface YouTubeUploadFormProps {
   onSuccess?: (video: any) => void
@@ -12,6 +22,9 @@ interface YouTubeUploadFormProps {
 export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadFormProps) {
   const { user, isAuthenticated } = useAuth()
   const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null)
+  const [events, setEvents] = useState<Event[]>([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -19,6 +32,39 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
   // PXP toast state
   const [showFirstPXPToast, setShowFirstPXPToast] = useState(false)
   const [pxpEarned, setPxpEarned] = useState(0)
+
+  // Fetch user's events on mount
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      fetchUserEvents()
+    }
+  }, [isAuthenticated, user?.id])
+
+  const fetchUserEvents = async () => {
+    try {
+      setLoadingEvents(true)
+      // Fetch events user has RSVPed to or organized (recent + upcoming)
+      const response = await fetch(`/api/events?userId=${user?.id}&includeOrganized=true&limit=50`)
+      const data = await response.json()
+
+      if (response.ok && data.events) {
+        // Sort by date descending (most recent first)
+        const sortedEvents = data.events.sort(
+          (a: Event, b: Event) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        )
+        setEvents(sortedEvents)
+
+        // Auto-select most recent event if available
+        if (sortedEvents.length > 0) {
+          setSelectedEventId(sortedEvents[0].id)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch events:', err)
+    } finally {
+      setLoadingEvents(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,6 +75,13 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
     if (!isAuthenticated || !user) {
       setError('Please sign in to submit videos')
       if (onError) onError('Please sign in to submit videos')
+      return
+    }
+
+    // Validate event selection
+    if (!selectedEventId) {
+      setError('Please select which event this performance is from')
+      if (onError) onError('Please select which event this performance is from')
       return
     }
 
@@ -46,20 +99,21 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ youtubeUrl: youtubeUrl.trim() }),
+        body: JSON.stringify({
+          youtubeUrl: youtubeUrl.trim(),
+          eventId: selectedEventId,
+        }),
       })
 
       const result = await response.json()
 
       if (response.ok && result.success) {
-        setSuccess(
-          `Video submitted successfully! You earned ${result.pxpEarned} PXP. ${result.message}`
-        )
+        setSuccess(result.message || 'Video submitted successfully!')
         setYoutubeUrl('') // Clear form
 
         // Check if user earned first PXP and show celebration toast
-        if (result.showFirstPXPToast && result.pxpEarned) {
-          setPxpEarned(result.pxpEarned)
+        if (result.showFirstPXPToast && result.performerPXP) {
+          setPxpEarned(result.performerPXP)
           setShowFirstPXPToast(true)
         }
 
@@ -78,14 +132,23 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
     }
   }
 
+  const formatEventDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Submit Your Piano Video
+          Submit Performance Video
         </h3>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Share your piano performance on YouTube and earn PXP rewards
+          Share your piano performance from an event and earn PXP rewards
         </p>
       </div>
 
@@ -106,29 +169,93 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
           <li className="flex items-center gap-2">
             <span className="text-green-600 dark:text-green-400">✓</span>
             <span>
-              <strong>100 PXP</strong> - Initial submission reward
+              <strong>100 PXP</strong> - Performer (you) for submitting
             </span>
           </li>
           <li className="flex items-center gap-2">
             <span className="text-green-600 dark:text-green-400">✓</span>
             <span>
-              <strong>150 PXP</strong> - When your video reaches 1,000 views
+              <strong>50 PXP</strong> - Event organizer bonus
             </span>
           </li>
           <li className="flex items-center gap-2">
             <span className="text-green-600 dark:text-green-400">✓</span>
             <span>
-              <strong>200 PXP</strong> - When your video reaches 10,000 views
+              <strong>150 PXP</strong> - When video reaches 1,000 views
+            </span>
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="text-green-600 dark:text-green-400">✓</span>
+            <span>
+              <strong>200 PXP</strong> - When video reaches 10,000 views
             </span>
           </li>
         </ul>
         <p className="mt-2 text-xs text-gray-600 dark:text-gray-500">
-          Total potential: <strong>450 PXP</strong> (~$4.50 USD) per video
+          Total potential: <strong>450 PXP</strong> (~$4.50 USD) per video + bonus for organizer
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Event Selection */}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Which Event? *
+          </label>
+          {loadingEvents ? (
+            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+              <svg className="h-4 w-4 animate-spin text-gray-500" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Loading events...</span>
+            </div>
+          ) : events.length > 0 ? (
+            <select
+              value={selectedEventId || ''}
+              onChange={(e) => setSelectedEventId(Number(e.target.value))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 transition-colors focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              disabled={isSubmitting}
+            >
+              <option value="">Select an event...</option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.title} @ {event.venue.name} - {formatEventDate(event.startDate)}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+              <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                No events found. Please RSVP to or create an event first to submit performance
+                videos.
+              </p>
+              <Link
+                href="/events"
+                className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Browse Events →
+              </Link>
+            </div>
+          )}
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Select the event where this performance took place
+          </p>
+        </div>
+
         {/* YouTube URL Input */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -168,7 +295,7 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting || !isAuthenticated}
+          disabled={isSubmitting || !isAuthenticated || events.length === 0}
           className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400 dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           {isSubmitting ? (
@@ -192,7 +319,7 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
               Submitting...
             </span>
           ) : (
-            'Submit Video for PXP Rewards'
+            'Submit Performance Video'
           )}
         </button>
 
@@ -207,7 +334,8 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
       <div className="mt-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
         <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">Guidelines</h4>
         <ul className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-          <li>• Video must feature piano performance (original or covers)</li>
+          <li>• Video must be from a performance at the selected event</li>
+          <li>• Must feature piano performance (original or covers)</li>
           <li>• You must be the channel owner or have permission</li>
           <li>• Video should be publicly accessible on YouTube</li>
           <li>• Each video can only be submitted once</li>

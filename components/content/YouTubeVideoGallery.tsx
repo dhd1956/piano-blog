@@ -5,6 +5,7 @@ import Image from 'next/image'
 
 interface YouTubeVideo {
   id: number
+  eventId: number
   youtubeId: string
   youtubeUrl: string
   title: string
@@ -18,18 +19,31 @@ interface YouTubeVideo {
   verified: boolean
   status: string
   createdAt: string
+  event?: {
+    id: number
+    title: string
+    startDate: string
+    venue: {
+      id: number
+      name: string
+    }
+  }
 }
 
 interface YouTubeVideoGalleryProps {
   userId?: number
+  eventId?: number
   limit?: number
   showUploadForm?: boolean
+  showEventContext?: boolean // Show event info with each video
 }
 
 export default function YouTubeVideoGallery({
   userId,
+  eventId,
   limit = 10,
   showUploadForm = false,
+  showEventContext = true,
 }: YouTubeVideoGalleryProps) {
   const [videos, setVideos] = useState<YouTubeVideo[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -38,7 +52,7 @@ export default function YouTubeVideoGallery({
 
   useEffect(() => {
     fetchVideos()
-  }, [userId, limit])
+  }, [userId, eventId, limit])
 
   const fetchVideos = async () => {
     setIsLoading(true)
@@ -46,7 +60,8 @@ export default function YouTubeVideoGallery({
 
     try {
       const params = new URLSearchParams()
-      if (userId) params.append('userId', userId.toString())
+      if (eventId) params.append('eventId', eventId.toString())
+      else if (userId) params.append('userId', userId.toString())
       params.append('limit', limit.toString())
 
       const response = await fetch(`/api/content/youtube/submit?${params.toString()}`, {
@@ -216,9 +231,34 @@ export default function YouTubeVideoGallery({
                   {video.title}
                 </h4>
                 {video.channelName && (
-                  <p className="mb-3 text-xs text-gray-600 dark:text-gray-400">
+                  <p className="mb-1 text-xs text-gray-600 dark:text-gray-400">
                     {video.channelName}
                   </p>
+                )}
+
+                {/* Event Context */}
+                {showEventContext && video.event && (
+                  <a
+                    href={`/events/${video.event.id}`}
+                    className="mb-3 flex items-center gap-1.5 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className="line-clamp-1">
+                      {video.event.title} @ {video.event.venue.name}
+                    </span>
+                  </a>
                 )}
 
                 {/* PXP Earned */}
