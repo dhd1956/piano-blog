@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
-import { verifyAuth } from '@/lib/auth-middleware'
+import { requireAuth } from '@/lib/auth-middleware'
 
 /**
  * GET /api/user/referral/stats
@@ -13,13 +13,13 @@ import { verifyAuth } from '@/lib/auth-middleware'
  */
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await verifyAuth(request)
-    if (!authResult.authenticated || !authResult.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await requireAuth(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: authResult.user.id },
+      where: { id: authResult.id },
       select: {
         referralCode: true,
         referralCount: true,

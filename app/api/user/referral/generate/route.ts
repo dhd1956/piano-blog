@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
-import { verifyAuth } from '@/lib/auth-middleware'
+import { requireAuth } from '@/lib/auth-middleware'
 
 // Generate a random referral code (e.g., "PIANIST123")
 function generateReferralCode(): string {
@@ -23,12 +23,12 @@ function generateReferralCode(): string {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const authResult = await verifyAuth(request)
-    if (!authResult.authenticated || !authResult.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await requireAuth(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
 
-    const userId = authResult.user.id
+    const userId = authResult.id
 
     // Check if user already has a referral code
     const existingUser = await prisma.user.findUnique({
@@ -93,13 +93,13 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await verifyAuth(request)
-    if (!authResult.authenticated || !authResult.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authResult = await requireAuth(request)
+    if (authResult instanceof NextResponse) {
+      return authResult
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: authResult.user.id },
+      where: { id: authResult.id },
       select: {
         referralCode: true,
         referralCount: true,
