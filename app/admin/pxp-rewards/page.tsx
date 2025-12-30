@@ -112,7 +112,7 @@ export default function PXPRewardsAdminPage() {
     return configs.some((config) => editedValues[config.key] !== config.value)
   }
 
-  if (!isAuthenticated || (user?.role !== 'BLOG_OWNER' && user?.role !== 'ADMIN')) {
+  if (!isAuthenticated || user?.role !== 'BLOG_OWNER') {
     return (
       <div className="container mx-auto max-w-6xl px-4 py-12">
         <div className="rounded-lg border border-red-300 bg-red-50 p-6 text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-400">

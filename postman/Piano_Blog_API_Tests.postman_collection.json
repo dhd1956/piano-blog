@@ -1,0 +1,413 @@
+{
+  "info": {
+    "name": "Piano Blog API Tests",
+    "description": "QA test suite for Piano Blog referral system and PXP rewards",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://your-domain.vercel.app",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "1.1 User Signup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user and token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.user).to.exist;",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.environment.set(\"authToken\", jsonData.token);",
+                  "    pm.environment.set(\"userId\", jsonData.user.id);",
+                  "});",
+                  "",
+                  "pm.test(\"User has correct username\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.username).to.eql(pm.environment.get(\"testUsername\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"email\": \"{{testEmail}}\",\n  \"displayName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "1.2 User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.environment.set(\"authToken\", jsonData.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Referral System",
+      "item": [
+        {
+          "name": "2.1 Generate Referral Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Referral code generated\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.referralCode).to.exist;",
+                  "    pm.expect(jsonData.referralCode).to.match(/^PIANIST\\d{5}$/);",
+                  "    pm.environment.set(\"referralCode\", jsonData.referralCode);",
+                  "});",
+                  "",
+                  "pm.test(\"Share URL is valid\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.shareUrl).to.include(\"/signup?ref=\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "auth_token={{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/referral/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "referral", "generate"]
+            }
+          }
+        },
+        {
+          "name": "2.2 Get Referral Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Referral stats retrieved\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.stats).to.exist;",
+                  "    pm.expect(jsonData.stats.totalReferrals).to.be.a('number');",
+                  "    pm.expect(jsonData.stats.totalPXPEarned).to.be.a('number');",
+                  "    pm.expect(jsonData.referrals).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Config values exist\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.config.profileCreated).to.be.above(0);",
+                  "    pm.expect(jsonData.config.firstEvent).to.be.above(0);",
+                  "    pm.expect(jsonData.config.maxPerUser).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "auth_token={{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/referral/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "referral", "stats"]
+            }
+          }
+        },
+        {
+          "name": "2.3 Signup with Referral",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Referred user created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.environment.set(\"referredUserId\", jsonData.user.id);",
+                  "    pm.environment.set(\"referredAuthToken\", jsonData.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"referred_user_001\",\n  \"password\": \"RefTest123!\",\n  \"email\": \"referred@example.com\",\n  \"displayName\": \"Referred User\",\n  \"referralCode\": \"{{referralCode}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. PXP Configuration (Admin)",
+      "item": [
+        {
+          "name": "3.1 Get PXP Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"PXP config retrieved\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.configs).to.be.an('array');",
+                  "    pm.expect(jsonData.configs.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Grouped configs exist\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.groupedConfigs).to.exist;",
+                  "    pm.expect(jsonData.groupedConfigs.referral).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "auth_token={{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pxp-config-db",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "pxp-config-db"]
+            }
+          }
+        },
+        {
+          "name": "3.2 Update PXP Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Config updated successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.updated).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "auth_token={{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updates\": [\n    {\n      \"key\": \"referral_profile_created\",\n      \"value\": 50,\n      \"enabled\": true\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pxp-config-db",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "pxp-config-db"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Profile & Rewards",
+      "item": [
+        {
+          "name": "4.1 Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Profile updated\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.profileCompleted).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test(\"Profile completion timestamp set\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.profileCompletedAt).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requesterAddress\": \"{{testUsername}}\",\n  \"displayName\": \"Test User Updated\",\n  \"bio\": \"Test bio for QA\",\n  \"title\": \"Pianist\",\n  \"skills\": [\"Piano\", \"Jazz\"],\n  \"location\": \"Test City\",\n  \"profileCompleted\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/{{testUsername}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "{{testUsername}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Events & RSVPs",
+      "item": [
+        {
+          "name": "5.1 Create Event RSVP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"RSVP created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.rsvp).to.exist;",
+                  "    pm.expect(jsonData.rsvp.status).to.be.oneOf(['CONFIRMED', 'PENDING']);",
+                  "});",
+                  "",
+                  "pm.test(\"RSVP has user details\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.rsvp.user).to.exist;",
+                  "    pm.expect(jsonData.rsvp.event).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userAddress\": \"{{testUsername}}\",\n  \"status\": \"CONFIRMED\",\n  \"attendeeCount\": 1,\n  \"notes\": \"Looking forward to it!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/rsvp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "rsvp"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
     const { username, password, email, displayName, referralCode } = validation.data
 
     // Validate referral code if provided
-    let referrer = null
+    let referrer: { id: number; referralCode: string | null; displayName: string | null } | null =
+      null
     if (referralCode) {
       referrer = await prisma.user.findUnique({
         where: { referralCode },

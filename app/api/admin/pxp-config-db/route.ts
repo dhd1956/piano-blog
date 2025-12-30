@@ -14,7 +14,7 @@ import { requireRole } from '@/lib/auth-middleware'
 export async function GET(request: NextRequest) {
   try {
     // Verify user is authenticated and is admin
-    const authResult = await requireRole(request, ['BLOG_OWNER', 'ADMIN'])
+    const authResult = await requireRole(request, ['BLOG_OWNER'])
     if (authResult instanceof NextResponse) {
       return authResult
     }
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify user is authenticated and is admin
-    const authResult = await requireRole(request, ['BLOG_OWNER', 'ADMIN'])
+    const authResult = await requireRole(request, ['BLOG_OWNER'])
     if (authResult instanceof NextResponse) {
       return authResult
     }
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Verify user is authenticated and is admin
-    const authResult = await requireRole(request, ['BLOG_OWNER', 'ADMIN'])
+    const authResult = await requireRole(request, ['BLOG_OWNER'])
     if (authResult instanceof NextResponse) {
       return authResult
     }

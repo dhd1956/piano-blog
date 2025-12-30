@@ -1,220 +1,137 @@
-# Piano Blog RBAC Postman Testing Guide
+# Postman QA Testing - Piano Blog API
 
-This directory contains a comprehensive Postman collection for testing the Role-Based Access Control (RBAC) system in the Piano Blog application.
+Quick start guide for testing all Piano Blog APIs using Postman Free Tier.
 
-## Setup
+## Quick Import (< 2 minutes)
 
-### 1. Install Postman
+### Step 1: Import Collection
 
-Download and install [Postman](https://www.postman.com/downloads/) if you haven't already.
-
-### 2. Import the Collection
-
-1. Open Postman
-2. Click **Import** button
-3. Select `Piano-Blog-RBAC-Tests.postman_collection.json`
+1. Open Postman Desktop or Web
+2. Click **Import** button (top left)
+3. Drag and drop `Piano_Blog_API_Tests.postman_collection.json`
 4. Click **Import**
 
-### 3. Configure Environment Variables
+### Step 2: Import Environment
 
-The collection uses the following variables (already pre-configured):
+1. Click **Environments** tab (left sidebar)
+2. Click **Import** button
+3. Drag and drop `Piano_Blog_Environment.postman_environment.json`
+4. Click **Import**
 
-- `base_url`: `http://localhost:3000` (your local dev server)
-- `blog_owner_wallet`: `0xe8985AEDF83E2a58fEf53B45db2d9556CD5F453A`
-- Tokens will be automatically captured during login tests
+### Step 3: Configure Environment
 
-### 4. Ensure Dev Server is Running
+1. Select **Piano Blog - Production** environment (dropdown, top right)
+2. Click the eye icon to edit variables
+3. Update `baseUrl` to your Vercel deployment URL:
+   ```
+   https://your-app-name.vercel.app
+   ```
+4. Save changes
 
-```bash
-yarn dev
-```
+## Running Tests
 
-### 5. Seed Test Users (if not done already)
+### Quick Test Run (5 minutes)
 
-```bash
-npx tsx prisma/seed-users.ts
-```
+Run tests in this order to verify core functionality:
 
-## Test User Credentials
+1. **Authentication** → `1.1 User Signup`
+   - Creates test user, captures auth token
 
-| Role            | Username     | Password     | Permissions                     |
-| --------------- | ------------ | ------------ | ------------------------------- |
-| **Blog Owner**  | (wallet)     | N/A          | Full CRUD, instant verification |
-| **Curator**     | `curator`    | `curator123` | Edit venues, no verification    |
-| **Validator 1** | `validator1` | `validator1` | Vote to verify venues           |
-| **Validator 2** | `validator2` | `validator2` | Vote to verify venues           |
-| **Validator 3** | `validator3` | `validator3` | Vote to verify venues           |
-| **Scout**       | `scout`      | `scout123`   | Create venues, read all         |
-| **Anonymous**   | N/A          | N/A          | Create venues, read all         |
+2. **Referral System** → `2.1 Generate Referral Code`
+   - Generates unique referral code
 
-## Running the Tests
+3. **Referral Stats** → `2.2 Get Referral Stats`
+   - Verifies initial stats are 0
 
-### Run All Tests Sequentially
+4. **Admin Config** → `3.1 Get PXP Config`
+   - Requires BLOG_OWNER or ADMIN role
 
-1. Select the **Piano Blog RBAC Tests** collection
-2. Click the **Run** button (▶️)
-3. Click **Run Piano Blog RBAC Tests**
-4. Watch all tests execute in sequence
+### Full Test Suite (45 minutes)
 
-### Run Individual Test Folders
+Use Postman Collection Runner:
 
-You can run specific test groups:
+1. Select **Piano Blog API Tests** collection
+2. Click **Run** button
+3. Select **Piano Blog - Production** environment
+4. Click **Run Piano Blog API Tests**
+5. Watch test results in real-time
 
-- **01 - Authentication**: Login tests for all users
-- **02 - Scout Tests**: Verify scouts can create but not edit/delete
-- **03 - Validator Tests**: Test 3-of-3 approval system
-- **04 - Curator Tests**: Verify curators can edit but not delete/validate
-- **05 - Anonymous Tests**: Test anonymous venue submission
+See `POSTMAN_QA_GUIDE.md` for detailed test scenarios and manual verification steps.
 
-### Run Individual Requests
+## Test Coverage
 
-Click any request and click **Send** to test individually.
+- **Authentication**: Signup, login, token management
+- **Referral System**: Code generation, tracking, stats, PXP distribution
+- **PXP Configuration**: Admin CRUD operations for reward amounts
+- **Profile & Rewards**: Profile completion triggers
+- **Events & RSVPs**: Event attendance tracking
+- **YouTube Integration**: Video submission and milestones
 
-## Test Scenarios Covered
+## Expected Results
 
-### 1. Authentication Tests
+All tests should pass with green checkmarks. Key validations:
 
-- ✅ Login with username/password for all roles
-- ✅ JWT token generation and storage
-- ✅ Automatic token capture for subsequent requests
-
-### 2. Scout Permissions
-
-- ✅ **Can** create venues
-- ✅ **Can** read all venues
-- ❌ **Cannot** update venues
-- ❌ **Cannot** delete venues
-- ❌ **Cannot** validate venues
-
-### 3. Validator Permissions (3-of-3 System)
-
-- ✅ **Can** vote to validate venues
-- ✅ Automatic verification after 3 approvals
-- ✅ Each validator can only vote once per venue
-- ❌ **Cannot** edit venues
-- ❌ **Cannot** delete venues
-
-### 4. Curator Permissions
-
-- ✅ **Can** edit venue details
-- ✅ **Can** read all venues
-- ❌ **Cannot** delete venues
-- ❌ **Cannot** validate venues
-
-### 5. Anonymous User Permissions
-
-- ✅ **Can** create venues (same as Scout)
-- ✅ **Can** read all venues
-- ❌ **Cannot** update venues
-- ❌ **Cannot** delete venues
-
-### 6. Blog Owner Permissions
-
-- ✅ Full CRUD on all resources
-- ✅ Instant venue verification (bypass 3-validator requirement)
-- ✅ User management (create/update/delete users)
-
-## Expected Test Results
-
-When you run the full collection, you should see:
-
-- **All authentication requests succeed** (5/5 logins)
-- **Scout can create but fails to edit/delete** (✅ ❌ ❌)
-- **3 validators approve sequentially, venue auto-verifies** (✅ ✅ ✅)
-- **Curator can edit but fails to delete/validate** (✅ ❌ ❌)
-- **Anonymous can create and read venues** (✅ ✅)
-
-Total expected: **~30-40 tests** depending on assertions
+- ✅ Status codes (200, 201 for success)
+- ✅ Response structure (success flag, data fields)
+- ✅ Referral code format (PIANIST#####)
+- ✅ PXP reward amounts match config
+- ✅ Environment variables auto-populate (authToken, userId, referralCode)
 
 ## Troubleshooting
 
-### Tokens Not Capturing
+### "401 Unauthorized" errors
 
-- Ensure the collection variables are set correctly
-- Check that login requests are returning `token` in response
-- Verify the `test` script in login requests sets the token
+- Check that auth token is set in environment
+- Re-run `1.2 User Login` to refresh token
+- Verify cookies are enabled in Postman settings
 
-### 403 Forbidden Errors (Unexpected)
+### "403 Forbidden" on admin endpoints
 
-- Check that authentication succeeded and token is valid
-- Verify user roles in database match expected roles
-- Run seed script again: `npx tsx prisma/seed-users.ts`
+- Test user needs BLOG_OWNER or ADMIN role
+- Manually update user role in database:
+  ```sql
+  UPDATE "User" SET role = 'ADMIN' WHERE username = 'test_user_001';
+  ```
 
-### Venue ID Not Found
+### Referral code not generating
 
-- Ensure the Scout creates a venue first (test 02)
-- The `test_venue_id` variable should be automatically set
-- Check console for any errors during venue creation
+- User may already have a referral code
+- Check `2.2 Get Referral Stats` to see existing code
+- Or run `DELETE FROM "User" WHERE username = 'test_user_001'` to reset
 
-### Dev Server Not Responding
+### Tests failing after first run
 
-- Ensure `yarn dev` is running on port 3000
-- Check for any build errors in terminal
-- Restart dev server if needed
+- Some tests create one-time data (user signup, referral tracking)
+- Clean up test data between runs:
+  ```sql
+  DELETE FROM "User" WHERE username LIKE 'test_%' OR username LIKE 'referred_%';
+  DELETE FROM "EventRSVP" WHERE notes = 'Looking forward to it!';
+  ```
 
-## Database Inspection
+## Test Data Cleanup
 
-To view the database directly:
+After QA testing, remove test data:
 
-```bash
-yarn db:studio
+```sql
+-- Delete test users
+DELETE FROM "User" WHERE username IN ('test_user_001', 'referred_user_001');
+
+-- Reset PXP config to production values (if modified)
+UPDATE "PXPConfig" SET value = 50 WHERE key = 'referral_profile_created';
+UPDATE "PXPConfig" SET value = 100 WHERE key = 'referral_first_event';
 ```
-
-This opens Prisma Studio at `http://localhost:5555` where you can:
-
-- View all users and their roles
-- See venue validation records
-- Check authentication sessions
-
-## Permission Matrix Reference
-
-| Action         | Anonymous | Scout | Validator   | Curator | Blog Owner   |
-| -------------- | --------- | ----- | ----------- | ------- | ------------ |
-| Create Venue   | ✅        | ✅    | ❌          | ❌      | ✅           |
-| Read Venues    | ✅        | ✅    | ✅          | ✅      | ✅           |
-| Update Venue   | ❌        | ❌    | ❌          | ✅      | ✅           |
-| Delete Venue   | ❌        | ❌    | ❌          | ❌      | ✅           |
-| Validate Venue | ❌        | ❌    | ✅ (1 of 3) | ❌      | ✅ (instant) |
-| Manage Users   | ❌        | ❌    | ❌          | ❌      | ✅           |
-
-## API Endpoints Reference
-
-### Authentication
-
-- `POST /api/auth/login` - Login with username/password or wallet
-- `POST /api/auth/logout` - Logout and invalidate session
-- `GET /api/auth/me` - Get current user info
-
-### Venues
-
-- `GET /api/venues` - List all venues
-- `POST /api/venues` - Create venue (Scout, Anonymous, Blog Owner)
-- `GET /api/venues/[id]` - Get venue details
-- `PUT /api/venues/[id]` - Update venue (Curator, Blog Owner)
-- `DELETE /api/venues/[id]` - Delete venue (Blog Owner only)
-
-### Venue Validation
-
-- `POST /api/venues/[id]/validate` - Submit validation vote (Validator, Blog Owner)
-- `GET /api/venues/[id]/validate` - Get validation status
-
-### Admin (Blog Owner Only)
-
-- `GET /api/admin/users` - List all users
-- `POST /api/admin/users` - Create user
-- `GET /api/admin/users/[id]` - Get user details
-- `PUT /api/admin/users/[id]` - Update user
-- `DELETE /api/admin/users/[id]` - Delete user
 
 ## Next Steps
 
-After verifying all tests pass:
+1. Run quick test run to verify setup
+2. Review `POSTMAN_QA_GUIDE.md` for detailed test scenarios
+3. Set up Collection Runner for automated regression testing
+4. Export test results for documentation
 
-1. **Integrate with CI/CD**: Use Newman to run tests in pipeline
-2. **Add more edge cases**: Test duplicate validations, invalid tokens, etc.
-3. **Load testing**: Test with multiple simultaneous validators
-4. **Security audit**: Verify JWT expiration, password complexity, etc.
+## Support
 
-## Questions?
+For detailed API documentation and test scenarios, see:
 
-Check the main project README or CLAUDE.md for more information about the RBAC system architecture.
+- `POSTMAN_QA_GUIDE.md` - Full testing guide with all test cases
+- `Piano_Blog_API_Tests.postman_collection.json` - Complete collection with test scripts
+- `/docs/` - API endpoint documentation (if available)
