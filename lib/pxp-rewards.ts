@@ -113,7 +113,7 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
     return {
       success: true,
       pxpAwarded: pxpAmount,
-      referrerUsername: user.referredByUser.username,
+      referrerUsername: user.referredByUser.username ?? undefined,
     }
   } catch (error) {
     console.error('Error awarding referral PXP for profile completion:', error)
@@ -188,7 +188,7 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
     return {
       success: true,
       pxpAwarded: pxpAmount,
-      referrerUsername: user.referredByUser.username,
+      referrerUsername: user.referredByUser.username ?? undefined,
     }
   } catch (error) {
     console.error('Error awarding referral PXP for first event:', error)
