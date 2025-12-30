@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       return authResult
     }
 
-    const userId = authResult.id
+    const userId = authResult.user.id
 
     // Check if user already has a referral code
     const existingUser = await prisma.user.findUnique({
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: authResult.id },
+      where: { id: authResult.user.id },
       select: {
         referralCode: true,
         referralCount: true,

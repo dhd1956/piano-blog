@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: authResult.id },
+      where: { id: authResult.user.id },
       select: {
         referralCode: true,
         referralCount: true,
