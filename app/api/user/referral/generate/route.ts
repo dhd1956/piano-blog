@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
         success: true,
         referralCode: existingUser.referralCode,
         message: 'Referral code already exists',
+        shareUrl: `${process.env.NEXT_PUBLIC_APP_URL}/signup?ref=${existingUser.referralCode}`,
       })
     }
 
