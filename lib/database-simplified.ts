@@ -39,6 +39,7 @@ export const VenueService = {
       orderBy?: 'name' | 'rating' | 'createdAt'
       orderDirection?: 'asc' | 'desc'
       includeRelations?: boolean // New option to control loading relations
+      includeDeleted?: boolean // Include soft-deleted venues (for admin/curator)
     } = {}
   ) {
     const {
@@ -51,9 +52,15 @@ export const VenueService = {
       orderBy = 'createdAt',
       orderDirection = 'desc',
       includeRelations = false,
+      includeDeleted = false,
     } = options
 
     const where: any = {}
+
+    // Exclude soft-deleted venues by default (unless explicitly included)
+    if (!includeDeleted) {
+      where.isActive = true
+    }
 
     // Build filters
     if (city && city !== 'all') where.city = { contains: city, mode: 'insensitive' }
@@ -115,7 +122,7 @@ export const VenueService = {
   /**
    * Get single venue by ID or slug
    */
-  async getVenue(identifier: string | number) {
+  async getVenue(identifier: string | number, includeDeleted = false) {
     const where =
       typeof identifier === 'number'
         ? { id: identifier }
@@ -123,7 +130,7 @@ export const VenueService = {
           ? { slug: identifier }
           : { id: Number(identifier) }
 
-    return prisma.venue.findUnique({
+    const venue = await prisma.venue.findUnique({
       where,
       include: {
         reviews: {
@@ -143,6 +150,13 @@ export const VenueService = {
         },
       },
     })
+
+    // Filter out soft-deleted venues unless explicitly included
+    if (venue && !includeDeleted && !venue.isActive) {
+      return null
+    }
+
+    return venue
   },
 
   /**

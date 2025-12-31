@@ -80,6 +80,12 @@ model Venue {
   qrCardStyle     Json?    // QR card theme and layout preferences
   defaultPayment  Float?   // Default PXP payment amount for tips
 
+  // Soft delete tracking
+  isActive        Boolean   @default(true)  // Active vs soft-deleted
+  deletedAt       DateTime? // When venue was soft-deleted
+  deletedBy       String?   // Username/wallet of admin who deleted
+  deletionReason  String?   @db.Text // Reason for deletion
+
   // Metadata
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -92,12 +98,13 @@ model Venue {
   events       Event[] // Events hosted at this venue
 
   // Indexes for performance
-  @@index([city, verified])
-  @@index([hasPiano, verified])
+  @@index([city, verified, isActive])
+  @@index([hasPiano, verified, isActive])
   @@index([latitude, longitude])
   @@index([submittedBy])
   @@index([venueHash])
   @@index([name, city])  // For text search
+  @@index([isActive])    // For filtering soft-deleted venues
 }
 
 // User profiles - supports both wallet and username/password auth

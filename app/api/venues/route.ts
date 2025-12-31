@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       offset: Math.max(parseInt(searchParams.get('offset') || '0'), 0),
       orderBy: (searchParams.get('orderBy') as 'name' | 'rating' | 'createdAt') || 'createdAt',
       orderDirection: (searchParams.get('orderDirection') as 'asc' | 'desc') || 'desc',
+      includeDeleted: searchParams.get('includeDeleted') === 'true', // For curator/admin views
     }
 
     // Get venues from PostgreSQL

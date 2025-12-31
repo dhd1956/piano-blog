@@ -235,6 +235,10 @@ export async function DELETE(
       )
     }
 
+    // Get deletion reason from request body
+    const body = await request.json().catch(() => ({}))
+    const deletionReason = body.reason || 'No reason provided'
+
     // Get venue before deletion to verify it exists
     const existingVenue = await VenueService.getVenue(venueId)
     if (!existingVenue) {
@@ -248,17 +252,49 @@ export async function DELETE(
       )
     }
 
-    // Hard delete venue
-    await prisma.venue.delete({
+    // Check if already deleted
+    if (!existingVenue.isActive) {
+      return NextResponse.json(
+        {
+          error: 'Venue is already deleted',
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
+    // Soft delete venue (mark as inactive)
+    const deletedVenue = await prisma.venue.update({
       where: { id: venueId },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+        deletedBy: user.username || user.walletAddress || 'unknown',
+        deletionReason,
+      },
+    })
+
+    // Count associated events for info
+    const eventCount = await prisma.event.count({
+      where: { venueId: venueId },
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Venue deleted successfully',
+      message: 'Venue deleted successfully (soft delete)',
       deletedVenue: {
-        id: existingVenue.id,
-        name: existingVenue.name,
+        id: deletedVenue.id,
+        name: deletedVenue.name,
+        deletedAt: deletedVenue.deletedAt,
+        deletedBy: deletedVenue.deletedBy,
+      },
+      info: {
+        associatedEvents: eventCount,
+        note:
+          eventCount > 0
+            ? `${eventCount} event(s) preserved and still accessible`
+            : 'No events were associated with this venue',
       },
     })
   } catch (error: any) {
