@@ -217,12 +217,22 @@ export async function POST(request: NextRequest) {
     })
 
     // Award PXP for video submission
-    // Performer: 100 PXP, Event Organizer: 50 PXP
     let showFirstPXPToast = false
     let performerPXP = 0
     let organizerPXP = 0
 
     try {
+      // Get PXP reward amounts from config
+      const performerConfig = await prisma.pXPConfig.findUnique({
+        where: { key: 'youtube_upload' },
+        select: { value: true, enabled: true },
+      })
+
+      const organizerConfig = await prisma.pXPConfig.findUnique({
+        where: { key: 'youtube_upload_organizer' },
+        select: { value: true, enabled: true },
+      })
+
       // Get user's current PXP status
       const user = await prisma.user.findUnique({
         where: { id: sessionUser.id },
@@ -237,8 +247,8 @@ export async function POST(request: NextRequest) {
         // Check if this is the user's first PXP
         const isFirstPXP = !user.firstPXPEarnedAt && user.totalCAVEarned === 0
 
-        // Award 100 PXP to performer for video submission
-        performerPXP = 100
+        // Award PXP to performer for video submission (from config or default to 100)
+        performerPXP = performerConfig && performerConfig.enabled ? performerConfig.value : 100
 
         await prisma.user.update({
           where: { id: user.id },
@@ -264,9 +274,9 @@ export async function POST(request: NextRequest) {
           `✅ Awarded ${performerPXP} PXP to performer ${user.id} for YouTube video submission${isFirstPXP ? ' (FIRST PXP!)' : ''}`
         )
 
-        // Award 50 PXP to event organizer (if different from performer)
+        // Award PXP to event organizer (if different from performer)
         if (event.organizerId !== sessionUser.id) {
-          organizerPXP = 50
+          organizerPXP = organizerConfig && organizerConfig.enabled ? organizerConfig.value : 50
 
           await prisma.user.update({
             where: { id: event.organizerId },

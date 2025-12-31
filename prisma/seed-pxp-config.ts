@@ -34,7 +34,23 @@ const initialPXPConfig = [
     enabled: true,
   },
 
-  // YouTube Video Milestones
+  // YouTube Video Rewards
+  {
+    key: 'youtube_upload',
+    value: 100,
+    label: 'YouTube: Upload Video',
+    description: 'PXP earned for uploading a performance video to an event',
+    category: 'youtube',
+    enabled: true,
+  },
+  {
+    key: 'youtube_upload_organizer',
+    value: 50,
+    label: 'YouTube: Upload Bonus (Organizer)',
+    description: 'PXP earned by event organizer when someone uploads video of their event',
+    category: 'youtube',
+    enabled: true,
+  },
   {
     key: 'youtube_100_views',
     value: 10,

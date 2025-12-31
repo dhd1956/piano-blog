@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useWriteContract, useReadContract, useBlockNumber } from 'wagmi'
+import { useAccount, useWriteContract, useReadContract } from 'wagmi'
 import { useAuth } from '@/context/AuthContext'
 import { PXP_REWARDS_ABI, PXP_REWARDS_ADDRESS } from '@/utils/rewards-contract'
 
-interface PXPConfig {
+interface BlockchainConfig {
   rewards: {
     newUser: number
     scout: number
@@ -17,16 +17,42 @@ interface PXPConfig {
   }
   contractBalance: string
   contractAddress: string
-  timestamp: string
+}
+
+interface DatabaseReward {
+  id: number
+  key: string
+  value: number
+  label: string
+  description: string | null
+  category: string
+  enabled: boolean
 }
 
 export default function PXPConfigPage() {
   const { address, isConnected } = useAccount()
   const { user, isAuthenticated, hasWallet } = useAuth()
   const { writeContract, isPending: isWritePending } = useWriteContract()
-  const { data: blockNumber } = useBlockNumber({ watch: true })
 
-  // Read contract data directly from blockchain via browser
+  // Blockchain state
+  const [blockchainConfig, setBlockchainConfig] = useState<BlockchainConfig | null>(null)
+  const [newUserReward, setNewUserReward] = useState<number>(25)
+  const [scoutReward, setScoutReward] = useState<number>(50)
+  const [verifierReward, setVerifierReward] = useState<number>(25)
+
+  // Database state
+  const [databaseRewards, setDatabaseRewards] = useState<DatabaseReward[]>([])
+  const [editedRewards, setEditedRewards] = useState<Record<string, number>>({})
+
+  // UI state
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [authStatus, setAuthStatus] = useState<string>('Checking authentication...')
+  const [activeTab, setActiveTab] = useState<'blockchain' | 'database'>('database')
+
+  // Read contract data
   const {
     data: rewardsData,
     refetch: refetchRewards,
@@ -36,7 +62,7 @@ export default function PXPConfigPage() {
     address: PXP_REWARDS_ADDRESS as `0x${string}`,
     abi: PXP_REWARDS_ABI,
     functionName: 'getAllRewards',
-    chainId: 11142220, // Celo Alfajores testnet
+    chainId: 11142220,
   })
 
   const {
@@ -47,7 +73,7 @@ export default function PXPConfigPage() {
     address: PXP_REWARDS_ADDRESS as `0x${string}`,
     abi: PXP_REWARDS_ABI,
     functionName: 'getRewardLimits',
-    chainId: 11142220, // Celo Alfajores testnet
+    chainId: 11142220,
   })
 
   const {
@@ -58,51 +84,29 @@ export default function PXPConfigPage() {
     address: PXP_REWARDS_ADDRESS as `0x${string}`,
     abi: PXP_REWARDS_ABI,
     functionName: 'getContractBalance',
-    chainId: 11142220, // Celo Alfajores testnet
+    chainId: 11142220,
   })
 
-  const [config, setConfig] = useState<PXPConfig | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [authStatus, setAuthStatus] = useState<string>('Checking authentication...')
-
-  // Form state
-  const [newUserReward, setNewUserReward] = useState<number>(25)
-  const [scoutReward, setScoutReward] = useState<number>(50)
-  const [verifierReward, setVerifierReward] = useState<number>(25)
-
-  // Process contract data when loaded
+  // Process blockchain contract data
   useEffect(() => {
-    // Check for errors first
     if (rewardsError || limitsError || balanceError) {
       const errorMsg =
         rewardsError?.message || limitsError?.message || balanceError?.message || 'Unknown error'
-      setError(`Failed to load from blockchain: ${errorMsg}`)
-      setLoading(false)
+      setError(`Failed to load blockchain data: ${errorMsg}`)
       return
     }
 
-    // Check if still loading
-    if (rewardsLoading || limitsLoading || balanceLoading) {
-      setLoading(true)
-      return
-    }
-
-    // Process data if all loaded successfully
     if (rewardsData && limitsData && contractBalance) {
       const [newUser, scout, verifier] = rewardsData as [bigint, bigint, bigint]
       const [min, max] = limitsData as [bigint, bigint]
 
-      // Convert from wei (18 decimals) to PXP tokens
       const newUserPXP = Number(newUser) / 1e18
       const scoutPXP = Number(scout) / 1e18
       const verifierPXP = Number(verifier) / 1e18
       const minPXP = Number(min) / 1e18
       const maxPXP = Number(max) / 1e18
 
-      setConfig({
+      setBlockchainConfig({
         rewards: {
           newUser: newUserPXP,
           scout: scoutPXP,
@@ -114,31 +118,41 @@ export default function PXPConfigPage() {
         },
         contractBalance: Math.floor(Number(contractBalance) / 1e18).toLocaleString(),
         contractAddress: PXP_REWARDS_ADDRESS,
-        timestamp: new Date().toISOString(),
       })
 
       setNewUserReward(newUserPXP)
       setScoutReward(scoutPXP)
       setVerifierReward(verifierPXP)
-      setLoading(false)
-      setError(null)
     }
-  }, [
-    rewardsData,
-    limitsData,
-    contractBalance,
-    rewardsLoading,
-    limitsLoading,
-    balanceLoading,
-    rewardsError,
-    limitsError,
-    balanceError,
-  ])
+  }, [rewardsData, limitsData, contractBalance, rewardsError, limitsError, balanceError])
 
-  // Check authentication status (session or wallet)
+  // Fetch database rewards
+  useEffect(() => {
+    const fetchDatabaseRewards = async () => {
+      try {
+        const response = await fetch('/api/admin/pxp-config-db', {
+          credentials: 'include',
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success) {
+            setDatabaseRewards(data.configs)
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching database rewards:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDatabaseRewards()
+  }, [])
+
+  // Check authentication
   useEffect(() => {
     if (isAuthenticated && user) {
-      // User is logged in via database session (username/password, email, Google OAuth)
       if (hasWallet || user.walletAddress) {
         setAuthStatus(
           `Authenticated as ${user.role} (Wallet: ${user.walletAddress?.slice(0, 6)}...${user.walletAddress?.slice(-4)})`
@@ -146,73 +160,34 @@ export default function PXPConfigPage() {
       } else {
         setAuthStatus(`Authenticated as ${user.role} (No wallet linked)`)
       }
-      setLoading(false)
     } else if (isConnected && address) {
-      // User connected wallet directly (no database session)
-      authenticateWithWallet()
+      setAuthStatus(`Wallet connected: ${address.slice(0, 6)}...${address.slice(-4)}`)
     } else {
       setAuthStatus('Not authenticated - Please sign in')
-      setLoading(false)
     }
   }, [isAuthenticated, user, hasWallet, isConnected, address])
 
-  const authenticateWithWallet = async () => {
-    if (!address) return
-
-    try {
-      setAuthStatus('Authenticating with wallet...')
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ walletAddress: address }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setAuthStatus(`Authenticated as ${data.user.role}`)
-      } else {
-        setAuthStatus(`Auth failed: ${data.message}`)
-        setError(`Authentication failed: ${data.message}`)
-        setLoading(false)
-      }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Unknown'
-      setAuthStatus(`Auth error: ${errorMsg}`)
-      setError(`Failed to authenticate: ${errorMsg}`)
-      setLoading(false)
-    }
-  }
-
-  // Removed fetchConfig - now reading directly from blockchain via wagmi hooks
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Save blockchain rewards
+  const handleBlockchainSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Check authentication
-    if (!isAuthenticated && !isConnected) {
-      setError('Please sign in to update rewards')
-      return
-    }
-
-    // Check wallet availability for blockchain transaction
     if (!isConnected || !address) {
       setError('Please connect your wallet to sign the blockchain transaction')
       return
     }
 
-    // Validate reward amounts
-    if (config) {
+    if (blockchainConfig) {
       if (
-        newUserReward < config.limits.min ||
-        newUserReward > config.limits.max ||
-        scoutReward < config.limits.min ||
-        scoutReward > config.limits.max ||
-        verifierReward < config.limits.min ||
-        verifierReward > config.limits.max
+        newUserReward < blockchainConfig.limits.min ||
+        newUserReward > blockchainConfig.limits.max ||
+        scoutReward < blockchainConfig.limits.min ||
+        scoutReward > blockchainConfig.limits.max ||
+        verifierReward < blockchainConfig.limits.min ||
+        verifierReward > blockchainConfig.limits.max
       ) {
-        setError(`Reward amounts must be between ${config.limits.min} and ${config.limits.max} PXP`)
+        setError(
+          `Reward amounts must be between ${blockchainConfig.limits.min} and ${blockchainConfig.limits.max} PXP`
+        )
         return
       }
     }
@@ -222,25 +197,22 @@ export default function PXPConfigPage() {
       setError(null)
       setSuccess(false)
 
-      // Convert PXP tokens to wei (multiply by 10^18) for smart contract
       const newUserWei = BigInt(Math.round(newUserReward * 1e18))
       const scoutWei = BigInt(Math.round(scoutReward * 1e18))
       const verifierWei = BigInt(Math.round(verifierReward * 1e18))
 
-      // Call smart contract directly via MetaMask
       writeContract(
         {
           address: PXP_REWARDS_ADDRESS as `0x${string}`,
           abi: PXP_REWARDS_ABI,
           functionName: 'setAllRewards',
           args: [newUserWei, scoutWei, verifierWei],
-          chainId: 11142220, // Celo Sepolia
+          chainId: 11142220,
         },
         {
           onSuccess: () => {
             setSuccess(true)
             setSaving(false)
-            // Refresh config after successful update
             setTimeout(() => {
               refetchRewards()
               setSuccess(false)
@@ -258,9 +230,82 @@ export default function PXPConfigPage() {
     }
   }
 
-  if (loading) {
+  // Save database rewards
+  const handleDatabaseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      setSaving(true)
+      setError(null)
+      setSuccess(false)
+
+      const updates = Object.entries(editedRewards).map(([key, value]) => ({
+        key,
+        value,
+      }))
+
+      const response = await fetch('/api/admin/pxp-config-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ updates }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSuccess(true)
+        setEditedRewards({})
+        // Refetch to get updated values
+        const refetchResponse = await fetch('/api/admin/pxp-config-db', {
+          credentials: 'include',
+        })
+        if (refetchResponse.ok) {
+          const refetchData = await refetchResponse.json()
+          setDatabaseRewards(refetchData.configs)
+        }
+      } else {
+        setError(data.error || 'Failed to update rewards')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update rewards')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleRewardChange = (key: string, value: number) => {
+    setEditedRewards((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
+
+  const getCurrentValue = (reward: DatabaseReward) => {
+    return editedRewards[reward.key] ?? reward.value
+  }
+
+  const groupedRewards = databaseRewards.reduce(
+    (acc, reward) => {
+      if (!acc[reward.category]) {
+        acc[reward.category] = []
+      }
+      acc[reward.category].push(reward)
+      return acc
+    },
+    {} as Record<string, DatabaseReward[]>
+  )
+
+  const categoryLabels: Record<string, string> = {
+    referral: 'Referral Rewards',
+    youtube: 'YouTube Rewards',
+    event: 'Event Participation',
+    community: 'Community Contributions',
+  }
+
+  if (loading && databaseRewards.length === 0) {
     return (
-      <div className="container mx-auto max-w-4xl px-4 py-12">
+      <div className="container mx-auto max-w-6xl px-4 py-12">
         <h1 className="mb-8 text-3xl font-bold">PXP Reward Configuration</h1>
         <div className="rounded-lg border border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-800">
           <p className="text-gray-600 dark:text-gray-400">Loading configuration...</p>
@@ -271,10 +316,10 @@ export default function PXPConfigPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-12">
+    <div className="container mx-auto max-w-6xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold">PXP Reward Configuration</h1>
       <p className="mb-8 text-gray-600 dark:text-gray-400">
-        Configure Piano Experience Points rewards for community actions
+        Configure Piano Experience Points rewards for all community actions
       </p>
 
       {/* Auth Status */}
@@ -300,177 +345,260 @@ export default function PXPConfigPage() {
         </div>
       )}
 
-      {/* Current Configuration */}
-      {config && (
-        <div className="mb-8 rounded-lg border border-gray-300 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50">
-          <h2 className="mb-4 text-xl font-semibold">Current Configuration</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Contract Address</p>
-              <p className="font-mono text-sm">{config.contractAddress}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Contract Balance</p>
-              <p className="font-semibold">{config.contractBalance} PXP</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Reward Limits</p>
-              <p className="font-semibold">
-                {config.limits.min} - {config.limits.max} PXP
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated</p>
-              <p className="text-sm">{new Date(config.timestamp).toLocaleString()}</p>
-            </div>
+      {/* Tabs */}
+      <div className="mb-6 flex gap-2 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('database')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'database'
+              ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          Database Rewards (All Actions)
+        </button>
+        <button
+          onClick={() => setActiveTab('blockchain')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'blockchain'
+              ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          Blockchain Rewards (Legacy)
+        </button>
+      </div>
+
+      {/* Database Rewards Tab */}
+      {activeTab === 'database' && (
+        <form
+          onSubmit={handleDatabaseSubmit}
+          className="rounded-lg border border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-800"
+        >
+          <h2 className="mb-6 text-xl font-semibold">All PXP Earning Actions</h2>
+
+          <div className="space-y-8">
+            {Object.entries(groupedRewards).map(([category, rewards]) => (
+              <div key={category} className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {categoryLabels[category] || category}
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {rewards.map((reward) => (
+                    <div
+                      key={reward.key}
+                      className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700/50"
+                    >
+                      <label htmlFor={reward.key} className="mb-2 block font-medium">
+                        {reward.label}
+                        {reward.description && (
+                          <span className="ml-2 block text-sm font-normal text-gray-600 dark:text-gray-400">
+                            {reward.description}
+                          </span>
+                        )}
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          id={reward.key}
+                          value={getCurrentValue(reward)}
+                          onChange={(e) => handleRewardChange(reward.key, Number(e.target.value))}
+                          min={0}
+                          max={10000}
+                          className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                        />
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
+                      </div>
+                      {editedRewards[reward.key] !== undefined &&
+                        editedRewards[reward.key] !== reward.value && (
+                          <p className="mt-1 text-sm text-orange-600 dark:text-orange-400">
+                            Modified (was {reward.value})
+                          </p>
+                        )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          <div className="mt-8 flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => setEditedRewards({})}
+              className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+              disabled={Object.keys(editedRewards).length === 0}
+            >
+              Reset Changes
+            </button>
+            <button
+              type="submit"
+              disabled={saving || Object.keys(editedRewards).length === 0}
+              className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : `Save Changes (${Object.keys(editedRewards).length})`}
+            </button>
+          </div>
+        </form>
       )}
 
-      {/* Configuration Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-lg border border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-800"
-      >
-        <h2 className="mb-6 text-xl font-semibold">Update Reward Amounts</h2>
-
-        <div className="space-y-6">
-          {/* New User Reward */}
-          <div>
-            <label htmlFor="newUser" className="mb-2 block font-medium">
-              New User Reward
-              <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-                (Earned when user signs up)
-              </span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                id="newUser"
-                value={newUserReward}
-                onChange={(e) => setNewUserReward(Number(e.target.value))}
-                min={config?.limits.min || 1}
-                max={config?.limits.max || 1000}
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-                required
-              />
-              <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
+      {/* Blockchain Rewards Tab */}
+      {activeTab === 'blockchain' && (
+        <>
+          {/* Current Configuration */}
+          {blockchainConfig && (
+            <div className="mb-8 rounded-lg border border-gray-300 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <h2 className="mb-4 text-xl font-semibold">Current Blockchain Configuration</h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Contract Address</p>
+                  <p className="font-mono text-sm">{blockchainConfig.contractAddress}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Contract Balance</p>
+                  <p className="font-semibold">{blockchainConfig.contractBalance} PXP</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Reward Limits</p>
+                  <p className="font-semibold">
+                    {blockchainConfig.limits.min} - {blockchainConfig.limits.max} PXP
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Current: {config?.rewards.newUser} PXP
-            </p>
-          </div>
+          )}
 
-          {/* Scout Reward */}
-          <div>
-            <label htmlFor="scout" className="mb-2 block font-medium">
-              Scout Reward
-              <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-                (Earned when discovered venue is verified)
-              </span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                id="scout"
-                value={scoutReward}
-                onChange={(e) => setScoutReward(Number(e.target.value))}
-                min={config?.limits.min || 1}
-                max={config?.limits.max || 1000}
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-                required
-              />
-              <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
-            </div>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Current: {config?.rewards.scout} PXP
-            </p>
-          </div>
-
-          {/* Verifier Reward */}
-          <div>
-            <label htmlFor="verifier" className="mb-2 block font-medium">
-              Verifier Reward
-              <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-                (Earned when verifying a venue)
-              </span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                id="verifier"
-                value={verifierReward}
-                onChange={(e) => setVerifierReward(Number(e.target.value))}
-                min={config?.limits.min || 1}
-                max={config?.limits.max || 1000}
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-                required
-              />
-              <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
-            </div>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Current: {config?.rewards.verifier} PXP
-            </p>
-          </div>
-        </div>
-
-        {/* Wallet Connection Warning */}
-        {!isConnected && !hasWallet && (
-          <div className="mt-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
-            <p className="font-semibold">⚠ Wallet Not Connected</p>
-            <p>
-              {isAuthenticated
-                ? 'You need to connect your wallet to update reward amounts. Link your wallet in your profile or connect via Reown AppKit.'
-                : 'Please sign in and connect your wallet to update reward amounts'}
-            </p>
-          </div>
-        )}
-
-        {/* Session Auth Info - Can view but not update without wallet */}
-        {isAuthenticated && !isConnected && !hasWallet && (
-          <div className="mt-6 rounded-lg border border-blue-300 bg-blue-50 p-4 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-            <p className="font-semibold">ℹ️ Viewing Mode</p>
-            <p>
-              You're logged in but need to connect your wallet to make blockchain transactions. You
-              can view current configuration but cannot update rewards.
-            </p>
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <div className="mt-8 flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              refetchRewards()
-            }}
-            className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+          {/* Configuration Form */}
+          <form
+            onSubmit={handleBlockchainSubmit}
+            className="rounded-lg border border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-800"
           >
-            Refresh
-          </button>
-          <button
-            type="submit"
-            disabled={(!isAuthenticated && !isConnected) || !isConnected || saving}
-            className="bg-primary-600 hover:bg-primary-700 rounded-lg px-6 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {saving ? 'Saving...' : 'Update Rewards'}
-          </button>
-        </div>
-      </form>
+            <h2 className="mb-6 text-xl font-semibold">Update Blockchain Reward Amounts</h2>
 
-      {/* Info Section */}
-      <div className="mt-8 rounded-lg border border-blue-300 bg-blue-50 p-6 dark:border-blue-700 dark:bg-blue-900/20">
-        <h3 className="mb-2 font-semibold text-blue-900 dark:text-blue-300">ℹ️ Important Notes</h3>
-        <ul className="list-inside list-disc space-y-1 text-sm text-blue-800 dark:text-blue-400">
-          <li>Only the contract owner (blog owner) can update reward amounts</li>
-          <li>Changes require a blockchain transaction with gas fees</li>
-          <li>
-            Reward amounts must be between {config?.limits.min} and {config?.limits.max} PXP
-          </li>
-          <li>Updates take effect immediately after transaction confirmation</li>
-          <li>Ensure contract has sufficient PXP balance to fund rewards</li>
-        </ul>
-      </div>
+            <div className="space-y-6">
+              {/* New User Reward */}
+              <div>
+                <label htmlFor="newUser" className="mb-2 block font-medium">
+                  New User Reward
+                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    (Earned when user signs up)
+                  </span>
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    id="newUser"
+                    value={newUserReward}
+                    onChange={(e) => setNewUserReward(Number(e.target.value))}
+                    min={blockchainConfig?.limits.min || 1}
+                    max={blockchainConfig?.limits.max || 1000}
+                    className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                    required
+                  />
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Current: {blockchainConfig?.rewards.newUser} PXP
+                </p>
+              </div>
+
+              {/* Scout Reward */}
+              <div>
+                <label htmlFor="scout" className="mb-2 block font-medium">
+                  Scout Reward
+                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    (Earned when discovered venue is verified)
+                  </span>
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    id="scout"
+                    value={scoutReward}
+                    onChange={(e) => setScoutReward(Number(e.target.value))}
+                    min={blockchainConfig?.limits.min || 1}
+                    max={blockchainConfig?.limits.max || 1000}
+                    className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                    required
+                  />
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Current: {blockchainConfig?.rewards.scout} PXP
+                </p>
+              </div>
+
+              {/* Verifier Reward */}
+              <div>
+                <label htmlFor="verifier" className="mb-2 block font-medium">
+                  Verifier Reward
+                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
+                    (Earned when verifying a venue)
+                  </span>
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    id="verifier"
+                    value={verifierReward}
+                    onChange={(e) => setVerifierReward(Number(e.target.value))}
+                    min={blockchainConfig?.limits.min || 1}
+                    max={blockchainConfig?.limits.max || 1000}
+                    className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                    required
+                  />
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Current: {blockchainConfig?.rewards.verifier} PXP
+                </p>
+              </div>
+            </div>
+
+            {/* Wallet Connection Warning */}
+            {!isConnected && (
+              <div className="mt-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+                <p className="font-semibold">⚠ Wallet Not Connected</p>
+                <p>You need to connect your wallet to update blockchain reward amounts.</p>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="mt-8 flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => refetchRewards()}
+                className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+              >
+                Refresh
+              </button>
+              <button
+                type="submit"
+                disabled={!isConnected || saving}
+                className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Update Blockchain Rewards'}
+              </button>
+            </div>
+          </form>
+
+          {/* Info Section */}
+          <div className="mt-8 rounded-lg border border-blue-300 bg-blue-50 p-6 dark:border-blue-700 dark:bg-blue-900/20">
+            <h3 className="mb-2 font-semibold text-blue-900 dark:text-blue-300">
+              ℹ️ Blockchain Rewards (Legacy)
+            </h3>
+            <ul className="list-inside list-disc space-y-1 text-sm text-blue-800 dark:text-blue-400">
+              <li>These rewards are stored on the Celo Sepolia blockchain</li>
+              <li>Only the contract owner can update these amounts</li>
+              <li>Changes require a blockchain transaction with gas fees</li>
+              <li>Updates take effect immediately after transaction confirmation</li>
+              <li>
+                Most rewards are now managed via the Database Rewards tab (no gas fees required)
+              </li>
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   )
 }
