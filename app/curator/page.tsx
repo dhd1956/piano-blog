@@ -228,18 +228,24 @@ export default function CuratorDashboard() {
         name: selectedVenue.name,
       })
 
-      // Call DELETE API with wallet authentication
+      // Call DELETE API with proper authentication
       const response = await fetch(`/api/venues/${selectedVenue.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress || '',
         },
+        credentials: 'include', // Include cookies for authentication
       })
 
       const result = await response.json()
 
       if (!response.ok || !result.success) {
+        // Provide helpful error message for authentication issues
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(
+            `Authentication required: Please log in with your username/password at /auth/login to delete venues. ${result.message || result.error || ''}`
+          )
+        }
         throw new Error(result.message || result.error || 'Failed to delete venue')
       }
 
