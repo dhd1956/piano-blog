@@ -1,20 +1,71 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import QRCodeGenerator, {
   CeloPaymentQRCode,
   generateCeloPaymentURI,
 } from '@/components/qr/QRCodeGenerator'
 
-// Mock data for demonstration - in production this would come from Web3 provider
-const MOCK_WALLET_ADDRESS = '0x742d35Cc6634C0532925a3b8D0d35c5D35F65b8f'
-const MOCK_CAV_TOKEN_ADDRESS = '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F'
-const MOCK_CAV_BALANCE = '125.75'
+// Celo Sepolia network configuration
+const PXP_TOKEN_ADDRESS = '0x04eAE71832147D75D4B69B3FFB5d9514e8471c75'
+const FALLBACK_WALLET = '0x0000000000000000000000000000000000000000'
+
+interface UserData {
+  walletAddress: string | null
+  pxpBalance: number
+  username: string | null
+  displayName: string | null
+}
 
 export default function CAVDashboard() {
   const [selectedTab, setSelectedTab] = useState<'receive' | 'pay' | 'share'>('receive')
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentMemo, setPaymentMemo] = useState('')
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Fetch authenticated user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.user) {
+            // Fetch full profile to get PXP balance
+            const profileResponse = await fetch(
+              `/api/profile/${data.user.walletAddress || data.user.username}`,
+              {
+                credentials: 'include',
+              }
+            )
+
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json()
+              setUserData({
+                walletAddress: data.user.walletAddress,
+                pxpBalance: profileData.profile?.totalPXPEarned || 0,
+                username: data.user.username,
+                displayName: data.user.displayName,
+              })
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
+  const walletAddress = userData?.walletAddress || FALLBACK_WALLET
+  const pxpBalance = userData?.pxpBalance.toFixed(2) || '0.00'
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -33,7 +84,7 @@ export default function CAVDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">PXP Balance</p>
-                <p className="text-2xl font-bold text-gray-900">{MOCK_CAV_BALANCE}</p>
+                <p className="text-2xl font-bold text-gray-900">{loading ? '...' : pxpBalance}</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                 💰
@@ -57,7 +108,7 @@ export default function CAVDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Network</p>
-                <p className="text-lg font-medium text-purple-600">Celo Alfajores</p>
+                <p className="text-lg font-medium text-purple-600">Celo Sepolia</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
                 🌐
@@ -105,8 +156,8 @@ export default function CAVDashboard() {
 
                 <div className="flex justify-center">
                   <CeloPaymentQRCode
-                    address={MOCK_WALLET_ADDRESS}
-                    tokenAddress={MOCK_CAV_TOKEN_ADDRESS}
+                    address={walletAddress}
+                    tokenAddress={PXP_TOKEN_ADDRESS}
                     memo="Payment to PXP Community Member"
                     size={250}
                     showCopyButton={true}
@@ -176,9 +227,9 @@ export default function CAVDashboard() {
                   <div className="flex justify-center">
                     {paymentAmount ? (
                       <CeloPaymentQRCode
-                        address={MOCK_WALLET_ADDRESS}
+                        address={walletAddress}
                         amount={paymentAmount}
-                        tokenAddress={MOCK_CAV_TOKEN_ADDRESS}
+                        tokenAddress={PXP_TOKEN_ADDRESS}
                         memo={paymentMemo || `Payment request for ${paymentAmount} PXP`}
                         size={220}
                         showCopyButton={true}
@@ -209,7 +260,7 @@ export default function CAVDashboard() {
 
                 <div className="flex justify-center">
                   <QRCodeGenerator
-                    data={MOCK_WALLET_ADDRESS}
+                    data={walletAddress}
                     size={250}
                     showCopyButton={true}
                     allowDownload={true}
@@ -222,10 +273,10 @@ export default function CAVDashboard() {
                   <h4 className="mb-2 font-medium text-gray-900">Wallet Address:</h4>
                   <div className="flex items-center space-x-2">
                     <code className="flex-1 rounded border bg-white px-3 py-2 font-mono text-sm">
-                      {MOCK_WALLET_ADDRESS}
+                      {walletAddress}
                     </code>
                     <button
-                      onClick={() => navigator.clipboard.writeText(MOCK_WALLET_ADDRESS)}
+                      onClick={() => navigator.clipboard.writeText(walletAddress)}
                       className="rounded bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
                     >
                       Copy
@@ -253,10 +304,16 @@ export default function CAVDashboard() {
             <h4 className="mb-2 font-medium text-gray-900">🛠️ Development Info</h4>
             <div className="space-y-1 text-sm text-gray-700">
               <p>
-                <strong>PXP Token:</strong> {MOCK_CAV_TOKEN_ADDRESS}
+                <strong>Network:</strong> Celo Sepolia Testnet (Chain ID: 11142220)
               </p>
               <p>
-                <strong>Wallet:</strong> {MOCK_WALLET_ADDRESS}
+                <strong>PXP Token:</strong> {PXP_TOKEN_ADDRESS}
+              </p>
+              <p>
+                <strong>Wallet:</strong> {walletAddress}
+              </p>
+              <p>
+                <strong>PXP Balance:</strong> {pxpBalance}
               </p>
               <p>
                 <strong>QR Code Library:</strong> qrcode@1.5.4
