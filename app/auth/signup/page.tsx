@@ -5,15 +5,24 @@
  * Allows new users to create an account with username/password
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
-
-export default function SignupPage() {
-  const router = useRouter()
+// Separate component for reading search params
+function ReferralCodeReader({ onReferralCode }: { onReferralCode: (code: string | null) => void }) {
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const refParam = searchParams.get('ref')
+    onReferralCode(refParam)
+  }, [searchParams, onReferralCode])
+
+  return null
+}
+
+function SignupForm() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -26,14 +35,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
-  // Read referral code from URL query parameter
-  useEffect(() => {
-    const refParam = searchParams.get('ref')
-    if (refParam) {
-      setReferralCode(refParam)
-    }
-  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -390,6 +391,28 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
+
+      {/* Read referral code from URL */}
+      <Suspense fallback={null}>
+        <ReferralCodeReader onReferralCode={setReferralCode} />
+      </Suspense>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   )
 }
