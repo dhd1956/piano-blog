@@ -171,6 +171,20 @@ export default function ProfileEditPage() {
       const requesterAddress =
         currentUser.walletAddress || currentUser.username || String(currentUser.id)
 
+      // Determine if profile is complete (for PXP rewards)
+      // Profile is considered complete if user has:
+      // - Display name
+      // - Bio (at least 20 characters)
+      // - Location
+      // - Title
+      // - At least one instrument
+      const isProfileComplete =
+        displayName.trim().length > 0 &&
+        bio.trim().length >= 20 &&
+        location.trim().length > 0 &&
+        title.trim().length > 0 &&
+        instruments.length > 0
+
       const response = await fetch(`/api/profile/${address}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -182,6 +196,7 @@ export default function ProfileEditPage() {
           bio,
           location,
           title,
+          profileCompleted: isProfileComplete, // Trigger PXP rewards if newly complete
           // Musician profile fields
           musicianProfile: {
             instruments,
@@ -349,6 +364,18 @@ export default function ProfileEditPage() {
     )
   }
 
+  // Calculate profile completion percentage
+  const completionChecks = [
+    { name: 'Display Name', complete: displayName.trim().length > 0 },
+    { name: 'Bio (20+ characters)', complete: bio.trim().length >= 20 },
+    { name: 'Location', complete: location.trim().length > 0 },
+    { name: 'Title/Role', complete: title.trim().length > 0 },
+    { name: 'At least one instrument', complete: instruments.length > 0 },
+  ]
+  const completedCount = completionChecks.filter((check) => check.complete).length
+  const completionPercentage = Math.round((completedCount / completionChecks.length) * 100)
+  const isProfileComplete = completionPercentage === 100
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6">
@@ -367,6 +394,41 @@ export default function ProfileEditPage() {
           Profile saved successfully! Redirecting...
         </div>
       )}
+
+      {/* Profile Completion Indicator */}
+      <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-700 dark:bg-blue-900/20">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-300">
+            Profile Completion {completionPercentage}%
+          </h3>
+          {isProfileComplete && (
+            <span className="rounded-full bg-green-600 px-3 py-1 text-sm font-semibold text-white">
+              Complete! Earn 80 PXP on save
+            </span>
+          )}
+        </div>
+
+        <div className="mb-3 h-2 w-full rounded-full bg-blue-200 dark:bg-blue-800">
+          <div
+            className="h-2 rounded-full bg-blue-600 transition-all dark:bg-blue-400"
+            style={{ width: `${completionPercentage}%` }}
+          />
+        </div>
+
+        <div className="text-sm text-blue-800 dark:text-blue-400">
+          <p className="mb-2 font-medium">To earn referral PXP rewards, complete:</p>
+          <ul className="space-y-1">
+            {completionChecks.map((check) => (
+              <li key={check.name} className="flex items-center gap-2">
+                <span className={check.complete ? 'text-green-600' : 'text-gray-400'}>
+                  {check.complete ? '✓' : '○'}
+                </span>
+                {check.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       <div className="space-y-8">
         {/* Basic Profile Information */}

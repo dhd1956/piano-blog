@@ -5,12 +5,13 @@
  * Allows new users to create an account with username/password
  */
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function SignupPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -18,10 +19,19 @@ export default function SignupPage() {
     email: '',
     displayName: '',
   })
+  const [referralCode, setReferralCode] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Read referral code from URL query parameter
+  useEffect(() => {
+    const refParam = searchParams.get('ref')
+    if (refParam) {
+      setReferralCode(refParam)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,6 +66,7 @@ export default function SignupPage() {
           password: formData.password,
           email: formData.email || undefined,
           displayName: formData.displayName || undefined,
+          referralCode: referralCode || undefined,
         }),
       })
 
@@ -88,6 +99,34 @@ export default function SignupPage() {
               Join the community and start building your musician profile
             </p>
           </div>
+
+          {referralCode && (
+            <div className="mb-6 rounded-lg border border-green-300 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="h-5 w-5 text-green-600 dark:text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+                <div>
+                  <p className="font-semibold text-green-800 dark:text-green-300">
+                    You've been invited!
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    Referral code: <span className="font-mono font-semibold">{referralCode}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-200">
