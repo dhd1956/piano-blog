@@ -11,7 +11,11 @@ import { UserRole } from '@prisma/client'
 import { z } from 'zod'
 
 const createUserSchema = z.object({
-  username: z.string().min(3).max(50),
+  username: z
+    .string()
+    .min(3)
+    .max(50)
+    .transform((val) => val.toLowerCase()), // Normalize to lowercase
   password: z.string().min(6),
   role: z.enum([UserRole.CURATOR, UserRole.VALIDATOR, UserRole.SCOUT]),
   email: z.string().email().optional(),
@@ -120,6 +124,10 @@ export async function POST(request: NextRequest) {
 
     const { username, password, role, email, displayName } = validation.data
 
+    // Preserve original username case for displayName if not provided
+    const originalUsername = body.username
+    const finalDisplayName = displayName || originalUsername
+
     // Check if username already exists
     const existingUser = await prisma.user.findUnique({
       where: { username },
@@ -160,11 +168,11 @@ export async function POST(request: NextRequest) {
     // Create user
     const newUser = await prisma.user.create({
       data: {
-        username,
+        username, // Normalized to lowercase
         passwordHash,
         role,
         email,
-        displayName: displayName || username,
+        displayName: finalDisplayName, // Preserves original case
         createdBy: user.username || user.walletAddress || 'blog-owner',
         isActive: true,
       },

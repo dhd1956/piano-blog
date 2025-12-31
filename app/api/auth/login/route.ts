@@ -13,7 +13,10 @@ const GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000
 
 // Validation schemas
 const usernameLoginSchema = z.object({
-  username: z.string().min(3),
+  username: z
+    .string()
+    .min(3)
+    .transform((val) => val.toLowerCase()), // Normalize to lowercase
   password: z.string().min(6),
 })
 

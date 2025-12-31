@@ -17,7 +17,8 @@ const signupSchema = z.object({
     .max(50)
     .regex(/^[a-zA-Z0-9_-]+$/, {
       message: 'Username can only contain letters, numbers, hyphens, and underscores',
-    }),
+    })
+    .transform((val) => val.toLowerCase()), // Normalize to lowercase for case-insensitive usernames
   password: z.string().min(6),
   email: z.string().email().optional(),
   displayName: z.string().max(100).optional(),
@@ -42,6 +43,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { username, password, email, displayName, referralCode } = validation.data
+
+    // Preserve original username case for displayName if not provided
+    const originalUsername = body.username // Original case before transform
+    const finalDisplayName = displayName || originalUsername
 
     // Validate referral code if provided
     let referrer: { id: number; referralCode: string | null; displayName: string | null } | null =
@@ -98,10 +103,10 @@ export async function POST(request: NextRequest) {
     // Create user with referral tracking
     const newUser = await prisma.user.create({
       data: {
-        username,
+        username, // Normalized to lowercase
         passwordHash,
         email,
-        displayName: displayName || username,
+        displayName: finalDisplayName, // Preserves original case
         role: UserRole.SCOUT, // Default role for new users
         isActive: true,
         publicProfile: true, // Default to public profile
