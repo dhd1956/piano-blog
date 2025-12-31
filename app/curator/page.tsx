@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useWallet } from '@/hooks/useWallet'
-import { usePermissions } from '@/components/web3/WorkingWeb3Provider'
-import WalletConnection from '@/components/web3/WalletConnection'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,9 +41,12 @@ const VENUE_TYPES = [
 ]
 
 export default function CuratorDashboard() {
-  const { isConnected, walletAddress, connect } = useWallet()
+  const router = useRouter()
 
-  const { role, isBlogOwner, isCurator, canAccessCurator } = usePermissions()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   const [venues, setVenues] = useState<Venue[]>([])
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null)
@@ -83,6 +85,46 @@ export default function CuratorDashboard() {
     },
     ambiance: [] as string[],
   })
+
+  // Check authentication and authorization
+  const checkAuth = async () => {
+    try {
+      setAuthLoading(true)
+
+      // Check if user is authenticated and has proper role
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        setIsAuthenticated(false)
+        setIsAuthorized(false)
+        setAuthLoading(false)
+        return
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.user) {
+        setIsAuthenticated(true)
+        setCurrentUser(data.user)
+
+        // Check if user has curator or blog owner role
+        const hasAccess = data.user.role === 'BLOG_OWNER' || data.user.role === 'CURATOR'
+
+        setIsAuthorized(hasAccess)
+      } else {
+        setIsAuthenticated(false)
+        setIsAuthorized(false)
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      setIsAuthenticated(false)
+      setIsAuthorized(false)
+    } finally {
+      setAuthLoading(false)
+    }
+  }
 
   // Load venues from PostgreSQL (simplified for curator dashboard)
   const loadVenues = async () => {
@@ -153,7 +195,7 @@ export default function CuratorDashboard() {
 
   // Handle venue verification (PostgreSQL)
   const handleVerifyVenue = async (venueId: number, approved: boolean) => {
-    if (!canAccessCurator) {
+    if (!isAuthorized) {
       setError('You are not authorized to verify venues')
       return
     }
@@ -168,14 +210,15 @@ export default function CuratorDashboard() {
       setError('')
       setLoading(true)
 
-      console.log('🎯 Verifying venue:', { venueId, approved, walletAddress })
+      console.log('🎯 Verifying venue:', { venueId, approved })
 
-      // Call PUT API to update verified status with wallet auth
-      const response = await fetch(`/api/venues/${venueId}?address=${walletAddress}`, {
+      // Call PUT API to update verified status with session auth
+      const response = await fetch(`/api/venues/${venueId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include session cookie
         body: JSON.stringify({
           verified: approved,
           rejectionReason: !approved ? verificationNotes : undefined, // Only send for rejections
@@ -205,7 +248,7 @@ export default function CuratorDashboard() {
 
   // Handle venue deletion
   const handleDeleteVenue = async () => {
-    if (!selectedVenue || !canAccessCurator) {
+    if (!selectedVenue || !isAuthorized) {
       setError('Not authorized to delete venues')
       return
     }
@@ -265,7 +308,7 @@ export default function CuratorDashboard() {
 
   // Handle venue update (PostgreSQL)
   const handleUpdateVenue = async () => {
-    if (!selectedVenue || !canAccessCurator) {
+    if (!selectedVenue || !isAuthorized) {
       setError('Not authorized to update venues')
       return
     }
@@ -286,12 +329,13 @@ export default function CuratorDashboard() {
         hasPiano: editForm.hasPiano,
       })
 
-      // Call PUT API to update venue in PostgreSQL with wallet authentication
-      const response = await fetch(`/api/venues/${selectedVenue.id}?address=${walletAddress}`, {
+      // Call PUT API to update venue in PostgreSQL with session authentication
+      const response = await fetch(`/api/venues/${selectedVenue.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include session cookie
         body: JSON.stringify({
           name: editForm.name,
           contactInfo: editForm.contactInfo,
@@ -427,12 +471,17 @@ export default function CuratorDashboard() {
     setIsEditing(true)
   }
 
-  // Load venues when connected and authorized
+  // Check authentication on mount
   useEffect(() => {
-    if (canAccessCurator) {
+    checkAuth()
+  }, [])
+
+  // Load venues when authorized
+  useEffect(() => {
+    if (isAuthenticated && isAuthorized) {
       loadVenues()
     }
-  }, [canAccessCurator])
+  }, [isAuthenticated, isAuthorized])
 
   // Clear messages after delay
   useEffect(() => {
@@ -442,67 +491,77 @@ export default function CuratorDashboard() {
     }
   }, [successMessage])
 
-  // Not connected - show connection prompt
-  if (!isConnected) {
+  // Loading authentication
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-12">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-8 text-3xl font-bold text-gray-900">🎹 Curator Dashboard</h1>
-          <p className="mb-8 text-gray-600">
-            Connect your wallet to access curator tools for venue verification and management.
-          </p>
-          <div className="mx-auto max-w-sm">
-            <WalletConnection size="lg" showNetworkStatus={true} />
-          </div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Checking authentication...</p>
         </div>
       </div>
     )
   }
 
-  // Connected but not authorized
-  if (!canAccessCurator) {
-    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
+  // Not authenticated - show login prompt
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-12">
+        <div className="mx-auto max-w-4xl text-center">
+          <h1 className="mb-8 text-3xl font-bold text-gray-900">🎹 Curator Dashboard</h1>
+          <p className="mb-8 text-gray-600">
+            Please log in with your username and password to access curator tools.
+          </p>
+          <Link
+            href="/auth/login?redirect=/curator"
+            className="inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+          >
+            Log In
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
+  // Authenticated but not authorized (wrong role)
+  if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-12">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-8 text-3xl font-bold text-gray-900">🚫 Not Authorized</h1>
           <p className="mb-8 text-gray-600">
-            Your wallet ({walletAddress?.substring(0, 8)}...) is not authorized as a curator. Only
-            the blog owner can access curator tools.
+            Your account ({currentUser?.username}) does not have curator or blog owner permissions.
           </p>
 
           <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-sm">
-            <h3 className="mb-4 font-semibold">Authorization Status:</h3>
+            <h3 className="mb-4 font-semibold">Account Details:</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span>Your Address:</span>
-                <code className="text-xs">{walletAddress?.substring(0, 12)}...</code>
+                <span>Username:</span>
+                <code className="text-xs">{currentUser?.username}</code>
               </div>
               <div className="flex justify-between">
-                <span>Blog Owner:</span>
-                <code className="text-xs">{blogOwnerAddress?.substring(0, 12)}...</code>
+                <span>Role:</span>
+                <code className="text-xs">{currentUser?.role}</code>
               </div>
               <div className="flex justify-between">
-                <span>Match:</span>
-                <span
-                  className={
-                    walletAddress?.toLowerCase() === blogOwnerAddress?.toLowerCase()
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }
-                >
-                  {walletAddress?.toLowerCase() === blogOwnerAddress?.toLowerCase() ? 'YES' : 'NO'}
-                </span>
+                <span>Required Role:</span>
+                <code className="text-xs">CURATOR or BLOG_OWNER</code>
               </div>
             </div>
           </div>
 
           <div className="mt-8">
             <p className="mb-4 text-sm text-gray-600">
-              If you should have access, please ensure you're connected with the correct wallet.
+              Contact the blog owner if you believe you should have access.
             </p>
-            <WalletConnection showFullAddress={true} showNetworkStatus={true} />
+            <Link
+              href="/"
+              className="inline-block rounded-lg bg-gray-600 px-6 py-3 text-white hover:bg-gray-700"
+            >
+              Return Home
+            </Link>
           </div>
         </div>
       </div>
@@ -523,34 +582,19 @@ export default function CuratorDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <WalletConnection
-              showFullAddress={false}
-              showNetworkStatus={true}
-              showPermissions={true}
-            />
+            <div className="rounded-lg bg-white px-4 py-2 text-sm shadow-sm">
+              <span className="text-gray-600">Logged in as:</span>{' '}
+              <span className="font-semibold">{currentUser?.username}</span>
+              <span className="ml-2 rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                {currentUser?.role}
+              </span>
+            </div>
             <button
               onClick={loadVenues}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
             >
               🔄 Refresh Venues
             </button>
-          </div>
-        </div>
-
-        {/* Debug: Permission Status */}
-        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <div className="text-sm">
-            <div className="mb-2 font-semibold text-blue-900">🔍 Permission Debug:</div>
-            <div className="space-y-1 font-mono text-xs text-blue-800">
-              <div>Connected Wallet: {walletAddress || 'None'}</div>
-              <div>
-                Blog Owner Address: {process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS || 'Not Set'}
-              </div>
-              <div>User Role: {role || 'SCOUT'}</div>
-              <div>Is Blog Owner: {isBlogOwner ? '✅ YES' : '❌ NO'}</div>
-              <div>Is Curator: {isCurator ? '✅ YES' : '❌ NO'}</div>
-              <div>Can Access Curator: {canAccessCurator ? '✅ YES' : '❌ NO'}</div>
-            </div>
           </div>
         </div>
 
@@ -1195,7 +1239,7 @@ export default function CuratorDashboard() {
                       >
                         ✏️ Edit Info
                       </button>
-                      {isBlogOwner && (
+                      {currentUser?.role === 'BLOG_OWNER' && (
                         <button
                           onClick={handleDeleteVenue}
                           className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
