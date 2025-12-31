@@ -144,13 +144,20 @@ export async function PATCH(
     }
 
     // Look up the requester user by wallet/username/ID
+    // Build OR conditions - only include id if it's a valid positive integer (not a hex address)
+    const isValidId = /^\d+$/.test(requesterIdentifier)
+    const orConditions: any[] = [
+      { walletAddress: { equals: requesterIdentifier, mode: 'insensitive' } },
+      { username: { equals: requesterIdentifier, mode: 'insensitive' } },
+    ]
+
+    if (isValidId) {
+      orConditions.push({ id: Number(requesterIdentifier) })
+    }
+
     const requesterUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { walletAddress: { equals: requesterIdentifier, mode: 'insensitive' } },
-          { username: { equals: requesterIdentifier, mode: 'insensitive' } },
-          { id: isNaN(Number(requesterIdentifier)) ? undefined : Number(requesterIdentifier) },
-        ],
+        OR: orConditions,
       },
     })
 
