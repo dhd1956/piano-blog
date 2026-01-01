@@ -297,6 +297,7 @@ export default function PXPConfigPage() {
   )
 
   const categoryLabels: Record<string, string> = {
+    onboarding: 'Onboarding Rewards',
     referral: 'Referral Rewards',
     youtube: 'YouTube Rewards',
     event: 'Event Participation',

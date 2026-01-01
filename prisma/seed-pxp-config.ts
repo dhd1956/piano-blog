@@ -8,6 +8,16 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 const initialPXPConfig = [
+  // Onboarding Rewards
+  {
+    key: 'wallet_connection',
+    value: 100,
+    label: 'Onboarding: Welcome Reward',
+    description: 'PXP earned when connecting wallet for the first time',
+    category: 'onboarding',
+    enabled: true,
+  },
+
   // Referral Rewards
   {
     key: 'referral_profile_created',

@@ -46,6 +46,48 @@ export async function POST(request: NextRequest) {
       // For wallet-based auth, we just upsert the user (creates if doesn't exist)
       const user = await upsertWalletUser(validation.data.walletAddress)
 
+      // Check if this is a new wallet user (never earned PXP before)
+      const fullUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          totalCAVEarned: true,
+          firstPXPEarnedAt: true,
+        },
+      })
+
+      let showWelcomeReward = false
+      let welcomePXP = 0
+
+      if (fullUser && fullUser.totalCAVEarned === 0 && !fullUser.firstPXPEarnedAt) {
+        // This is a brand new wallet user - award welcome reward
+        try {
+          // Get welcome reward amount from PXP config
+          const welcomeConfig = await prisma.pXPConfig.findUnique({
+            where: { key: 'wallet_connection' },
+            select: { value: true, enabled: true },
+          })
+
+          welcomePXP = welcomeConfig && welcomeConfig.enabled ? welcomeConfig.value : 100
+
+          // Award PXP
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              totalCAVEarned: { increment: welcomePXP },
+              firstPXPEarnedAt: new Date(),
+            },
+          })
+
+          showWelcomeReward = true
+          console.log(
+            `✅ Awarded ${welcomePXP} PXP welcome reward to new wallet user ${user.walletAddress}`
+          )
+        } catch (pxpError) {
+          console.error('Error awarding welcome PXP:', pxpError)
+          // Don't fail login if PXP awarding fails
+        }
+      }
+
       const token = await generateToken(user)
 
       return NextResponse.json(
@@ -60,6 +102,8 @@ export async function POST(request: NextRequest) {
             displayName: user.displayName,
           },
           token,
+          showWelcomeReward,
+          welcomePXP,
         },
         {
           status: 200,
