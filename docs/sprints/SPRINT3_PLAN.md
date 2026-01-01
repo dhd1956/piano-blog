@@ -1,8 +1,9 @@
 # Sprint 3 - Planning Document
 
 **Created:** December 31, 2025
-**Status:** 📋 PLANNING
-**Target Start:** January 2026
+**Updated:** December 31, 2025
+**Status:** 🚀 IN PROGRESS
+**Started:** December 31, 2025
 **Estimated Duration:** 2-3 weeks
 
 ---
@@ -17,6 +18,43 @@ Sprint 3 focuses on **completing carryover items from Sprint 2** and **enhancing
 2. Enhance musician profiles with detailed fields
 3. Improve venue rejection workflows
 4. Build notification infrastructure
+
+---
+
+## Current Progress (Dec 31, 2025)
+
+**Sprint Status:** 🟡 20% Complete (2 of 10 stories)
+
+### Completed Stories ✅
+
+- **Story 1.1:** New User Welcome Reward (Backend)
+- **Story 1.2:** Scout Reward on Venue Verification (Backend)
+
+### In Progress 🔄
+
+- None currently
+
+### Pending ⏸️
+
+- **Story 1.3:** Pending Rewards Notification UI (Frontend)
+- **Epic 2:** Enhanced Musician Profiles (All stories)
+- **Epic 3:** Venue Rejection Workflow (All stories)
+- **Epic 4:** Notification Infrastructure (All stories)
+
+### Key Achievements
+
+- ✅ New wallet users automatically receive 100 PXP welcome reward
+- ✅ Scouts receive 75 PXP when submitted venues are verified
+- ✅ All rewards configurable via PXPConfig database table
+- ✅ 17 PXP earning actions now defined in system
+- ✅ Database tracks first PXP earned to prevent double-claiming
+
+### Technical Debt / Frontend TODOs
+
+- Celebration toast when user earns welcome reward
+- Notification UI when venue is verified
+- Real-time PXP balance updates in UI
+- Notification infrastructure (Epic 4 prerequisite)
 
 ---
 
@@ -77,7 +115,7 @@ Sprint 3 focuses on **completing carryover items from Sprint 2** and **enhancing
 
 **Goal:** Users automatically receive PXP rewards when triggering events occur
 
-#### Story 1.1: New User Welcome Reward
+#### Story 1.1: New User Welcome Reward ✅ COMPLETE
 
 **As a** new user connecting my wallet
 **I want to** automatically receive a welcome reward
@@ -85,24 +123,26 @@ Sprint 3 focuses on **completing carryover items from Sprint 2** and **enhancing
 
 **Acceptance Criteria:**
 
-- [ ] First-time wallet connection triggers 100 PXP reward
-- [ ] Database flag prevents double-claiming
-- [ ] Notification shows reward earned
-- [ ] Balance updates in real-time
+- [x] First-time wallet connection triggers 100 PXP reward
+- [x] Database flag prevents double-claiming (firstPXPEarnedAt check)
+- [ ] Notification shows reward earned (frontend TODO)
+- [ ] Balance updates in real-time (frontend TODO)
 
 **Implementation:**
 
-- Hook into wallet connection flow
-- Call PXP config to get reward amount
-- Update user's totalPXPEarned
-- Create notification record
-- Show celebration toast
+- ✅ Hook into wallet connection flow (login route)
+- ✅ Call PXP config to get reward amount (wallet_connection key)
+- ✅ Update user's totalPXPEarned
+- ⏸️ Create notification record (Epic 4)
+- ⏸️ Show celebration toast (frontend TODO)
 
 **Effort:** 1 day
+**Completed:** December 31, 2025
+**Commit:** 001bc7b
 
 ---
 
-#### Story 1.2: Scout Reward on Venue Verification
+#### Story 1.2: Scout Reward on Venue Verification ✅ COMPLETE
 
 **As a** scout who submitted a venue
 **I want to** receive PXP when my venue is verified
@@ -110,20 +150,22 @@ Sprint 3 focuses on **completing carryover items from Sprint 2** and **enhancing
 
 **Acceptance Criteria:**
 
-- [ ] Scout receives configurable PXP when venue approved
-- [ ] Notification sent to scout
-- [ ] Reward visible in transactions
-- [ ] Works for both wallet and email users
+- [x] Scout receives configurable PXP when venue approved (75 PXP)
+- [ ] Notification sent to scout (Epic 4)
+- [x] Reward visible in transactions (totalCAVEarned incremented)
+- [x] Works for both wallet and email users
 
 **Implementation:**
 
-- Update venue verification endpoint
-- Fetch scout reward from PXPConfig
-- Award PXP to submitter
-- Create notification
-- Send email notification
+- ✅ Update venue verification endpoint (PUT /api/venues/[id])
+- ✅ Fetch scout reward from PXPConfig (venue_verified key)
+- ✅ Award PXP to submitter (find by submittedBy wallet)
+- ⏸️ Create notification (Epic 4)
+- ⏸️ Send email notification (Epic 4)
 
 **Effort:** 1 day
+**Completed:** December 31, 2025
+**Commit:** d61ed2e
 
 ---
 
