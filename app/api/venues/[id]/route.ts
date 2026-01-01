@@ -146,9 +146,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.followUpNeeded !== undefined) updateData.followUpNeeded = body.followUpNeeded
 
     // Verification status (only curators and blog owner can change)
+    let isNewlyVerified = false
     if (body.verified !== undefined) {
       updateData.verified = body.verified
       if (body.verified === true) {
+        // Check if this is a NEW verification (wasn't verified before)
+        isNewlyVerified = !existingVenue.verified
+
         // Approved: set verifiedAt, clear rejection fields
         updateData.verifiedAt = new Date()
         updateData.rejectedAt = null
@@ -188,6 +192,50 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       where: { id: venueId },
       data: updateData,
     })
+
+    // Award PXP to scout if venue was newly verified
+    if (isNewlyVerified && existingVenue.submittedBy) {
+      try {
+        // Find the scout user by wallet address
+        const scoutUser = await prisma.user.findUnique({
+          where: { walletAddress: existingVenue.submittedBy.toLowerCase() },
+          select: { id: true, walletAddress: true, username: true, displayName: true },
+        })
+
+        if (scoutUser) {
+          // Get venue verification reward from PXP config
+          const verificationConfig = await prisma.pXPConfig.findUnique({
+            where: { key: 'venue_verified' },
+            select: { value: true, enabled: true },
+          })
+
+          const rewardAmount =
+            verificationConfig && verificationConfig.enabled ? verificationConfig.value : 75
+
+          // Award PXP to scout
+          await prisma.user.update({
+            where: { id: scoutUser.id },
+            data: {
+              totalCAVEarned: { increment: rewardAmount },
+              firstPXPEarnedAt: scoutUser.id ? undefined : new Date(), // Set if first time earning
+            },
+          })
+
+          console.log(
+            `✅ Awarded ${rewardAmount} PXP to scout ${scoutUser.walletAddress || scoutUser.username} for verified venue ${updatedVenue.name}`
+          )
+
+          // TODO: Create notification for scout (Sprint 3 Epic 4)
+        } else {
+          console.warn(
+            `Could not find user with wallet address ${existingVenue.submittedBy} to award venue verification PXP`
+          )
+        }
+      } catch (pxpError) {
+        console.error('Error awarding venue verification PXP:', pxpError)
+        // Don't fail the venue update if PXP awarding fails
+      }
+    }
 
     return NextResponse.json({
       venue: updatedVenue,

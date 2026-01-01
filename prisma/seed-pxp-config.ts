@@ -122,6 +122,14 @@ const initialPXPConfig = [
 
   // Community Contributions
   {
+    key: 'venue_verified',
+    value: 75,
+    label: 'Venue: Submission Verified',
+    description: 'PXP earned when your submitted venue is verified by a curator',
+    category: 'community',
+    enabled: true,
+  },
+  {
     key: 'venue_review',
     value: 15,
     label: 'Venue: Write Review',
