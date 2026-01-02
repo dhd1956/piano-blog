@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAppKit } from '@reown/appkit/react'
 
 interface WalletLinkingToastProps {
@@ -32,6 +32,16 @@ export default function WalletLinkingToast({
   const [isVisible, setIsVisible] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
 
+  const handleClose = useCallback(() => {
+    setIsExiting(true)
+    setTimeout(() => {
+      setIsVisible(false)
+      if (onClose) {
+        onClose()
+      }
+    }, 300) // Match animation duration
+  }, [onClose])
+
   useEffect(() => {
     // Animate in
     const timer = setTimeout(() => setIsVisible(true), 100)
@@ -45,17 +55,7 @@ export default function WalletLinkingToast({
       clearTimeout(timer)
       clearTimeout(dismissTimer)
     }
-  }, [autoHideDuration])
-
-  const handleClose = () => {
-    setIsExiting(true)
-    setTimeout(() => {
-      setIsVisible(false)
-      if (onClose) {
-        onClose()
-      }
-    }, 300) // Match animation duration
-  }
+  }, [autoHideDuration, handleClose])
 
   const handleLinkWallet = async () => {
     // Open Reown AppKit modal
