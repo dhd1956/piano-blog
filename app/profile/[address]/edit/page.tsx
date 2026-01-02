@@ -660,7 +660,7 @@ export default function ProfileEditPage() {
                 onChange={(e) => setAvailableForGigs(e.target.checked)}
                 className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600"
               />
-              <span className="text-gray-700">Available for gigs</span>
+              <span className="text-gray-700">Available for Paid Gigs</span>
             </label>
 
             <label className="flex items-center">

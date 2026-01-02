@@ -576,7 +576,7 @@ export default function ProfilePage() {
                   {musicianProfile.availableForGigs && (
                     <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
                       <span className="text-green-600">✓</span>
-                      Available for Gigs
+                      Available for Paid Gigs
                     </span>
                   )}
                   {musicianProfile.availableForCollab && (
