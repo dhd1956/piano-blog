@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         totalReferrals: user.referralCount,
         totalPXPEarned: user.referralPXPEarned,
         shareUrl: user.referralCode
-          ? `${process.env.NEXT_PUBLIC_APP_URL}/signup?ref=${user.referralCode}`
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?ref=${user.referralCode}`
           : null,
       },
       referrals: user.referrals,
