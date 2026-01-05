@@ -10,7 +10,7 @@ const prisma = new PrismaClient()
 
 async function resetPassword() {
   try {
-    const username = 'daved'
+    const username = 'borkmal'
     const newPassword = process.argv[2]
 
     if (!newPassword) {
@@ -27,7 +27,7 @@ async function resetPassword() {
     // Find user
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ username: username }, { email: 'davedavies@ymail.com' }],
+        OR: [{ username: username }, { email: 'mal.davies14@gmail.com' }],
       },
     })
 

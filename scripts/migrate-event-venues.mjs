@@ -28,33 +28,18 @@ async function migrateEventVenues() {
       return
     }
 
-    // Step 2: Create TBD fallback venue if it doesn't exist
-    console.log('Creating TBD fallback venue...')
-    const tbdVenue = await prisma.venue.upsert({
-      where: { slug: 'tbd-location' },
-      update: {},
-      create: {
-        name: 'TBD - Location Not Specified',
-        city: 'Unknown',
-        contactInfo: 'system@pianoblog.local',
-        contactType: 'email',
-        address: '',
-        slug: 'tbd-location',
-        hasPiano: false,
-        hasJamSession: false,
-        venueType: 0,
-        verified: true,
-        description: 'Placeholder for events without location information',
-        submittedBy: 'system-migration',
-      },
-    })
-    console.log(`✅ TBD venue ready (ID: ${tbdVenue.id})\n`)
+    // Step 2: TBD fallback venue creation removed
+    // Events without venues should be handled differently or deleted
+    // If you need a fallback, create it manually and update this script
+    console.log('⚠️  Note: TBD fallback venue not created automatically\n')
+    console.log('   Events without valid venues will need manual attention\n')
 
     // Step 3: For events with custom locations, try to find matching venues or create them
     const venuesCreated = []
+    const eventsSkipped = []
 
     for (const event of eventsWithoutVenue) {
-      let venueId = tbdVenue.id // Default to TBD venue
+      let venueId = null // No default fallback venue
 
       if (event.customLocation) {
         // Try to find existing venue with this name
@@ -110,19 +95,25 @@ async function migrateEventVenues() {
         }
       }
 
-      // Step 4: Update event with venueId
-      await prisma.event.update({
-        where: { id: event.id },
-        data: { venueId },
-      })
-      console.log(`✅ Updated event "${event.title}" with venue ID ${venueId}`)
+      // Step 4: Update event with venueId (or skip if no venue found)
+      if (venueId) {
+        await prisma.event.update({
+          where: { id: event.id },
+          data: { venueId },
+        })
+        console.log(`✅ Updated event "${event.title}" with venue ID ${venueId}`)
+      } else {
+        console.log(`⚠️  Skipped event "${event.title}" - no venue information available`)
+        eventsSkipped.push(event)
+      }
     }
 
     console.log('\n' + '─'.repeat(80))
     console.log('\n📊 Migration Summary:')
-    console.log(`   Events migrated: ${eventsWithoutVenue.length}`)
+    console.log(`   Events processed: ${eventsWithoutVenue.length}`)
+    console.log(`   Events migrated: ${eventsWithoutVenue.length - eventsSkipped.length}`)
+    console.log(`   Events skipped: ${eventsSkipped.length}`)
     console.log(`   New venues created: ${venuesCreated.length}`)
-    console.log(`   TBD fallback venue used: ${tbdVenue.id}`)
 
     // Step 5: Verify migration
     const remainingNullVenues = await prisma.event.count({
