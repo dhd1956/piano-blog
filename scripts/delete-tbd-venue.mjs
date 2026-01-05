@@ -8,10 +8,7 @@ async function deleteTBDVenue() {
 
     const tbdVenue = await prisma.venue.findFirst({
       where: {
-        OR: [
-          { slug: 'tbd-location' },
-          { name: 'TBD - Location Not Specified' },
-        ],
+        OR: [{ slug: 'tbd-location' }, { name: 'TBD - Location Not Specified' }],
       },
       include: {
         events: {
