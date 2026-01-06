@@ -33,7 +33,7 @@ export interface VenueQRCardProps {
 }
 
 const APP_DESCRIPTION =
-  'Discover piano-friendly venues and connect with the piano community. Scan to explore, share experiences, and earn PXP tokens!'
+  'Discover piano-friendly venues and connect with the global piano community. Scan to explore, share experiences, and earn PXP tokens!'
 
 export default function VenueQRCard({
   venueData,
@@ -69,7 +69,7 @@ export default function VenueQRCard({
     const baseUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/venues/${venueData.slug}`
-        : `https://pianostyle.app/venues/${venueData.slug}`
+        : `https://GlobalPiano.Network/venues/${venueData.slug}`
 
     const qrData: VenueQRData = {
       type: 'venue',
@@ -366,7 +366,7 @@ function VenueQRCardContent({
       {/* Footer/Branding */}
       {theme.showBranding && (
         <div className="mt-4 border-t pt-2 text-center text-xs opacity-70">
-          PianoStyle.app - Discover Piano Venues
+          GlobalPiano.Network - Discover Piano Venues
         </div>
       )}
     </div>

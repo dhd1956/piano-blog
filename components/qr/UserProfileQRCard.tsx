@@ -35,7 +35,7 @@ export interface UserProfileQRCardProps {
 }
 
 const PROFILE_DESCRIPTION =
-  'Connect with me on PianoStyle! Scan to view my profile, venues discovered, and piano journey.'
+  'Connect with me on GlobalPiano.Network! Scan to view my profile, venues discovered, and piano journey.'
 
 export default function UserProfileQRCard({
   userData,
@@ -142,7 +142,7 @@ export default function UserProfileQRCard({
     const baseUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/profile/${profileIdentifier}`
-        : `https://pianostyle.app/profile/${profileIdentifier}`
+        : `https://GlobalPiano.Network/profile/${profileIdentifier}`
 
     const qrData: UserProfileQRData = {
       type: 'user',
@@ -394,7 +394,7 @@ function UserProfileQRCardContent({
       {/* Header */}
       <div className="mb-4 text-center">
         <h2 className="text-xl font-bold" style={{ color: theme.primaryColor }}>
-          {userData.displayName || userData.username || 'PianoStyle User'}
+          {userData.displayName || userData.username || 'GlobalPiano User'}
         </h2>
         {userData.title && (
           <p className="text-sm font-medium" style={{ color: theme.secondaryColor }}>
@@ -489,7 +489,7 @@ function UserProfileQRCardContent({
       {/* Footer/Branding */}
       {theme.showBranding && (
         <div className="mt-4 border-t pt-2 text-center text-xs opacity-70">
-          PianoStyle.app - Piano Community
+          GlobalPiano.Network - Piano Community
         </div>
       )}
     </div>

@@ -234,7 +234,7 @@ export interface QRCodeAnalytics {
 
 // Deep link format
 export type DeepLinkFormat = {
-  scheme: string // e.g., 'pianostyle://'
+  scheme: string // e.g., 'globalpiano://'
   host: string // e.g., 'venue' or 'user'
   path: string // e.g., '/slug' or '/address'
   params?: Record<string, string> // Query parameters
@@ -247,7 +247,7 @@ export function generateDeepLink(data: VenueQRData | UserProfileQRData): string 
     if (data.payment?.amount) {
       params.set('payment', data.payment.amount.toString())
     }
-    return `pianostyle://venue/${data.data.slug}${params.toString() ? '?' + params.toString() : ''}`
+    return `globalpiano://venue/${data.data.slug}${params.toString() ? '?' + params.toString() : ''}`
   } else {
     // data.type === 'user'
     const params = new URLSearchParams()
@@ -257,14 +257,14 @@ export function generateDeepLink(data: VenueQRData | UserProfileQRData): string 
     if (data.payment?.amount) {
       params.set('payment', data.payment.amount.toString())
     }
-    return `pianostyle://user/${data.data.walletAddress}${params.toString() ? '?' + params.toString() : ''}`
+    return `globalpiano://user/${data.data.walletAddress}${params.toString() ? '?' + params.toString() : ''}`
   }
 }
 
 export function parseDeepLink(url: string): DeepLinkFormat | null {
   try {
     const urlObj = new URL(url)
-    if (urlObj.protocol !== 'pianostyle:') {
+    if (urlObj.protocol !== 'globalpiano:') {
       return null
     }
 
