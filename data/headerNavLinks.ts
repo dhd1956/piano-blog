@@ -28,6 +28,7 @@ const headerNavLinks: NavGroup[] = [
       { href: '/venues', title: 'Venues' },
       { href: '/musicians', title: 'Musicians' },
       { href: '/events', title: 'Events' },
+      { href: '/leaderboard', title: 'Leaderboard' },
       { href: '/referrals', title: 'Referrals' },
       { href: '/submit', title: 'Submit Venue' },
       { href: '/community/dashboard', title: 'Dashboard' },
