@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getSessionUser } from '@/lib/auth-middleware'
-import type { LeaderboardResponse, LeaderboardEntry } from '@/types/leaderboard'
+import type { LeaderboardResponse, LeaderboardEntry, CurrentUserRank } from '@/types/leaderboard'
 
 /**
  * GET /api/leaderboard
@@ -97,21 +97,9 @@ export async function GET(request: NextRequest) {
     }))
 
     // Get current user's rank if authenticated
-    let currentUser = undefined
+    let currentUser: CurrentUserRank | undefined = undefined
     if (sessionUser?.id) {
-      // Get user's rank
-      const usersAhead = await prisma.user.count({
-        where: {
-          publicProfile: true,
-          showPXPBalance: true,
-          totalCAVEarned: {
-            gt: sessionUser.totalCAVEarned || 0,
-          },
-        },
-      })
-      const rank = usersAhead + 1
-
-      // Get user's data
+      // Get user's data first
       const userData = await prisma.user.findUnique({
         where: { id: sessionUser.id },
         select: {
@@ -128,6 +116,18 @@ export async function GET(request: NextRequest) {
       })
 
       if (userData) {
+        // Get user's rank by counting users with more PXP
+        const usersAhead = await prisma.user.count({
+          where: {
+            publicProfile: true,
+            showPXPBalance: true,
+            totalCAVEarned: {
+              gt: userData.totalCAVEarned,
+            },
+          },
+        })
+        const rank = usersAhead + 1
+
         const userVenueCount = await prisma.venue.count({
           where: { submittedBy: userData.walletAddress || '' },
         })
