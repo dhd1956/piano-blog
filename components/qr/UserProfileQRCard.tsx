@@ -186,41 +186,73 @@ export default function UserProfileQRCard({
 
   // Convert to print-friendly data URL
   const handleExport = async (format: 'png' | 'pdf') => {
-    if (!cardRef.current) return
+    if (!cardRef.current) {
+      console.error('Card reference not available')
+      alert('QR card not ready. Please try again.')
+      return
+    }
 
     try {
+      console.log('Starting profile QR code export...')
       // Dynamically import html2canvas to reduce bundle size
       const html2canvas = (await import('html2canvas')).default
+      console.log('html2canvas loaded successfully')
 
       // Capture the card as a canvas at high resolution
       const canvas = await html2canvas(cardRef.current, {
         scale: 3, // 3x resolution for better quality
         backgroundColor: config.theme.backgroundColor,
-        logging: false,
+        logging: true, // Enable logging for debugging
         useCORS: true,
+        allowTaint: true, // Allow cross-origin images
+        foreignObjectRendering: false, // Better compatibility
+        imageTimeout: 15000, // Wait up to 15s for images to load
       })
 
+      console.log('Canvas created:', canvas.width, 'x', canvas.height)
+
       // Convert to blob
-      canvas.toBlob((blob) => {
-        if (!blob) return
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            console.error('Failed to create blob from canvas')
+            alert('Failed to create image. Please try again.')
+            return
+          }
 
-        // Create download link
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        const username = userData.username || userData.walletAddress.slice(0, 8)
-        link.download = `${username}-profile-qr-${config.layout}.${format}`
-        link.href = url
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
+          console.log('Blob created successfully, size:', blob.size, 'bytes')
 
-        // Call optional callback
-        onExport?.(url)
-      }, `image/${format}`)
+          // Create download link
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          const username = userData.username || userData.walletAddress.slice(0, 8)
+          link.download = `${username}-profile-qr-${config.layout}.${format}`
+          link.href = url
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+
+          console.log('Download triggered successfully')
+
+          // Call optional callback
+          onExport?.(url)
+        },
+        `image/${format}`,
+        0.95
+      ) // 95% quality
     } catch (error) {
       console.error('Failed to export QR code:', error)
-      alert('Failed to download QR code. Please try again.')
+      if (error instanceof Error) {
+        console.error('Error name:', error.name)
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+        alert(
+          `Failed to download QR code: ${error.message}\n\nPlease check the browser console for more details.`
+        )
+      } else {
+        alert('Failed to download QR code. Please check the browser console for details.')
+      }
     }
   }
 
