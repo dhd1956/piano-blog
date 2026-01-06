@@ -188,10 +188,40 @@ export default function UserProfileQRCard({
   const handleExport = async (format: 'png' | 'pdf') => {
     if (!cardRef.current) return
 
-    // For now, we'll use html2canvas or similar library in production
-    // This is a placeholder for the export functionality
-    console.log('Exporting as', format)
-    onExport?.(deepLink)
+    try {
+      // Dynamically import html2canvas to reduce bundle size
+      const html2canvas = (await import('html2canvas')).default
+
+      // Capture the card as a canvas at high resolution
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 3, // 3x resolution for better quality
+        backgroundColor: config.theme.backgroundColor,
+        logging: false,
+        useCORS: true,
+      })
+
+      // Convert to blob
+      canvas.toBlob((blob) => {
+        if (!blob) return
+
+        // Create download link
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        const username = userData.username || userData.walletAddress.slice(0, 8)
+        link.download = `${username}-profile-qr-${config.layout}.${format}`
+        link.href = url
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        // Call optional callback
+        onExport?.(url)
+      }, `image/${format}`)
+    } catch (error) {
+      console.error('Failed to export QR code:', error)
+      alert('Failed to download QR code. Please try again.')
+    }
   }
 
   return (
