@@ -267,8 +267,21 @@ export default function UserProfileQRCard({
               if (value.includes('oklch')) {
                 oklchCount++
                 console.warn(`Found oklch in ${prop}:`, value)
-                // Set inline style with white/black fallback
-                const fallback = prop.includes('background') ? '#ffffff' : '#000000'
+
+                // Try to extract lightness from oklch(L C H) to preserve brightness
+                // oklch format: oklch(lightness chroma hue)
+                const oklchMatch = value.match(/oklch\(([\d.]+)/)
+                let fallback = '#000000'
+
+                if (oklchMatch) {
+                  const lightness = parseFloat(oklchMatch[1])
+                  // If lightness > 0.5, use white; otherwise black
+                  // This preserves the general brightness
+                  fallback = lightness > 0.5 ? '#ffffff' : '#000000'
+                } else if (prop.includes('background') || prop.includes('fill')) {
+                  fallback = '#ffffff'
+                }
+
                 el.style.setProperty(prop, fallback, 'important')
               } else if (value.includes('rgb')) {
                 rgbCount++
