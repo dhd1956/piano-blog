@@ -463,7 +463,7 @@ function VenueQRCardContent({
       {/* QR Code */}
       <div className="flex justify-center">
         <QRCodeGenerator
-          data={JSON.stringify(qrData)}
+          data={qrData.url}
           size={config.qrCodeSize || 150}
           errorCorrectionLevel={config.errorCorrectionLevel}
           color={theme.qrForegroundColor || '#000000'}
