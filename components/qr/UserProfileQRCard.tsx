@@ -239,7 +239,12 @@ export default function UserProfileQRCard({
         // Use onclone to convert oklch colors in the cloned DOM before rendering
         onclone: (clonedDoc, clonedElement) => {
           console.log('=== ONCLONE CALLBACK START ===')
-          console.log('Cloned element:', clonedElement)
+
+          // NUCLEAR OPTION: Remove all external stylesheets from cloned document
+          // This prevents html2canvas from reading oklch values from CSS files
+          const styleSheets = clonedDoc.querySelectorAll('link[rel="stylesheet"], style')
+          console.log(`Removing ${styleSheets.length} stylesheets from cloned document`)
+          styleSheets.forEach((sheet) => sheet.remove())
 
           // Get all elements in the cloned DOM
           const allElements = [
@@ -249,37 +254,58 @@ export default function UserProfileQRCard({
 
           console.log(`Processing ${allElements.length} elements...`)
 
-          let oklchCount = 0
-          let rgbCount = 0
+          // Apply inline styles based on current computed styles (before removing sheets)
+          // We need to capture these from the ORIGINAL document, not cloned
+          const originalElement = cardRef.current
+          if (originalElement) {
+            const allOriginalElements = [
+              originalElement,
+              ...Array.from(originalElement.querySelectorAll('*')),
+            ] as HTMLElement[]
 
-          allElements.forEach((el) => {
-            const computed = clonedDoc.defaultView?.getComputedStyle(el)
-            if (!computed) return
+            allOriginalElements.forEach((originalEl, index) => {
+              const clonedEl = allElements[index]
+              if (!clonedEl) return
 
-            // Check ALL computed style properties, not just specific ones
-            for (let i = 0; i < computed.length; i++) {
-              const prop = computed[i]
-              const value = computed.getPropertyValue(prop)
+              const computed = window.getComputedStyle(originalEl)
 
-              if (!value || value === 'none' || value === 'transparent' || value === 'inherit')
-                continue
+              // Copy critical styles as inline styles
+              const criticalProps = [
+                'color',
+                'backgroundColor',
+                'borderColor',
+                'borderTopColor',
+                'borderRightColor',
+                'borderBottomColor',
+                'borderLeftColor',
+                'fontSize',
+                'fontWeight',
+                'fontFamily',
+                'padding',
+                'margin',
+                'width',
+                'height',
+                'display',
+                'textAlign',
+              ]
 
-              if (value.includes('oklch')) {
-                oklchCount++
-                console.warn(`Found oklch in ${prop}:`, value)
-                // Don't set a fallback - just remove the property to use browser default
-                // This prevents us from incorrectly guessing the color
-                el.style.removeProperty(prop)
-              } else if (value.includes('rgb')) {
-                rgbCount++
-                // Only convert rgb to hex, don't use !important
-                const hex = rgbToHex(value)
-                el.style.setProperty(prop, hex)
-              }
-            }
-          })
+              criticalProps.forEach((prop) => {
+                let value = computed.getPropertyValue(prop)
+                if (!value || value === '' || value === 'none') return
 
-          console.log(`Converted ${oklchCount} oklch colors and ${rgbCount} rgb colors`)
+                // Convert oklch to white/black, rgb to hex
+                if (value.includes('oklch')) {
+                  value = prop.includes('background') ? '#ffffff' : '#000000'
+                  console.warn(`Converting oklch in ${prop} to ${value}`)
+                } else if (value.includes('rgb')) {
+                  value = rgbToHex(value)
+                }
+
+                clonedEl.style.setProperty(prop, value, 'important')
+              })
+            })
+          }
+
           console.log('=== ONCLONE CALLBACK END ===')
         },
       })
