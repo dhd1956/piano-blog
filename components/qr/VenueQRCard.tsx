@@ -68,8 +68,8 @@ export default function VenueQRCard({
   const generateQRData = (): VenueQRData => {
     const baseUrl =
       typeof window !== 'undefined'
-        ? `${window.location.origin}/venues/${venueData.slug}`
-        : `https://GlobalPiano.Network/venues/${venueData.slug}`
+        ? `${window.location.origin}/venueDetails/${venueData.id}`
+        : `https://GlobalPiano.Network/venueDetails/${venueData.id}`
 
     const qrData: VenueQRData = {
       type: 'venue',
