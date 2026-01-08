@@ -111,31 +111,44 @@ export default function VenueQRCard({
 
   // Helper to convert oklch/rgb colors to hex for html2canvas compatibility
   const convertColorsToHex = (element: HTMLElement) => {
-    const computedStyles = new Map<HTMLElement, { color?: string; backgroundColor?: string }>()
+    const computedStyles = new Map<HTMLElement, Record<string, string>>()
 
     // Get all elements
     const allElements = [element, ...Array.from(element.querySelectorAll('*'))] as HTMLElement[]
 
+    // CSS properties that can contain colors
+    const colorProperties = [
+      'color',
+      'backgroundColor',
+      'borderTopColor',
+      'borderRightColor',
+      'borderBottomColor',
+      'borderLeftColor',
+      'borderColor',
+      'outlineColor',
+      'textDecorationColor',
+      'fill',
+      'stroke',
+    ]
+
     // Store computed colors and apply hex equivalents
     allElements.forEach((el) => {
       const computed = window.getComputedStyle(el)
-      const color = computed.color
-      const bgColor = computed.backgroundColor
+      const savedStyles: Record<string, string> = {}
 
-      const styles: { color?: string; backgroundColor?: string } = {}
+      colorProperties.forEach((prop) => {
+        const value = computed.getPropertyValue(prop) || (computed as any)[prop]
 
-      if (color && (color.includes('oklch') || color.includes('rgb'))) {
-        styles.color = el.style.color
-        el.style.color = rgbToHex(color)
-      }
+        if (value && (value.includes('oklch') || value.includes('rgb'))) {
+          // Save original inline style
+          savedStyles[prop] = el.style.getPropertyValue(prop)
+          // Convert and apply hex color
+          el.style.setProperty(prop, rgbToHex(value))
+        }
+      })
 
-      if (bgColor && (bgColor.includes('oklch') || bgColor.includes('rgb'))) {
-        styles.backgroundColor = el.style.backgroundColor
-        el.style.backgroundColor = rgbToHex(bgColor)
-      }
-
-      if (Object.keys(styles).length > 0) {
-        computedStyles.set(el, styles)
+      if (Object.keys(savedStyles).length > 0) {
+        computedStyles.set(el, savedStyles)
       }
     })
 
@@ -143,16 +156,15 @@ export default function VenueQRCard({
   }
 
   // Helper to restore original styles
-  const restoreStyles = (
-    computedStyles: Map<HTMLElement, { color?: string; backgroundColor?: string }>
-  ) => {
+  const restoreStyles = (computedStyles: Map<HTMLElement, Record<string, string>>) => {
     computedStyles.forEach((styles, el) => {
-      if (styles.color !== undefined) {
-        el.style.color = styles.color
-      }
-      if (styles.backgroundColor !== undefined) {
-        el.style.backgroundColor = styles.backgroundColor
-      }
+      Object.entries(styles).forEach(([prop, value]) => {
+        if (value) {
+          el.style.setProperty(prop, value)
+        } else {
+          el.style.removeProperty(prop)
+        }
+      })
     })
   }
 
@@ -187,7 +199,7 @@ export default function VenueQRCard({
       return
     }
 
-    let styleBackup: Map<HTMLElement, { color?: string; backgroundColor?: string }> | null = null
+    let styleBackup: Map<HTMLElement, Record<string, string>> | null = null
 
     try {
       console.log('Starting QR code export...')
