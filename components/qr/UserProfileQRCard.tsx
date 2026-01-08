@@ -184,66 +184,7 @@ export default function UserProfileQRCard({
   const deepLink = generateDeepLink(qrData)
   const dimensions = QR_CARD_SIZES[config.layout]
 
-  // Helper to convert oklch/rgb colors to hex for html2canvas compatibility
-  const convertColorsToHex = (element: HTMLElement) => {
-    const computedStyles = new Map<HTMLElement, Record<string, string>>()
-
-    // Get all elements
-    const allElements = [element, ...Array.from(element.querySelectorAll('*'))] as HTMLElement[]
-
-    // CSS properties that can contain colors
-    const colorProperties = [
-      'color',
-      'backgroundColor',
-      'borderTopColor',
-      'borderRightColor',
-      'borderBottomColor',
-      'borderLeftColor',
-      'borderColor',
-      'outlineColor',
-      'textDecorationColor',
-      'fill',
-      'stroke',
-    ]
-
-    // Store computed colors and apply hex equivalents
-    allElements.forEach((el) => {
-      const computed = window.getComputedStyle(el)
-      const savedStyles: Record<string, string> = {}
-
-      colorProperties.forEach((prop) => {
-        const value = computed.getPropertyValue(prop) || (computed as any)[prop]
-
-        if (value && (value.includes('oklch') || value.includes('rgb'))) {
-          // Save original inline style
-          savedStyles[prop] = el.style.getPropertyValue(prop)
-          // Convert and apply hex color
-          el.style.setProperty(prop, rgbToHex(value))
-        }
-      })
-
-      if (Object.keys(savedStyles).length > 0) {
-        computedStyles.set(el, savedStyles)
-      }
-    })
-
-    return computedStyles
-  }
-
-  // Helper to restore original styles
-  const restoreStyles = (computedStyles: Map<HTMLElement, Record<string, string>>) => {
-    computedStyles.forEach((styles, el) => {
-      Object.entries(styles).forEach(([prop, value]) => {
-        if (value) {
-          el.style.setProperty(prop, value)
-        } else {
-          el.style.removeProperty(prop)
-        }
-      })
-    })
-  }
-
-  // Convert rgb(a) to hex
+  // Convert rgb(a) to hex (used in onclone callback)
   const rgbToHex = (color: string): string => {
     // Already hex
     if (color.startsWith('#')) return color
@@ -274,14 +215,8 @@ export default function UserProfileQRCard({
       return
     }
 
-    let styleBackup: Map<HTMLElement, Record<string, string>> | null = null
-
     try {
       console.log('Starting profile QR code export...')
-
-      // Convert oklch colors to hex before rendering
-      styleBackup = convertColorsToHex(cardRef.current)
-      console.log('Colors converted to hex for html2canvas compatibility')
 
       // Dynamically import html2canvas to reduce bundle size
       const html2canvas = (await import('html2canvas')).default
@@ -291,20 +226,58 @@ export default function UserProfileQRCard({
       const canvas = await html2canvas(cardRef.current, {
         scale: 3, // 3x resolution for better quality
         backgroundColor: config.theme.backgroundColor,
-        logging: false, // Disable logging now that we fixed the issue
+        logging: false,
         useCORS: true,
-        allowTaint: true, // Allow cross-origin images
-        foreignObjectRendering: false, // Better compatibility
-        imageTimeout: 15000, // Wait up to 15s for images to load
+        allowTaint: true,
+        foreignObjectRendering: false,
+        imageTimeout: 15000,
+        // Use onclone to convert oklch colors in the cloned DOM before rendering
+        onclone: (clonedDoc, clonedElement) => {
+          console.log('Converting oklch colors in cloned DOM...')
+
+          // Get all elements in the cloned DOM
+          const allElements = [
+            clonedElement,
+            ...Array.from(clonedElement.querySelectorAll('*')),
+          ] as HTMLElement[]
+
+          // Color properties to check
+          const colorProps = [
+            'color',
+            'backgroundColor',
+            'borderTopColor',
+            'borderRightColor',
+            'borderBottomColor',
+            'borderLeftColor',
+            'borderColor',
+            'outlineColor',
+            'textDecorationColor',
+            'fill',
+            'stroke',
+          ]
+
+          allElements.forEach((el) => {
+            const computed = clonedDoc.defaultView?.getComputedStyle(el)
+            if (!computed) return
+
+            colorProps.forEach((prop) => {
+              const value = computed.getPropertyValue(prop)
+              if (value && value.includes('oklch')) {
+                // Set inline style with rgb fallback (black)
+                el.style.setProperty(prop, '#000000', 'important')
+              } else if (value && value.includes('rgb')) {
+                // Convert rgb to hex
+                const hex = rgbToHex(value)
+                el.style.setProperty(prop, hex, 'important')
+              }
+            })
+          })
+
+          console.log('Color conversion complete')
+        },
       })
 
       console.log('Canvas created:', canvas.width, 'x', canvas.height)
-
-      // Restore original styles
-      if (styleBackup) {
-        restoreStyles(styleBackup)
-        styleBackup = null
-      }
 
       // Convert to blob
       canvas.toBlob(
@@ -337,11 +310,6 @@ export default function UserProfileQRCard({
         0.95
       ) // 95% quality
     } catch (error) {
-      // Restore styles if error occurred
-      if (styleBackup) {
-        restoreStyles(styleBackup)
-      }
-
       console.error('Failed to export QR code:', error)
       if (error instanceof Error) {
         console.error('Error name:', error.name)
