@@ -109,6 +109,76 @@ export default function VenueQRCard({
   const deepLink = generateDeepLink(qrData)
   const dimensions = QR_CARD_SIZES[config.layout]
 
+  // Helper to convert oklch/rgb colors to hex for html2canvas compatibility
+  const convertColorsToHex = (element: HTMLElement) => {
+    const computedStyles = new Map<HTMLElement, { color?: string; backgroundColor?: string }>()
+
+    // Get all elements
+    const allElements = [element, ...Array.from(element.querySelectorAll('*'))] as HTMLElement[]
+
+    // Store computed colors and apply hex equivalents
+    allElements.forEach((el) => {
+      const computed = window.getComputedStyle(el)
+      const color = computed.color
+      const bgColor = computed.backgroundColor
+
+      const styles: { color?: string; backgroundColor?: string } = {}
+
+      if (color && (color.includes('oklch') || color.includes('rgb'))) {
+        styles.color = el.style.color
+        el.style.color = rgbToHex(color)
+      }
+
+      if (bgColor && (bgColor.includes('oklch') || bgColor.includes('rgb'))) {
+        styles.backgroundColor = el.style.backgroundColor
+        el.style.backgroundColor = rgbToHex(bgColor)
+      }
+
+      if (Object.keys(styles).length > 0) {
+        computedStyles.set(el, styles)
+      }
+    })
+
+    return computedStyles
+  }
+
+  // Helper to restore original styles
+  const restoreStyles = (
+    computedStyles: Map<HTMLElement, { color?: string; backgroundColor?: string }>
+  ) => {
+    computedStyles.forEach((styles, el) => {
+      if (styles.color !== undefined) {
+        el.style.color = styles.color
+      }
+      if (styles.backgroundColor !== undefined) {
+        el.style.backgroundColor = styles.backgroundColor
+      }
+    })
+  }
+
+  // Convert rgb(a) to hex
+  const rgbToHex = (color: string): string => {
+    // Already hex
+    if (color.startsWith('#')) return color
+
+    // Parse oklch - fallback to black
+    if (color.includes('oklch')) {
+      console.warn('oklch color detected, using fallback', color)
+      return '#000000'
+    }
+
+    // Parse rgb/rgba
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/)
+    if (match) {
+      const r = parseInt(match[1])
+      const g = parseInt(match[2])
+      const b = parseInt(match[3])
+      return '#' + [r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')
+    }
+
+    return color // Return as-is if can't parse
+  }
+
   // Convert to print-friendly data URL
   const handleExport = async (format: 'png' | 'pdf') => {
     if (!cardRef.current) {
@@ -117,8 +187,15 @@ export default function VenueQRCard({
       return
     }
 
+    let styleBackup: Map<HTMLElement, { color?: string; backgroundColor?: string }> | null = null
+
     try {
       console.log('Starting QR code export...')
+
+      // Convert oklch colors to hex before rendering
+      styleBackup = convertColorsToHex(cardRef.current)
+      console.log('Colors converted to hex for html2canvas compatibility')
+
       // Dynamically import html2canvas to reduce bundle size
       const html2canvas = (await import('html2canvas')).default
       console.log('html2canvas loaded successfully')
@@ -127,7 +204,7 @@ export default function VenueQRCard({
       const canvas = await html2canvas(cardRef.current, {
         scale: 3, // 3x resolution for better quality
         backgroundColor: config.theme.backgroundColor,
-        logging: true, // Enable logging for debugging
+        logging: false, // Disable logging now that we fixed the issue
         useCORS: true,
         allowTaint: true, // Allow cross-origin images
         foreignObjectRendering: false, // Better compatibility
@@ -135,6 +212,12 @@ export default function VenueQRCard({
       })
 
       console.log('Canvas created:', canvas.width, 'x', canvas.height)
+
+      // Restore original styles
+      if (styleBackup) {
+        restoreStyles(styleBackup)
+        styleBackup = null
+      }
 
       // Convert to blob
       canvas.toBlob(
@@ -166,6 +249,11 @@ export default function VenueQRCard({
         0.95
       ) // 95% quality
     } catch (error) {
+      // Restore styles if error occurred
+      if (styleBackup) {
+        restoreStyles(styleBackup)
+      }
+
       console.error('Failed to export QR code:', error)
       if (error instanceof Error) {
         console.error('Error name:', error.name)
