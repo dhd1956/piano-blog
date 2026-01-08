@@ -66,10 +66,11 @@ export default function VenueQRCard({
 
   // Generate QR data
   const generateQRData = (): VenueQRData => {
+    const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const baseUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/venueDetails/${venueData.id}`
-        : `https://GlobalPiano.Network/venueDetails/${venueData.id}`
+        : `${APP_URL}/venueDetails/${venueData.id}`
 
     const qrData: VenueQRData = {
       type: 'venue',

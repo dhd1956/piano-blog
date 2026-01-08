@@ -47,11 +47,13 @@ export const celoSepolia: Chain = {
 export const networks = [celoSepolia, celo]
 
 // Metadata for your app (shown in wallet connection modals)
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
 export const metadata = {
-  name: 'Piano Style Blog',
-  description: 'Developing My Piano Style - A blog and venue discovery platform',
-  url: 'https://piano-blog.vercel.app',
-  icons: ['https://piano-blog.vercel.app/static/favicons/favicon.ico'],
+  name: 'GlobalPiano.Network',
+  description: 'Discover piano-friendly venues and connect with the global piano community',
+  url: APP_URL,
+  icons: [`${APP_URL}/static/favicons/favicon.ico`],
 }
 
 // Get paymaster configuration from environment

@@ -9,7 +9,7 @@ const siteMetadata = {
     'A global community for piano enthusiasts to discover venues, connect with musicians, and share the joy of piano',
   language: 'en-us',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
+  siteUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,

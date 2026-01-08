@@ -4,7 +4,7 @@ import LeaderboardTable from '@/components/leaderboard/LeaderboardTable'
 export const metadata: Metadata = {
   title: 'PXP Leaderboard | GlobalPiano.Network',
   description:
-    'See who has earned the most PXP points in the GlobalPiano.Network community. Track your progress and compete with other piano enthusiasts.',
+    'See who has earned the most PXP points in our piano community. Track your progress and compete with other piano enthusiasts.',
   openGraph: {
     title: 'PXP Leaderboard | GlobalPiano.Network',
     description: 'Top contributors ranked by PXP earned in the piano community',

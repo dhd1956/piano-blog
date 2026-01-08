@@ -35,7 +35,7 @@ export interface UserProfileQRCardProps {
 }
 
 const PROFILE_DESCRIPTION =
-  'Connect with me on GlobalPiano.Network! Scan to view my profile, venues discovered, and piano journey.'
+  'Connect with me! Scan to view my profile, venues discovered, and piano journey.'
 
 export default function UserProfileQRCard({
   userData,
@@ -138,11 +138,12 @@ export default function UserProfileQRCard({
 
   // Generate QR data
   const generateQRData = (): UserProfileQRData => {
+    const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const profileIdentifier = userData.profileSlug || userData.walletAddress
     const baseUrl =
       typeof window !== 'undefined'
         ? `${window.location.origin}/profile/${profileIdentifier}`
-        : `https://GlobalPiano.Network/profile/${profileIdentifier}`
+        : `${APP_URL}/profile/${profileIdentifier}`
 
     const qrData: UserProfileQRData = {
       type: 'user',
