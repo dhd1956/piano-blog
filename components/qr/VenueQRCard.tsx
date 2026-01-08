@@ -174,31 +174,20 @@ export default function VenueQRCard({
 
           console.log(`Processing ${allElements.length} elements...`)
 
-          // Color properties to check
-          const colorProps = [
-            'color',
-            'backgroundColor',
-            'borderTopColor',
-            'borderRightColor',
-            'borderBottomColor',
-            'borderLeftColor',
-            'borderColor',
-            'outlineColor',
-            'textDecorationColor',
-            'fill',
-            'stroke',
-          ]
-
           let oklchCount = 0
           let rgbCount = 0
 
-          allElements.forEach((el, index) => {
+          allElements.forEach((el) => {
             const computed = clonedDoc.defaultView?.getComputedStyle(el)
             if (!computed) return
 
-            colorProps.forEach((prop) => {
+            // Check ALL computed style properties, not just specific ones
+            for (let i = 0; i < computed.length; i++) {
+              const prop = computed[i]
               const value = computed.getPropertyValue(prop)
-              if (!value || value === 'none' || value === 'transparent') return
+
+              if (!value || value === 'none' || value === 'transparent' || value === 'inherit')
+                continue
 
               if (value.includes('oklch')) {
                 oklchCount++
@@ -212,7 +201,7 @@ export default function VenueQRCard({
                 const hex = rgbToHex(value)
                 el.style.setProperty(prop, hex, 'important')
               }
-            })
+            }
           })
 
           console.log(`Converted ${oklchCount} oklch colors and ${rgbCount} rgb colors`)
