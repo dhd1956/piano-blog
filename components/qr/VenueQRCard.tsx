@@ -147,24 +147,32 @@ export default function VenueQRCard({
       const html2canvas = (await import('html2canvas')).default
       console.log('html2canvas loaded successfully')
 
+      // Ensure backgroundColor is hex
+      const bgColor = config.theme.backgroundColor.startsWith('#')
+        ? config.theme.backgroundColor
+        : '#ffffff'
+
       // Capture the card as a canvas at high resolution
       const canvas = await html2canvas(cardRef.current, {
         scale: 3, // 3x resolution for better quality
-        backgroundColor: config.theme.backgroundColor,
-        logging: false,
+        backgroundColor: bgColor,
+        logging: true, // Enable logging to debug
         useCORS: true,
         allowTaint: true,
         foreignObjectRendering: false,
         imageTimeout: 15000,
         // Use onclone to convert oklch colors in the cloned DOM before rendering
         onclone: (clonedDoc, clonedElement) => {
-          console.log('Converting oklch colors in cloned DOM...')
+          console.log('=== ONCLONE CALLBACK START ===')
+          console.log('Cloned element:', clonedElement)
 
           // Get all elements in the cloned DOM
           const allElements = [
             clonedElement,
             ...Array.from(clonedElement.querySelectorAll('*')),
           ] as HTMLElement[]
+
+          console.log(`Processing ${allElements.length} elements...`)
 
           // Color properties to check
           const colorProps = [
@@ -181,16 +189,25 @@ export default function VenueQRCard({
             'stroke',
           ]
 
-          allElements.forEach((el) => {
+          let oklchCount = 0
+          let rgbCount = 0
+
+          allElements.forEach((el, index) => {
             const computed = clonedDoc.defaultView?.getComputedStyle(el)
             if (!computed) return
 
             colorProps.forEach((prop) => {
               const value = computed.getPropertyValue(prop)
-              if (value && value.includes('oklch')) {
-                // Set inline style with rgb fallback (black)
-                el.style.setProperty(prop, '#000000', 'important')
-              } else if (value && value.includes('rgb')) {
+              if (!value || value === 'none' || value === 'transparent') return
+
+              if (value.includes('oklch')) {
+                oklchCount++
+                console.warn(`Found oklch in ${prop}:`, value)
+                // Set inline style with white/black fallback
+                const fallback = prop.includes('background') ? '#ffffff' : '#000000'
+                el.style.setProperty(prop, fallback, 'important')
+              } else if (value.includes('rgb')) {
+                rgbCount++
                 // Convert rgb to hex
                 const hex = rgbToHex(value)
                 el.style.setProperty(prop, hex, 'important')
@@ -198,7 +215,8 @@ export default function VenueQRCard({
             })
           })
 
-          console.log('Color conversion complete')
+          console.log(`Converted ${oklchCount} oklch colors and ${rgbCount} rgb colors`)
+          console.log('=== ONCLONE CALLBACK END ===')
         },
       })
 
