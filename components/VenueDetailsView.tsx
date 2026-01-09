@@ -344,16 +344,39 @@ function ContactInformation({
   // Get contact information from different sources
   const address = venue.fullAddress || extendedData?.venueDetails?.fullAddress
 
-  // Determine email - only from contactInfo if contactType is 'email'
-  const email = venue.contactType === 'email' ? venue.contactInfo : null
+  // Helper function to detect if a string looks like a phone number
+  const looksLikePhone = (str: string | null): boolean => {
+    if (!str) return false
+    // Phone number pattern: contains digits, parentheses, dashes, spaces, or plus
+    const phonePattern = /^[\d\s\-()+.]+$/
+    const hasEnoughDigits = (str.match(/\d/g) || []).length >= 7
+    return phonePattern.test(str.trim()) && hasEnoughDigits
+  }
 
-  // Determine phone - from contactInfo if contactType is 'phone', otherwise from extended data
-  // BUT: if contactType is 'email' and contactInfo looks like a phone, don't show it as phone
+  // Determine email - only from contactInfo if contactType is 'email' AND it looks like an email
+  let email: string | null = null
+  if (venue.contactType === 'email' && venue.contactInfo) {
+    // Check if it's actually a phone number disguised as email
+    if (looksLikePhone(venue.contactInfo)) {
+      email = null // Don't use it as email
+    } else {
+      email = venue.contactInfo
+    }
+  }
+
+  // Determine phone - from multiple sources with smart fallback
   let phone: string | null = null
   if (venue.contactType === 'phone') {
     phone = venue.contactInfo
-  } else if (venue.contactType !== 'email') {
-    // Only use extended data phone if contactType is not email
+  } else if (
+    venue.contactType === 'email' &&
+    venue.contactInfo &&
+    looksLikePhone(venue.contactInfo)
+  ) {
+    // If contactType is email but contactInfo is actually a phone number, use it as phone
+    phone = venue.contactInfo
+  } else {
+    // Fall back to extended data phone
     phone = extendedData?.venueDetails?.phone || null
   }
 
