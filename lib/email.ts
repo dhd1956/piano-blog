@@ -6,12 +6,25 @@
  */
 
 import { Resend } from 'resend'
+import { detectEnvironment } from './env-config'
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'Piano Blog <onboarding@resend.dev>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+/**
+ * Add environment prefix to email subject
+ * Helps distinguish staging/development emails from production
+ */
+function getEmailSubject(subject: string): string {
+  const env = detectEnvironment()
+
+  if (env === 'development') return `[LOCAL] ${subject}`
+  if (env === 'staging') return `[STAGING] ${subject}`
+  return subject // Production: no prefix
+}
 
 export interface SendEmailParams {
   to: string
@@ -105,7 +118,7 @@ export async function sendVerificationEmail(email: string, token: string, userna
 
   return sendEmail({
     to: email,
-    subject: 'Verify your email address - Piano Blog',
+    subject: getEmailSubject('Verify your email address - Piano Blog'),
     html,
     text,
   })
@@ -184,7 +197,7 @@ export async function sendWelcomeEmail(email: string, username: string) {
 
   return sendEmail({
     to: email,
-    subject: 'Welcome to Piano Blog! 🎵',
+    subject: getEmailSubject('Welcome to Piano Blog! 🎵'),
     html,
     text,
   })
@@ -297,7 +310,7 @@ export async function sendSecurityAlertEmail(
 
   return sendEmail({
     to: email,
-    subject: `Security Alert: ${alert.title}`,
+    subject: getEmailSubject(`Security Alert: ${alert.title}`),
     html,
     text,
   })
@@ -376,7 +389,7 @@ export async function sendPasswordResetEmail(email: string, token: string, usern
 
   return sendEmail({
     to: email,
-    subject: 'Reset your password - Piano Blog',
+    subject: getEmailSubject('Reset your password - Piano Blog'),
     html,
     text,
   })
@@ -455,7 +468,7 @@ export async function sendMagicLinkEmail(email: string, token: string, username?
 
   return sendEmail({
     to: email,
-    subject: 'Sign in to Piano Blog - Magic Link',
+    subject: getEmailSubject('Sign in to Piano Blog - Magic Link'),
     html,
     text,
   })

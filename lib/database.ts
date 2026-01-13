@@ -4,6 +4,7 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import { getDatabaseIdentifier } from './env-config'
 
 // Global Prisma client instance to prevent multiple connections in development
 const globalForPrisma = globalThis as unknown as {
@@ -18,6 +19,11 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
+}
+
+// Log database connection info (server-side only)
+if (typeof window === 'undefined') {
+  console.log(`[Database] Connected to: ${getDatabaseIdentifier()}`)
 }
 
 /**

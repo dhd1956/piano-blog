@@ -4,11 +4,38 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import { detectEnvironment } from '../lib/env-config'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Starting database seed...')
+  const env = detectEnvironment()
+  console.log(`🌱 Seeding ${env} environment...`)
+
+  if (env === 'development' || env === 'staging') {
+    // DEVELOPMENT/STAGING: Lots of test data
+    await seedDevelopmentData()
+  } else if (env === 'production') {
+    // PRODUCTION: Minimal essential data
+    await seedProductionData()
+  }
+
+  console.log('✨ Database seeded successfully!')
+  console.log('📈 Summary:')
+  console.log(`- Created ${await prisma.user.count()} users`)
+  console.log(`- Created ${await prisma.venue.count()} venues`)
+  console.log(`- Created ${await prisma.venueVerification.count()} verifications`)
+  console.log(`- Created ${await prisma.venueReview.count()} reviews`)
+  console.log(`- Created ${await prisma.pXPPayment.count()} PXP payments`)
+  console.log(`- Created ${await prisma.venueAnalytics.count()} analytics records`)
+  console.log(`- Created ${await prisma.appConfig.count()} app configurations`)
+}
+
+/**
+ * Seed development/staging environment with test data
+ */
+async function seedDevelopmentData() {
+  console.log('📚 Loading comprehensive test data for development/staging...')
 
   // Create test users
   console.log('👥 Creating test users...')
@@ -378,15 +405,69 @@ async function main() {
     },
   })
 
-  console.log('✨ Database seeded successfully!')
-  console.log('📈 Summary:')
-  console.log(`- Created ${await prisma.user.count()} users`)
-  console.log(`- Created ${await prisma.venue.count()} venues`)
-  console.log(`- Created ${await prisma.venueVerification.count()} verifications`)
-  console.log(`- Created ${await prisma.venueReview.count()} reviews`)
-  console.log(`- Created ${await prisma.pXPPayment.count()} PXP payments`)
-  console.log(`- Created ${await prisma.venueAnalytics.count()} analytics records`)
-  console.log(`- Created ${await prisma.appConfig.count()} app configurations`)
+  console.log('✅ Development/staging data seeded!')
+}
+
+/**
+ * Seed production environment with minimal essential data
+ */
+async function seedProductionData() {
+  console.log('🏭 Loading minimal production data...')
+
+  // Create blog owner/admin account
+  console.log('👤 Creating admin account...')
+
+  const blogOwnerWallet =
+    process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS || '0xe8985aedf83e2a58fef53b45db2d9556cd5f453a'
+
+  const adminUser = await prisma.user.upsert({
+    where: { walletAddress: blogOwnerWallet.toLowerCase() },
+    update: {},
+    create: {
+      walletAddress: blogOwnerWallet.toLowerCase(),
+      username: 'admin',
+      displayName: 'Piano Blog Admin',
+      email: 'admin@globalpiano.network',
+      bio: 'Platform administrator and community manager',
+      role: 'BLOG_OWNER',
+      totalCAVEarned: 0,
+      hasClaimedNewUserReward: false,
+      isAuthorizedVerifier: true,
+      publicProfile: true,
+      showPXPBalance: false,
+    },
+  })
+
+  console.log(`Created admin user: ${adminUser.username}`)
+
+  // Create app configuration
+  console.log('⚙️ Creating app configuration...')
+
+  await prisma.appConfig.upsert({
+    where: { key: 'cav_rewards' },
+    update: {
+      value: {
+        newUser: 25,
+        venueScout: 50,
+        verifier: 20,
+        minVerifications: 2,
+        maxVerifications: 3,
+      },
+    },
+    create: {
+      key: 'cav_rewards',
+      value: {
+        newUser: 25,
+        venueScout: 50,
+        verifier: 20,
+        minVerifications: 2,
+        maxVerifications: 3,
+      },
+      description: 'PXP reward amounts and verification requirements',
+    },
+  })
+
+  console.log('✅ Production seed complete!')
 }
 
 main()

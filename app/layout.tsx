@@ -17,6 +17,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthEmailCapture from '@/components/OAuthEmailCapture'
 import MigrationBanner from '@/components/auth/MigrationBanner'
 import MigrationPrompt from '@/components/auth/MigrationPrompt'
+import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -125,6 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ReownProvider>
           </AuthProvider>
         </ErrorBoundary>
+        <EnvironmentBadge />
       </body>
     </html>
   )
