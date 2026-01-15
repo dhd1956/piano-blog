@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function testVenueApprovalRewards() {
   console.log('🧪 Testing Scout & Curator PXP Rewards\n')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   // Test Configuration
   const venueId = 40 // Chartwell Pickering City Centre
@@ -146,14 +146,18 @@ async function testVenueApprovalRewards() {
     console.log(`   Final PXP: ${scoutFinal.totalCAVEarned}`)
     console.log(`   Change: +${scoutFinal.totalCAVEarned - scoutInitialPXP} PXP`)
     console.log(`   Expected: +${scoutReward} PXP`)
-    console.log(`   ✅ ${scoutFinal.totalCAVEarned - scoutInitialPXP === scoutReward ? 'CORRECT' : 'ERROR'}`)
+    console.log(
+      `   ✅ ${scoutFinal.totalCAVEarned - scoutInitialPXP === scoutReward ? 'CORRECT' : 'ERROR'}`
+    )
 
     console.log(`\n👤 Curator: ${curatorFinal.username}`)
     console.log(`   Initial PXP: ${curatorInitialPXP}`)
     console.log(`   Final PXP: ${curatorFinal.totalCAVEarned}`)
     console.log(`   Change: +${curatorFinal.totalCAVEarned - curatorInitialPXP} PXP`)
     console.log(`   Expected: +${curatorReward} PXP`)
-    console.log(`   ✅ ${curatorFinal.totalCAVEarned - curatorInitialPXP === curatorReward ? 'CORRECT' : 'ERROR'}`)
+    console.log(
+      `   ✅ ${curatorFinal.totalCAVEarned - curatorInitialPXP === curatorReward ? 'CORRECT' : 'ERROR'}`
+    )
 
     console.log('\n' + '='.repeat(60))
     console.log('✅ TEST COMPLETE')

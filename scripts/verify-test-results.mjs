@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function verifyTestResults() {
   console.log('🔍 Final Verification of Test Results\n')
-  console.log('=' .repeat(60))
+  console.log('='.repeat(60))
 
   try {
     // Verify venue status
@@ -46,7 +46,9 @@ async function verifyTestResults() {
     users.forEach((user) => {
       console.log(`   ${user.username} (${user.role}):`)
       console.log(`     Total PXP: ${user.totalCAVEarned}`)
-      console.log(`     First Earned: ${user.firstPXPEarnedAt ? user.firstPXPEarnedAt.toISOString() : 'N/A'}`)
+      console.log(
+        `     First Earned: ${user.firstPXPEarnedAt ? user.firstPXPEarnedAt.toISOString() : 'N/A'}`
+      )
       console.log()
     })
 
