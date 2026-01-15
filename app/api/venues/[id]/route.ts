@@ -210,7 +210,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           })
 
           const rewardAmount =
-            verificationConfig && verificationConfig.enabled ? verificationConfig.value : 75
+            verificationConfig && verificationConfig.enabled ? verificationConfig.value : 50
 
           // Award PXP to scout
           await prisma.user.update({
@@ -233,6 +233,37 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         }
       } catch (pxpError) {
         console.error('Error awarding venue verification PXP:', pxpError)
+        // Don't fail the venue update if PXP awarding fails
+      }
+    }
+
+    // Award PXP to curator for verifying venue
+    if (isNewlyVerified) {
+      try {
+        // Get curator verification reward from PXP config
+        const curatorConfig = await prisma.pXPConfig.findUnique({
+          where: { key: 'curator_verification' },
+          select: { value: true, enabled: true },
+        })
+
+        const curatorReward = curatorConfig && curatorConfig.enabled ? curatorConfig.value : 20
+
+        // Award PXP to the curator who verified the venue
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            totalCAVEarned: { increment: curatorReward },
+            firstPXPEarnedAt: user.id ? undefined : new Date(), // Set if first time earning
+          },
+        })
+
+        console.log(
+          `✅ Awarded ${curatorReward} PXP to curator ${user.walletAddress || user.username} for verifying venue ${updatedVenue.name}`
+        )
+
+        // TODO: Create notification for curator (Sprint 3 Epic 4)
+      } catch (pxpError) {
+        console.error('Error awarding curator verification PXP:', pxpError)
         // Don't fail the venue update if PXP awarding fails
       }
     }

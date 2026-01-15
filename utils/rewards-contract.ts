@@ -19,10 +19,11 @@ export const CELO_TESTNET_RPC =
 export const CELO_CHAIN_ID = '0xaa044c' // 11142220 in hex (Celo Sepolia)
 
 // Reward amounts (in PXP tokens)
+// Updated to match PXP_TOKENOMICS_BEST_PRACTICES.md recommendations
 export const REWARD_AMOUNTS = {
-  NEW_USER: 25,
-  SCOUT: 50,
-  VERIFIER: 25,
+  NEW_USER: 25, // Welcome reward (one-time)
+  SCOUT: 50, // Venue discovery reward (after curator approval)
+  VERIFIER: 20, // Curator verification reward (per venue verified)
 } as const
 
 // PXP Rewards Contract ABI

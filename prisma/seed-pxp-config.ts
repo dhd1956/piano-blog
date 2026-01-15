@@ -123,9 +123,17 @@ const initialPXPConfig = [
   // Community Contributions
   {
     key: 'venue_verified',
-    value: 75,
-    label: 'Venue: Submission Verified',
+    value: 50,
+    label: 'Venue: Submission Verified (Scout Reward)',
     description: 'PXP earned when your submitted venue is verified by a curator',
+    category: 'community',
+    enabled: true,
+  },
+  {
+    key: 'curator_verification',
+    value: 20,
+    label: 'Curator: Verify Venue',
+    description: 'PXP earned by curators for verifying submitted venues',
     category: 'community',
     enabled: true,
   },

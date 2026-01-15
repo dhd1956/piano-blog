@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PXP_TOKENOMICS_BEST_PRACTICES.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="pxp-tokenomics--badge-system-best-practices">PXP Tokenomics &amp; Badge System: Best Practices</h1>
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2026-01-09
+<strong>Status</strong>: Recommendations for Implementation</p>
+<hr>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#core-principles">Core Principles</a></li>
+<li><a href="#pxp-accumulation-earning">PXP Accumulation (Earning)</a></li>
+<li><a href="#pxp-spending-utility">PXP Spending (Utility)</a></li>
+<li><a href="#token-economics">Token Economics</a></li>
+<li><a href="#badge-system">Badge System</a></li>
+<li><a href="#implementation-priority">Implementation Priority</a></li>
+<li><a href="#anti-gaming-measures">Anti-Gaming Measures</a></li>
+<li><a href="#metrics-to-track">Metrics to Track</a></li>
+</ol>
+<hr>
+<h2 id="core-principles">Core Principles</h2>
+<h3 id="1-create-virtuous-cycles">1. Create Virtuous Cycles</h3>
+<ul>
+<li><strong>Earning → Spending → Platform Value → More Earning Opportunities</strong></li>
+<li>Avoid dead-end accumulation (hoarding with no utility)</li>
+<li>Every token earned should have meaningful ways to be spent</li>
+</ul>
+<h3 id="2-reward-quality-over-quantity">2. Reward Quality Over Quantity</h3>
+<ul>
+<li>Higher rewards for verified/valuable contributions</li>
+<li>Diminishing returns for repetitive actions</li>
+<li>Prevent spam through verification requirements</li>
+</ul>
+<h3 id="3-balance-supply--demand">3. Balance Supply &amp; Demand</h3>
+<ul>
+<li>Every earn mechanism needs corresponding spend mechanism</li>
+<li>Monitor inflation rate (PXP minted vs burned)</li>
+<li>Create scarcity to maintain value</li>
+</ul>
+<hr>
+<h2 id="pxp-accumulation-earning">PXP Accumulation (Earning)</h2>
+<h3 id="tier-1-core-platform-actions-currently-defined">Tier 1: Core Platform Actions (Currently Defined)</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Current</th>
+<th>Recommended</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>New User Welcome</strong></td>
+<td>25 PXP</td>
+<td>✅ 25 PXP</td>
+<td>Fair onboarding reward, one-time only</td>
+</tr>
+<tr>
+<td><strong>Venue Discovery (Scout)</strong></td>
+<td>50 PXP</td>
+<td>✅ 50 PXP</td>
+<td>High value - discovering venues is core activity</td>
+</tr>
+<tr>
+<td><strong>Venue Verification (Curator)</strong></td>
+<td>25 PXP</td>
+<td>⚠️ 15-20 PXP</td>
+<td>Lower than scout to prevent curator favoritism</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why lower curator reward?</strong>
+Prevents curators from approving low-quality venues just to earn PXP. Their main incentive should be community reputation.</p>
+<p><strong>Implementation Status</strong>:</p>
+<ul>
+<li>✅ New User Welcome: Implemented</li>
+<li>❌ Venue Discovery: Contract ready, frontend not integrated</li>
+<li>❌ Venue Verification: Contract ready, frontend not integrated</li>
+</ul>
+<hr>
+<h3 id="tier-2-quality-content-recommended-to-add">Tier 2: Quality Content (Recommended to Add)</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Suggested Reward</th>
+<th>Frequency</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Write Venue Review</strong></td>
+<td>10 PXP</td>
+<td>Once per venue</td>
+<td>Encourages detailed feedback</td>
+</tr>
+<tr>
+<td><strong>Review Upvoted</strong></td>
+<td>2 PXP</td>
+<td>Per 5 upvotes</td>
+<td>Rewards quality reviews</td>
+</tr>
+<tr>
+<td><strong>Upload Event Video</strong></td>
+<td>100 PXP</td>
+<td>Per video (YouTube)</td>
+<td>High effort, high value content ✅ Planned</td>
+</tr>
+<tr>
+<td><strong>Video Reaches 1K Views</strong></td>
+<td>150 PXP</td>
+<td>Milestone</td>
+<td>Rewards viral content ✅ Planned</td>
+</tr>
+<tr>
+<td><strong>Video Reaches 10K Views</strong></td>
+<td>200 PXP</td>
+<td>Milestone</td>
+<td>Rewards exceptional content ✅ Planned</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation Notes</strong>:</p>
+<ul>
+<li>Review rewards require upvote/reaction system</li>
+<li>Video rewards already planned in WPB-303</li>
+<li>Consider fraud detection for view count manipulation</li>
+</ul>
+<hr>
+<h3 id="tier-3-community-building">Tier 3: Community Building</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Suggested Reward</th>
+<th>Frequency</th>
+<th>Anti-Gaming Measure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Refer New User</strong></td>
+<td>25 PXP</td>
+<td>When referral completes profile</td>
+<td>✅ Already planned</td>
+</tr>
+<tr>
+<td><strong>Host Event</strong></td>
+<td>50 PXP</td>
+<td>Per event with 5+ attendees</td>
+<td>Prevents fake events</td>
+</tr>
+<tr>
+<td><strong>Attend Event</strong></td>
+<td>5 PXP</td>
+<td>Max 2 events/week</td>
+<td>Prevent spam attendance</td>
+</tr>
+<tr>
+<td><strong>Verify Profile (Photo + Bio)</strong></td>
+<td>15 PXP</td>
+<td>One-time</td>
+<td>Reduces anonymous accounts</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Referral System Details</strong>:</p>
+<ul>
+<li>Reward only when referred user:
+<ul>
+<li>Creates account</li>
+<li>Verifies email OR connects wallet</li>
+<li>Earns their first PXP (proves active engagement)</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="tier-4-platform-governance-future">Tier 4: Platform Governance (Future)</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Suggested Reward</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Vote on Proposal</strong></td>
+<td>5 PXP</td>
+<td>For DAO governance</td>
+</tr>
+<tr>
+<td><strong>Successful Proposal</strong></td>
+<td>100 PXP</td>
+<td>If community accepts your idea</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="pxp-spending-utility">PXP Spending (Utility)</h2>
+<p><strong>CRITICAL</strong>: Without spending mechanisms, PXP becomes meaningless. Strong utility is essential.</p>
+<h3 id="tier-1-socialtipping-high-priority-%E2%AD%90%E2%AD%90%E2%AD%90">Tier 1: Social/Tipping (HIGH PRIORITY) ⭐⭐⭐</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Cost</th>
+<th>Why This Works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tip Musician</strong></td>
+<td>Variable (10-1000 PXP)</td>
+<td>Direct value transfer, emotional reward</td>
+</tr>
+<tr>
+<td><strong>Tip Venue</strong></td>
+<td>Variable (10-500 PXP)</td>
+<td>Thank venues for great pianos</td>
+</tr>
+<tr>
+<td><strong>Boost Review</strong></td>
+<td>50 PXP</td>
+<td>Make your review featured for 7 days</td>
+</tr>
+<tr>
+<td><strong>Gift PXP to Friend</strong></td>
+<td>Variable</td>
+<td>Social bonding</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation Priority</strong>: <strong>CRITICAL</strong>
+Without this, PXP has no real utility beyond display.</p>
+<p><strong>Technical Requirements</strong>:</p>
+<ul>
+<li>Smart contract function: <code>transfer(address to, uint256 amount)</code></li>
+<li>Frontend UI for entering recipient + amount</li>
+<li>Transaction confirmation modal</li>
+<li>Success/failure notifications</li>
+<li>Activity feed showing tips sent/received</li>
+</ul>
+<hr>
+<h3 id="tier-2-profilevisibility">Tier 2: Profile/Visibility</h3>
+<p>| Feature | Cost | Duration | Why This Works |
+|---|---|---|
+| <strong>Featured Musician (Directory)</strong> | 100 PXP | 30 days | Musicians want gigs/visibility |
+| <strong>Verified Checkmark</strong> | 200 PXP | Permanent | Status symbol, trust signal |
+| <strong>Custom Profile Theme</strong> | 75 PXP | Permanent | Personalization drives engagement |
+| <strong>Profile Badge Slot</strong> | 50 PXP | Unlock 1 extra badge display | Flex achievements |</p>
+<p><strong>Implementation Notes</strong>:</p>
+<ul>
+<li>Featured musicians appear at top of <code>/musicians</code> page</li>
+<li>Verified checkmark ≠ role verification (this is cosmetic)</li>
+<li>Profile themes require CSS customization system</li>
+</ul>
+<hr>
+<h3 id="tier-3-eventvenue-features">Tier 3: Event/Venue Features</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Cost</th>
+<th>Why This Works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Promote Event</strong></td>
+<td>150 PXP</td>
+<td>Event pinned to top of /events for 7 days</td>
+</tr>
+<tr>
+<td><strong>Venue Spotlight</strong></td>
+<td>200 PXP</td>
+<td>Featured on homepage for 3 days</td>
+</tr>
+<tr>
+<td><strong>Event Recording Upload</strong></td>
+<td>Free (earn PXP instead)</td>
+<td>Incentivize content creation</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="tier-4-premium-features-future">Tier 4: Premium Features (Future)</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Cost</th>
+<th>Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Analytics Dashboard</strong></td>
+<td>500 PXP/year</td>
+<td>See who viewed your profile/venues</td>
+</tr>
+<tr>
+<td><strong>Direct Messaging</strong></td>
+<td>100 PXP/month</td>
+<td>Connect with musicians privately</td>
+</tr>
+<tr>
+<td><strong>Event Ticket Sales</strong></td>
+<td>10% fee in PXP</td>
+<td>Monetization for hosts</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="token-economics">Token Economics</h2>
+<h3 id="current-problem-%E2%9A%A0%EF%B8%8F-inflation-risk">Current Problem: ⚠️ Inflation Risk</h3>
+<p><strong>Current Setup</strong>:</p>
+<ul>
+<li><strong>Mint</strong>: 1M PXP initial + unlimited minting</li>
+<li><strong>Burn</strong>: None</li>
+<li><strong>Spending</strong>: Not implemented</li>
+</ul>
+<p><strong>Result</strong>: Hyperinflation → PXP becomes worthless</p>
+<hr>
+<h3 id="recommended-economic-model">Recommended Economic Model</h3>
+<h4 id="option-a-fixed-supply-with-burn-recommended">Option A: Fixed Supply with Burn (Recommended)</h4>
+<pre class="hljs"><code><div>Initial Supply: 1,000,000 PXP
+Minting: Disabled after distribution
+Burning: 10% of all spending burned permanently
+
+Example:
+- User tips musician 100 PXP
+- Musician receives: 90 PXP
+- Burned: 10 PXP (destroyed forever)
+- Total supply decreases over time (deflationary)
+</div></code></pre>
+<p><strong>Why this works</strong>:</p>
+<ul>
+<li>✅ Creates scarcity (good for value)</li>
+<li>✅ Rewards early adopters</li>
+<li>✅ Sustainable long-term</li>
+<li>✅ Simple to implement</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
+<pre class="hljs"><code><div>function tipUser(address recipient, uint256 amount) external {
+    uint256 burnAmount = amount / 10; // 10%
+    uint256 recipientAmount = amount - burnAmount;
+
+    _transfer(msg.sender, recipient, recipientAmount);
+    _burn(msg.sender, burnAmount);
+}
+</div></code></pre>
+<hr>
+<h4 id="option-b-capped-inflation-with-burn">Option B: Capped Inflation with Burn</h4>
+<pre class="hljs"><code><div>Max Supply: 10,000,000 PXP
+Yearly Mint: Max 5% of current supply
+Burning: 20% of all spending
+
+Example Year 1:
+- Start: 1M PXP
+- Earned: 50k PXP (5% inflation)
+- Burned: 30k PXP (from spending)
+- Net: +20k PXP (2% net inflation)
+</div></code></pre>
+<p><strong>Why this works</strong>:</p>
+<ul>
+<li>✅ Allows growth rewards</li>
+<li>✅ Controlled inflation</li>
+<li>✅ Balances new user rewards vs value preservation</li>
+<li>⚠️ More complex to manage</li>
+</ul>
+<hr>
+<h3 id="burn-mechanism-examples">Burn Mechanism Examples</h3>
+<h4 id="platform-fees-10-burn">Platform Fees (10% burn)</h4>
+<ul>
+<li>User tips: 10% burned</li>
+<li>Featured listings: 10% burned</li>
+<li>Profile customizations: 10% burned</li>
+</ul>
+<h4 id="transaction-tax-alternative">Transaction Tax (Alternative)</h4>
+<ul>
+<li>Every PXP transfer: 1% burned</li>
+<li>Encourages holding vs frequent trading</li>
+<li>Simpler but less transparent</li>
+</ul>
+<p><strong>Recommendation</strong>: Platform fees with 10% burn (more transparent, fairer)</p>
+<hr>
+<h2 id="badge-system">Badge System</h2>
+<h3 id="philosophy-badges-%E2%89%A0-pxp">Philosophy: Badges ≠ PXP</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Badges</th>
+<th>PXP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nature</strong></td>
+<td>Reputation/Status</td>
+<td>Currency</td>
+</tr>
+<tr>
+<td><strong>Transferable</strong></td>
+<td>❌ No (soul-bound)</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><strong>Earned by</strong></td>
+<td>Achievements</td>
+<td>Contributions</td>
+</tr>
+<tr>
+<td><strong>Spent on</strong></td>
+<td>Nothing (display only)</td>
+<td>Platform features</td>
+</tr>
+<tr>
+<td><strong>Scarcity</strong></td>
+<td>Fixed by achievement</td>
+<td>Economic supply/demand</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="badge-categories">Badge Categories</h3>
+<h4 id="1-role-badges-automatic">1. Role Badges (Automatic)</h4>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Requirement</th>
+<th>Icon</th>
+<th>Automatic?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verified_curator</code></td>
+<td>Granted CURATOR role</td>
+<td>✅</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>verified_musician</code></td>
+<td>Profile verified with video proof</td>
+<td>🎹</td>
+<td>No (manual review)</td>
+</tr>
+<tr>
+<td><code>venue_owner</code></td>
+<td>Verified venue ownership</td>
+<td>🤝</td>
+<td>No (requires proof)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation</strong>: Trigger when user role changes</p>
+<pre class="hljs"><code><div><span class="hljs-comment">// In scripts/set-user-role.mjs or app/api/admin/curators/route.ts</span>
+<span class="hljs-keyword">if</span> (role === <span class="hljs-string">'CURATOR'</span> || role === <span class="hljs-string">'BLOG_OWNER'</span>) {
+  <span class="hljs-keyword">await</span> prisma.user.update({
+    <span class="hljs-attr">where</span>: { walletAddress },
+    <span class="hljs-attr">data</span>: {
+      <span class="hljs-attr">badges</span>: { <span class="hljs-attr">push</span>: <span class="hljs-string">'verified_curator'</span> }
+    }
+  })
+}
+</div></code></pre>
+<hr>
+<h4 id="2-achievement-badges-milestone-based">2. Achievement Badges (Milestone-based)</h4>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Requirement</th>
+<th>Icon</th>
+<th>Rarity</th>
+<th>Auto-Award?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>early_adopter</code></td>
+<td>First 100 users</td>
+<td>🌟</td>
+<td>Rare (fixed supply)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>top_scout</code></td>
+<td>10+ verified venues</td>
+<td>🔍</td>
+<td>Uncommon (~5% users)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>venue_master</code></td>
+<td>50+ verified venues</td>
+<td>🗺️</td>
+<td>Rare (~1% users)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>reviewer</code></td>
+<td>10+ reviews</td>
+<td>✍️</td>
+<td>Common (~20% users)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>critic</code></td>
+<td>50+ reviews</td>
+<td>📝</td>
+<td>Uncommon (~5% users)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>event_host</code></td>
+<td>Hosted 5+ events</td>
+<td>🎤</td>
+<td>Common</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>content_creator</code></td>
+<td>10+ videos uploaded</td>
+<td>📹</td>
+<td>Uncommon</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>viral_star</code></td>
+<td>Video reached 100K views</td>
+<td>⭐</td>
+<td>Rare</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation Example</strong> (Top Scout):</p>
+<pre class="hljs"><code><div><span class="hljs-comment">// In app/api/venues/[id]/route.ts (when venue is verified)</span>
+<span class="hljs-keyword">const</span> venueCount = <span class="hljs-keyword">await</span> prisma.venue.count({
+  <span class="hljs-attr">where</span>: {
+    <span class="hljs-attr">submittedBy</span>: venueScoutAddress,
+    <span class="hljs-attr">verified</span>: <span class="hljs-literal">true</span>
+  }
+})
+
+<span class="hljs-keyword">if</span> (venueCount === <span class="hljs-number">10</span> &amp;&amp; !user.badges.includes(<span class="hljs-string">'top_scout'</span>)) {
+  <span class="hljs-keyword">await</span> prisma.user.update({
+    <span class="hljs-attr">where</span>: { <span class="hljs-attr">walletAddress</span>: venueScoutAddress },
+    <span class="hljs-attr">data</span>: {
+      <span class="hljs-attr">badges</span>: { <span class="hljs-attr">push</span>: <span class="hljs-string">'top_scout'</span> }
+    }
+  })
+  <span class="hljs-comment">// Trigger notification: "Achievement unlocked: Top Scout!"</span>
+}
+</div></code></pre>
+<hr>
+<h4 id="3-community-badges-manual-grant-by-blog-owner">3. Community Badges (Manual Grant by Blog Owner)</h4>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Criteria</th>
+<th>Why Manual</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>piano_virtuoso</code></td>
+<td>Professional pianist</td>
+<td>Requires verification of credentials</td>
+</tr>
+<tr>
+<td><code>community_champion</code></td>
+<td>Outstanding contributions</td>
+<td>Subjective judgment needed</td>
+</tr>
+<tr>
+<td><code>venue_partner</code></td>
+<td>Official venue relationship</td>
+<td>Business partnership verification</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Admin Interface</strong>: <code>/admin/badges</code> page to manually grant these</p>
+<hr>
+<h4 id="4-seasonalspecial-badges-limited-time">4. Seasonal/Special Badges (Limited Time)</h4>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Event</th>
+<th>Availability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>founding_member</code></td>
+<td>Mainnet launch</td>
+<td>First month only</td>
+</tr>
+<tr>
+<td><code>holiday_performer</code></td>
+<td>Performed at holiday event</td>
+<td>Dec 2025 only</td>
+</tr>
+<tr>
+<td><code>jam_master_2026</code></td>
+<td>Won jam session competition</td>
+<td>Annual</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Purpose</strong>: Create urgency and FOMO (Fear of Missing Out)</p>
+<hr>
+<h3 id="badge-display-priority">Badge Display Priority</h3>
+<p>When user has many badges, show in this order:</p>
+<ol>
+<li><strong>Rarest first</strong> (early_adopter, viral_star, seasonal)</li>
+<li><strong>Role badges</strong> (curator, musician, venue_owner)</li>
+<li><strong>Achievement badges</strong> (by recency earned)</li>
+</ol>
+<hr>
+<h3 id="badge-economics-should-badges-cost-pxp">Badge Economics: Should Badges Cost PXP?</h3>
+<p><strong>Recommendation</strong>: ❌ <strong>No</strong></p>
+<ul>
+<li>Badges should be <strong>earned through actions</strong>, not purchased</li>
+<li>Purchasing diminishes prestige</li>
+<li>Exception: Cosmetic variations okay (e.g., &quot;gold verified checkmark&quot; = 200 PXP, but doesn't grant curator powers)</li>
+</ul>
+<hr>
+<h2 id="anti-gaming-measures">Anti-Gaming Measures</h2>
+<h3 id="threat-modeling">Threat Modeling</h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Attack Vector</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sybil Attacks</strong></td>
+<td>Create 100 fake accounts to claim new user rewards</td>
+<td>Email verification + wallet connect OR minimum activity threshold</td>
+</tr>
+<tr>
+<td><strong>Venue Spam</strong></td>
+<td>Submit 50 fake venues to earn scout rewards</td>
+<td>Curator verification required; scout reward only after 2-3 approvals</td>
+</tr>
+<tr>
+<td><strong>Review Spam</strong></td>
+<td>Write 100 reviews for the same venue</td>
+<td>Max 1 review per venue per user</td>
+</tr>
+<tr>
+<td><strong>Event Spam</strong></td>
+<td>Create fake events to earn hosting rewards</td>
+<td>Require 5+ unique attendees (verified accounts)</td>
+</tr>
+<tr>
+<td><strong>Curator Corruption</strong></td>
+<td>Curators approve friend's low-quality venues</td>
+<td>Lower curator rewards, community appeal process, audit trail</td>
+</tr>
+<tr>
+<td><strong>Referral Farming</strong></td>
+<td>Create fake accounts via referral links</td>
+<td>Referral reward only when referred user earns first PXP</td>
+</tr>
+<tr>
+<td><strong>Vote Manipulation</strong></td>
+<td>Upvote own reviews with fake accounts</td>
+<td>Require minimum account age + PXP balance to vote</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="implementation-requirements">Implementation Requirements</h3>
+<h4 id="account-verification-levels">Account Verification Levels</h4>
+<ol>
+<li>
+<p><strong>Level 0: Anonymous</strong> (just wallet)</p>
+<ul>
+<li>Can browse, view content</li>
+<li>Cannot earn PXP</li>
+</ul>
+</li>
+<li>
+<p><strong>Level 1: Email Verified</strong></p>
+<ul>
+<li>Can earn limited PXP (max 100 PXP/month)</li>
+<li>Can submit venues (pending curator approval)</li>
+<li>Can write reviews</li>
+</ul>
+</li>
+<li>
+<p><strong>Level 2: Wallet + Email + Active</strong></p>
+<ul>
+<li>Unlimited PXP earning</li>
+<li>All features unlocked</li>
+<li>Requires: 7+ days old account, 3+ contributions</li>
+</ul>
+</li>
+</ol>
+<h4 id="rate-limiting">Rate Limiting</h4>
+<pre class="hljs"><code><div><span class="hljs-comment">// Example: Limit venue submissions</span>
+<span class="hljs-keyword">const</span> recentSubmissions = <span class="hljs-keyword">await</span> prisma.venue.count({
+  <span class="hljs-attr">where</span>: {
+    <span class="hljs-attr">submittedBy</span>: userAddress,
+    <span class="hljs-attr">createdAt</span>: {
+      <span class="hljs-attr">gte</span>: <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(<span class="hljs-built_in">Date</span>.now() - <span class="hljs-number">24</span> * <span class="hljs-number">60</span> * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>) <span class="hljs-comment">// Last 24 hours</span>
+    }
+  }
+})
+
+<span class="hljs-keyword">if</span> (recentSubmissions &gt;= <span class="hljs-number">5</span>) {
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Maximum 5 venue submissions per 24 hours'</span>)
+}
+</div></code></pre>
+<hr>
+<h2 id="implementation-priority">Implementation Priority</h2>
+<h3 id="phase-1-foundation-do-first-%E2%AD%90%E2%AD%90%E2%AD%90">Phase 1: Foundation (Do First) ⭐⭐⭐</h3>
+<p><strong>Goal</strong>: Enable core earning loop and fix inflation</p>
+<ol>
+<li>
+<p>✅ <strong>Enable Scout Rewards</strong> (50 PXP after 2-3 curator approvals)</p>
+<ul>
+<li>File: <code>app/api/venues/[id]/route.ts</code></li>
+<li>Trigger: When <code>verified</code> changes from <code>false</code> to <code>true</code></li>
+<li>Award to: <code>venue.submittedBy</code> address</li>
+</ul>
+</li>
+<li>
+<p>✅ <strong>Enable Curator Rewards</strong> (15-20 PXP per verification)</p>
+<ul>
+<li>File: <code>app/api/venues/[id]/route.ts</code></li>
+<li>Trigger: When curator approves/rejects venue</li>
+<li>Award to: Current user (curator)</li>
+</ul>
+</li>
+<li>
+<p>✅ <strong>Automatic Badge Awarding</strong></p>
+<ul>
+<li><code>verified_curator</code>: When role set to CURATOR</li>
+<li><code>top_scout</code>: When verified venues &gt;= 10</li>
+<li><code>early_adopter</code>: First 100 users</li>
+</ul>
+</li>
+<li>
+<p>⚠️ <strong>Add Burn Mechanism</strong> (10% of tips burned)</p>
+<ul>
+<li>Modify smart contract: Add burn to <code>transfer()</code> function</li>
+<li>Or implement in app layer (less secure)</li>
+</ul>
+</li>
+</ol>
+<p><strong>Estimated Time</strong>: 6-8 hours
+<strong>Priority</strong>: Critical for token economics</p>
+<hr>
+<h3 id="phase-2-utility-critical-%E2%AD%90%E2%AD%90%E2%AD%90">Phase 2: Utility (Critical) ⭐⭐⭐</h3>
+<p><strong>Goal</strong>: Give PXP real value through spending</p>
+<ol start="5">
+<li>
+<p>✅ <strong>User Tipping</strong></p>
+<ul>
+<li>UI: Modal to enter recipient + amount</li>
+<li>Smart contract: <code>transfer(address, amount)</code> with 10% burn</li>
+<li>Notification: Toast showing tip sent/received</li>
+</ul>
+</li>
+<li>
+<p>✅ <strong>Venue Tipping</strong></p>
+<ul>
+<li>UI: &quot;Tip This Venue&quot; button on venue details page</li>
+<li>Recipient: <code>venue.submittedBy</code> address</li>
+<li>Same burn mechanism</li>
+</ul>
+</li>
+<li>
+<p>✅ <strong>Featured Musician</strong> (100 PXP/30 days)</p>
+<ul>
+<li>Database: Add <code>featuredUntil</code> timestamp to User table</li>
+<li>UI: Featured section at top of <code>/musicians</code> page</li>
+<li>Payment: Burn PXP + set timestamp</li>
+</ul>
+</li>
+</ol>
+<p><strong>Estimated Time</strong>: 10-12 hours
+<strong>Priority</strong>: Critical - Without spending, PXP is worthless</p>
+<hr>
+<h3 id="phase-3-engagement-high-value-%E2%AD%90%E2%AD%90">Phase 3: Engagement (High Value) ⭐⭐</h3>
+<p><strong>Goal</strong>: Increase user retention and content quality</p>
+<ol start="8">
+<li>
+<p>✅ <strong>Review Rewards</strong> (10 PXP per review)</p>
+<ul>
+<li>Trigger: When review submitted</li>
+<li>Limit: 1 review per venue per user</li>
+</ul>
+</li>
+<li>
+<p>✅ <strong>Event Hosting Rewards</strong> (50 PXP with 5+ attendees)</p>
+<ul>
+<li>Trigger: 7 days after event ends</li>
+<li>Validation: Count unique RSVPs with status = CONFIRMED</li>
+</ul>
+</li>
+<li>
+<p>✅ <strong>Badge Milestones</strong></p>
+<ul>
+<li><code>venue_master</code> (50 venues)</li>
+<li><code>critic</code> (50 reviews)</li>
+<li><code>event_host</code> (5 events)</li>
+</ul>
+</li>
+</ol>
+<p><strong>Estimated Time</strong>: 8-10 hours
+<strong>Priority</strong>: High - Drives engagement</p>
+<hr>
+<h3 id="phase-4-advanced-future-%E2%AD%90">Phase 4: Advanced (Future) ⭐</h3>
+<ol start="11">
+<li>Premium features (analytics, DMs)</li>
+<li>Governance voting</li>
+<li>Seasonal badges and competitions</li>
+</ol>
+<hr>
+<h2 id="metrics-to-track">Metrics to Track</h2>
+<h3 id="health-indicators">Health Indicators</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Red Flag</th>
+<th>Action if Red Flag</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Earn/Burn Ratio</strong></td>
+<td>1.0-1.2</td>
+<td>&gt; 2.0</td>
+<td>Reduce rewards or increase burn rate</td>
+</tr>
+<tr>
+<td><strong>Active Earners</strong></td>
+<td>30%+ of users</td>
+<td>&lt; 10%</td>
+<td>Increase reward visibility, lower barriers</td>
+</tr>
+<tr>
+<td><strong>Active Spenders</strong></td>
+<td>20%+ of earners</td>
+<td>&lt; 5%</td>
+<td>Add more spending options, improve UX</td>
+</tr>
+<tr>
+<td><strong>Badge Rarity</strong></td>
+<td>Top badges &lt; 5% of users</td>
+<td>&gt; 20%</td>
+<td>Increase requirements or add new tiers</td>
+</tr>
+<tr>
+<td><strong>PXP Velocity</strong></td>
+<td>PXP changes hands 2-3x/month</td>
+<td>&lt; 1x</td>
+<td>Incentivize tipping, reduce hoarding</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="analytics-dashboard-recommended">Analytics Dashboard (Recommended)</h3>
+<p><strong>Location</strong>: <code>/admin/tokenomics</code></p>
+<p><strong>Metrics to Display</strong>:</p>
+<ol>
+<li>
+<p><strong>Supply</strong></p>
+<ul>
+<li>Total PXP minted (all-time)</li>
+<li>Total PXP burned (all-time)</li>
+<li>Current circulating supply</li>
+</ul>
+</li>
+<li>
+<p><strong>Activity</strong></p>
+<ul>
+<li>PXP earned (last 30 days)</li>
+<li>PXP spent (last 30 days)</li>
+<li>Unique earners (last 30 days)</li>
+<li>Unique spenders (last 30 days)</li>
+</ul>
+</li>
+<li>
+<p><strong>Distribution</strong></p>
+<ul>
+<li>Top 10 holders (wallet + balance)</li>
+<li>Median PXP balance</li>
+<li>Gini coefficient (inequality measure)</li>
+</ul>
+</li>
+<li>
+<p><strong>Engagement</strong></p>
+<ul>
+<li>New users claiming welcome reward</li>
+<li>Venues submitted → verified (conversion rate)</li>
+<li>Reviews written</li>
+<li>Events hosted</li>
+</ul>
+</li>
+</ol>
+<p><strong>Implementation</strong>:</p>
+<ul>
+<li>Daily cron job to snapshot metrics</li>
+<li>Store in <code>PXPMetrics</code> table</li>
+<li>Display charts using Recharts or Chart.js</li>
+</ul>
+<hr>
+<h2 id="red-flags-to-avoid">Red Flags to Avoid</h2>
+<h3 id="%E2%9D%8C-dont-do-this">❌ Don't Do This</h3>
+<ol>
+<li><strong>Sell PXP directly for fiat</strong> - Ruins decentralization, creates pay-to-win</li>
+<li><strong>Allow PXP → Fiat conversion</strong> - Regulatory nightmare, changes incentives</li>
+<li><strong>Award PXP for low-effort actions</strong> - Devalues token (e.g., &quot;login daily for 1 PXP&quot;)</li>
+<li><strong>Make badges purchasable</strong> - Destroys reputation value</li>
+<li><strong>No spending mechanisms</strong> - PXP becomes worthless points</li>
+<li><strong>Unlimited minting</strong> - Hyperinflation kills value</li>
+<li><strong>No anti-gaming measures</strong> - Bots farm all rewards</li>
+</ol>
+<hr>
+<h3 id="%E2%9C%85-do-this">✅ Do This</h3>
+<ol>
+<li><strong>Earn through value creation</strong> - Venues, reviews, events, content</li>
+<li><strong>Spend on platform value</strong> - Tips, visibility, features</li>
+<li><strong>Burn to create scarcity</strong> - Deflationary pressure maintains value</li>
+<li><strong>Badges for achievements</strong> - Milestone-based, rare</li>
+<li><strong>Monitor inflation</strong> - Track PXP minted vs burned monthly</li>
+<li><strong>Prevent gaming</strong> - Verification, rate limits, minimum thresholds</li>
+<li><strong>Transparent governance</strong> - Multi-sig for reward changes</li>
+</ol>
+<hr>
+<h2 id="summary-recommended-configuration-for-globalpianonetwork">Summary: Recommended Configuration for GlobalPiano.Network</h2>
+<h3 id="pxp-earning-priority-order">PXP Earning (Priority Order)</h3>
+<ol>
+<li>✅ <strong>Scout reward</strong>: 50 PXP (after 2 curator approvals) - <strong>HIGH PRIORITY</strong></li>
+<li>✅ <strong>Curator reward</strong>: 15-20 PXP (per verification) - <strong>HIGH PRIORITY</strong></li>
+<li>✅ <strong>New user</strong>: 25 PXP (current, keep as-is)</li>
+<li>➕ <strong>Review reward</strong>: 10 PXP (per quality review) - <strong>MEDIUM PRIORITY</strong></li>
+<li>➕ <strong>Event host</strong>: 50 PXP (with 5+ attendees) - <strong>MEDIUM PRIORITY</strong></li>
+<li>➕ <strong>Referral</strong>: 25 PXP (when referral activates) - <strong>LOW PRIORITY</strong></li>
+</ol>
+<hr>
+<h3 id="pxp-spending-priority-order">PXP Spending (Priority Order)</h3>
+<ol>
+<li>🎯 <strong>Tip musicians</strong> - Variable amount - <strong>CRITICAL</strong></li>
+<li>🎯 <strong>Tip venues</strong> - Variable amount - <strong>CRITICAL</strong></li>
+<li>🌟 <strong>Featured musician</strong> (100 PXP/month) - <strong>HIGH PRIORITY</strong></li>
+<li>🔖 <strong>Boost review</strong> (50 PXP/week) - <strong>MEDIUM PRIORITY</strong></li>
+<li>✨ <strong>Custom profile theme</strong> (75 PXP) - <strong>LOW PRIORITY</strong></li>
+</ol>
+<hr>
+<h3 id="badges-auto-award">Badges (Auto-Award)</h3>
+<ol>
+<li>✅ <code>verified_curator</code> - When role = CURATOR</li>
+<li>✅ <code>top_scout</code> - When verified venues &gt;= 10</li>
+<li>✅ <code>early_adopter</code> - First 100 users</li>
+<li>➕ <code>reviewer</code> - 10+ reviews</li>
+<li>➕ <code>event_host</code> - 5+ events hosted</li>
+</ol>
+<hr>
+<h3 id="economics">Economics</h3>
+<ul>
+<li><strong>Model</strong>: Fixed 1M supply + 10% burn on spending (deflationary)</li>
+<li><strong>Anti-gaming</strong>: Curator approval required for scout rewards</li>
+<li><strong>Monitoring</strong>: Monthly PXP mint/burn dashboard at <code>/admin/tokenomics</code></li>
+</ul>
+<hr>
+<h2 id="next-steps">Next Steps</h2>
+<ol>
+<li>Review this document with team</li>
+<li>Decide on economic model (Option A vs B)</li>
+<li>Prioritize implementation phases</li>
+<li>Create issues in project tracker (e.g., JIRA)</li>
+<li>Begin Phase 1 implementation</li>
+</ol>
+<hr>
+<h2 id="related-documents">Related Documents</h2>
+<ul>
+<li><a href="./PXP_EPIC.md">PXP_EPIC.md</a> - Original user stories and features</li>
+<li><a href="./PXP_REWARDS_MVP.md">PXP_REWARDS_MVP.md</a> - Current implementation status</li>
+<li>Smart Contract Governance Plan - See <code>/home/ave/.claude/plans/enchanted-noodling-rossum.md</code></li>
+</ul>
+<hr>
+<p><strong>Document Maintainer</strong>: Claude Code
+<strong>Last Review</strong>: 2026-01-09
+<strong>Next Review</strong>: After Phase 1 implementation</p>
+
+</body>
+</html>
