@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * API Route: Mark welcome reward as claimed in database
@@ -15,8 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Wallet address required' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Update user record
-    await prisma.user.update({
+    await db.user.update({
       where: { walletAddress: address.toLowerCase() },
       data: {
         hasClaimedNewUserReward: true,

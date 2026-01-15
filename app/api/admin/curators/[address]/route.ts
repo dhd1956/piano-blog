@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { requireRole } from '@/lib/auth-middleware'
 import { UserRole } from '@prisma/client'
 
@@ -29,6 +29,7 @@ export async function DELETE(
 
     // User is authenticated as BLOG_OWNER
     const { user: authUser } = authResult
+    const db = await getDb()
 
     const normalizedAddress = address.toLowerCase()
 
@@ -46,7 +47,7 @@ export async function DELETE(
     }
 
     // Find the user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: {
         walletAddress: normalizedAddress,
       },
@@ -75,7 +76,7 @@ export async function DELETE(
     }
 
     // Demote to SCOUT role
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: {
         walletAddress: normalizedAddress,
       },

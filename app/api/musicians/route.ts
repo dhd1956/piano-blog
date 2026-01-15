@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/musicians
@@ -29,11 +27,13 @@ export async function GET(request: NextRequest) {
       // For now, show all musician profiles
     }
 
+    const db = await getDb()
+
     // Get total count for pagination
-    const totalCount = await prisma.user.count({ where })
+    const totalCount = await db.user.count({ where })
 
     // Fetch musicians with their profiles
-    const musicians = await prisma.user.findMany({
+    const musicians = await db.user.findMany({
       where,
       select: {
         id: true,
@@ -82,7 +82,5 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching musicians:', error)
     return NextResponse.json({ error: 'Failed to fetch musicians' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

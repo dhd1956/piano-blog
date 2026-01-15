@@ -4,7 +4,8 @@
  */
 
 import Web3 from 'web3'
-import { BlockchainEventService, prisma } from './database-simplified'
+import { BlockchainEventService } from './database-simplified'
+import { getDb } from './get-db'
 import { PXP_REWARDS_ADDRESS, PXP_REWARDS_ABI, CELO_TESTNET_RPC } from '@/utils/rewards-contract'
 
 export class BlockchainEventProcessor {
@@ -141,7 +142,8 @@ export class BlockchainEventProcessor {
    * Get event processing statistics
    */
   async getEventStats() {
-    const events = await prisma.blockchainEvent.groupBy({
+    const db = await getDb()
+    const events = await db.blockchainEvent.groupBy({
       by: ['eventType', 'processed'],
       _count: true,
     })

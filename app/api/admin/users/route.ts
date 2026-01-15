@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { requireRole, can } from '@/lib/auth-middleware'
 import { hashPassword } from '@/lib/auth'
 import { UserRole } from '@prisma/client'
@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { user } = authResult
+    const db = await getDb()
 
     if (!can.manageUsers(user)) {
       return NextResponse.json(
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const users = await prisma.user.findMany({
+    const users = await db.user.findMany({
       select: {
         id: true,
         username: true,
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { user } = authResult
+    const db = await getDb()
 
     if (!can.manageUsers(user)) {
       return NextResponse.json(
@@ -129,7 +131,7 @@ export async function POST(request: NextRequest) {
     const finalDisplayName = displayName || originalUsername
 
     // Check if username already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { username },
     })
 
@@ -146,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     // Check if email already exists
     if (email) {
-      const existingEmail = await prisma.user.findUnique({
+      const existingEmail = await db.user.findUnique({
         where: { email },
       })
 
@@ -166,7 +168,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await hashPassword(password)
 
     // Create user
-    const newUser = await prisma.user.create({
+    const newUser = await db.user.create({
       data: {
         username, // Normalized to lowercase
         passwordHash,

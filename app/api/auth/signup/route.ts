@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { hashPassword, generateToken, createEmailVerificationToken } from '@/lib/auth'
 import { sendVerificationEmail } from '@/lib/email'
 import { UserRole } from '@prisma/client'
@@ -48,11 +48,13 @@ export async function POST(request: NextRequest) {
     const originalUsername = body.username // Original case before transform
     const finalDisplayName = displayName || originalUsername
 
+    const db = await getDb()
+
     // Validate referral code if provided
     let referrer: { id: number; referralCode: string | null; displayName: string | null } | null =
       null
     if (referralCode) {
-      referrer = await prisma.user.findUnique({
+      referrer = await db.user.findUnique({
         where: { referralCode },
         select: { id: true, referralCode: true, displayName: true },
       })
@@ -64,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username already exists
-    const existingUsername = await prisma.user.findUnique({
+    const existingUsername = await db.user.findUnique({
       where: { username },
     })
 
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     // Check if email already exists (if provided)
     if (email) {
-      const existingEmail = await prisma.user.findUnique({
+      const existingEmail = await db.user.findUnique({
         where: { email },
       })
 
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await hashPassword(password)
 
     // Create user with referral tracking
-    const newUser = await prisma.user.create({
+    const newUser = await db.user.create({
       data: {
         username, // Normalized to lowercase
         passwordHash,
@@ -125,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     // Update referrer's stats if this was a referral signup
     if (referrer) {
-      await prisma.user.update({
+      await db.user.update({
         where: { id: referrer.id },
         data: {
           referralCount: { increment: 1 },

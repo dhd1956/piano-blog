@@ -1,21 +1,125 @@
 /**
  * Simplified Database Service - PostgreSQL only for content
  * No complex blockchain sync, just simple references to transaction hashes
+ *
+ * MULTI-DATABASE SUPPORT (Vercel Hobby Plan Workaround)
+ * =====================================================
+ * This module supports runtime database selection based on request hostname.
+ * This is a workaround for Vercel Hobby plan not supporting domain-specific env vars.
+ *
+ * Routing:
+ * - localhost, *.vercel.app → STAGING_DATABASE_URL
+ * - globalpiano.network → PRODUCTION_DATABASE_URL
+ *
+ * To remove this workaround (when upgrading to Vercel Pro):
+ * 1. Set DATABASE_URL per domain in Vercel dashboard
+ * 2. Delete STAGING_DATABASE_URL and PRODUCTION_DATABASE_URL env vars
+ * 3. Simplify getDb() in lib/get-db.ts to just return prisma
+ * 4. Remove the dual-client code below
  */
 
 import { PrismaClient } from '@prisma/client'
 import { PXPRewardsService } from '@/utils/rewards-contract'
 
-// Global Prisma client instance
+// Environment variables for multi-database support
+const STAGING_URL = process.env.STAGING_DATABASE_URL
+const PRODUCTION_URL = process.env.PRODUCTION_DATABASE_URL
+
+// Global Prisma client instances (cached for serverless)
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  prismaStaging: PrismaClient | undefined
+  prismaProduction: PrismaClient | undefined
 }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  })
+/**
+ * Get or create the staging database client
+ */
+function getStagingClient(): PrismaClient {
+  if (!globalForPrisma.prismaStaging) {
+    const url = STAGING_URL || process.env.DATABASE_URL
+    globalForPrisma.prismaStaging = new PrismaClient({
+      datasources: url ? { db: { url } } : undefined,
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    })
+    if (typeof window === 'undefined') {
+      const host = url?.split('@')[1]?.split('/')[0] || 'default'
+      console.log(`[Database] Staging client initialized: ${host}`)
+    }
+  }
+  return globalForPrisma.prismaStaging
+}
+
+/**
+ * Get or create the production database client
+ */
+function getProductionClient(): PrismaClient {
+  if (!globalForPrisma.prismaProduction) {
+    const url = PRODUCTION_URL || process.env.DATABASE_URL
+    globalForPrisma.prismaProduction = new PrismaClient({
+      datasources: url ? { db: { url } } : undefined,
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    })
+    if (typeof window === 'undefined') {
+      const host = url?.split('@')[1]?.split('/')[0] || 'default'
+      console.log(`[Database] Production client initialized: ${host}`)
+    }
+  }
+  return globalForPrisma.prismaProduction
+}
+
+/**
+ * Check if multi-database mode is enabled
+ */
+export function isMultiDatabaseEnabled(): boolean {
+  return !!(STAGING_URL && PRODUCTION_URL)
+}
+
+/**
+ * Determine if hostname should use production database
+ */
+function isProductionHost(hostname: string): boolean {
+  return hostname.includes('globalpiano.network')
+}
+
+/**
+ * Get the appropriate Prisma client based on hostname
+ * This is the core function for multi-database routing
+ *
+ * @param hostname - Request hostname (e.g., 'localhost:3000', 'globalpiano.network')
+ * @returns PrismaClient configured for the appropriate database
+ */
+export function getPrismaForHost(hostname: string): PrismaClient {
+  // If multi-database not configured, use default client
+  if (!isMultiDatabaseEnabled()) {
+    return getDefaultClient()
+  }
+
+  const isProd = isProductionHost(hostname)
+
+  if (typeof window === 'undefined') {
+    console.log(`[Database] Host: ${hostname} → ${isProd ? 'production' : 'staging'}`)
+  }
+
+  return isProd ? getProductionClient() : getStagingClient()
+}
+
+/**
+ * Get the default Prisma client (for backwards compatibility)
+ * Uses DATABASE_URL from environment
+ */
+function getDefaultClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    })
+  }
+  return globalForPrisma.prisma
+}
+
+// Default export for backwards compatibility during migration
+// New code should use getDb() from lib/get-db.ts
+export const prisma = getDefaultClient()
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma

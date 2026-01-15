@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { ethers } from 'ethers'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * POST /api/auth/link-wallet
@@ -44,8 +42,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 })
     }
 
+    const db = await getDb()
+
     // 2. Find the username account
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { username },
     })
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Check if wallet is already linked to another account
-    const existingWalletUser = await prisma.user.findUnique({
+    const existingWalletUser = await db.user.findUnique({
       where: { walletAddress: normalizedAddress },
     })
 
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Link wallet to user account
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { username },
       data: {
         walletAddress: normalizedAddress,
@@ -142,8 +142,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error linking wallet:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -161,7 +159,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Username parameter required' }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+
+    const user = await db.user.findUnique({
       where: { username },
       select: {
         id: true,
@@ -186,7 +186,5 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error checking wallet link eligibility:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

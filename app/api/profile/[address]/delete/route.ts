@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 
 export async function DELETE(
   request: NextRequest,
@@ -31,8 +31,10 @@ export async function DELETE(
       )
     }
 
+    const db = await getDb()
+
     // Find the user to delete
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: address, mode: 'insensitive' } },
@@ -51,28 +53,28 @@ export async function DELETE(
     }
 
     // Delete musician profile first (if exists)
-    const musicianProfile = await prisma.musicianProfile.findUnique({
+    const musicianProfile = await db.musicianProfile.findUnique({
       where: { userId: user.id },
     })
 
     if (musicianProfile) {
-      await prisma.musicianProfile.delete({
+      await db.musicianProfile.delete({
         where: { userId: user.id },
       })
     }
 
     // Delete reviews
-    await prisma.venueReview.deleteMany({
+    await db.venueReview.deleteMany({
       where: { userId: user.id },
     })
 
     // Delete sessions
-    await prisma.session.deleteMany({
+    await db.session.deleteMany({
       where: { userId: user.id },
     })
 
     // Delete user
-    await prisma.user.delete({
+    await db.user.delete({
       where: { id: user.id },
     })
 

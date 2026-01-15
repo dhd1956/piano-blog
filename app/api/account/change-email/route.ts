@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { createEmailVerificationToken } from '@/lib/auth'
 import { sendVerificationEmail, sendSecurityAlertEmail } from '@/lib/email'
 import { z } from 'zod'
@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, newEmail, currentEmail } = validation.data
+    const db = await getDb()
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if new email is already in use
-    const existingEmail = await prisma.user.findUnique({
+    const existingEmail = await db.user.findUnique({
       where: { email: newEmail },
       select: {
         id: true,
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update email and mark as unverified
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         email: newEmail,

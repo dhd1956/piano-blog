@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
 import crypto from 'crypto'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/content/youtube/oauth/initiate
@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Generate state parameter for CSRF protection
     const state = crypto.randomBytes(32).toString('hex')
 
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
     // Use AppConfig table to store OAuth state temporarily
-    await prisma.appConfig.upsert({
+    await db.appConfig.upsert({
       where: {
         key: `youtube_oauth_state_${sessionUser.id}`,
       },

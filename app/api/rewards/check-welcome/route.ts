@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkWelcomeRewardEligibility } from '@/utils/rewards-contract'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * API Route: Check if user is eligible for welcome reward
@@ -15,8 +15,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Wallet address required' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Check database first
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { walletAddress: address.toLowerCase() },
       select: { hasClaimedNewUserReward: true },
     })

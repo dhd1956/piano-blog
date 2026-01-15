@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyEmailToken, createEmailVerificationToken } from '@/lib/auth'
 import { sendVerificationEmail, sendWelcomeEmail } from '@/lib/email'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 
 // Rate limiting store (in-memory for development, use Redis in production)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
@@ -92,10 +92,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email or userId is required' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user
     let user
     if (userId) {
-      user = await prisma.user.findUnique({
+      user = await db.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
         },
       })
     } else {
-      user = await prisma.user.findUnique({
+      user = await db.user.findUnique({
         where: { email },
         select: {
           id: true,

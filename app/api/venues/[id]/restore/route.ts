@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth-middleware'
 import { UserRole } from '@prisma/client'
-import { prisma } from '@/lib/database'
+import { getDb } from '@/lib/get-db'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -17,6 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const { user } = authResult
+    const db = await getDb()
     const { id } = await params
     const venueId = parseInt(id)
 
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Get venue (including deleted ones)
-    const venue = await prisma.venue.findUnique({
+    const venue = await db.venue.findUnique({
       where: { id: venueId },
     })
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Restore venue
-    const restoredVenue = await prisma.venue.update({
+    const restoredVenue = await db.venue.update({
       where: { id: venueId },
       data: {
         isActive: true,

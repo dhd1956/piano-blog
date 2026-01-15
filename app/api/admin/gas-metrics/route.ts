@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 // Gas metrics interface (matches dashboard)
 interface GasMetrics {
@@ -57,8 +57,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const db = await getDb()
+
     // Get user from database to check role
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: sessionUser.id },
       select: { id: true, role: true },
     })

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { requireRole, can } from '@/lib/auth-middleware'
 import { hashPassword } from '@/lib/auth'
 import { UserRole } from '@prisma/client'
@@ -55,7 +55,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -130,6 +131,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { user: authUser } = authResult
+    const db = await getDb()
 
     if (!can.manageUsers(authUser)) {
       return NextResponse.json(
@@ -180,7 +182,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.role = role
     }
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: userId },
       data: updateData,
       select: {
@@ -242,6 +244,7 @@ export async function DELETE(
     }
 
     const { user: authUser } = authResult
+    const db = await getDb()
 
     if (!can.manageUsers(authUser)) {
       return NextResponse.json(
@@ -264,7 +267,7 @@ export async function DELETE(
       )
     }
 
-    await prisma.user.delete({
+    await db.user.delete({
       where: { id: userId },
     })
 

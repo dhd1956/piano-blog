@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { generateVerificationToken } from '@/lib/auth'
 import { sendPasswordResetEmail } from '@/lib/email'
 import { z } from 'zod'
@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { identifier } = validation.data
+    const db = await getDb()
 
     // Find user by email or username
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }],
         isActive: true,
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     expiresAt.setHours(expiresAt.getHours() + 1) // 1 hour expiration
 
     // Store token in database
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         passwordResetToken: token,

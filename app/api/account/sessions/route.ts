@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { sendSecurityAlertEmail } from '@/lib/email'
 import { z } from 'zod'
 
@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: parseInt(userId) },
       select: {
         id: true,
@@ -88,9 +90,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { userId } = validation.data
+    const db = await getDb()
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,

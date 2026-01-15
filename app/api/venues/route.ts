@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { VenueService } from '@/lib/database-simplified'
 import { getSessionUser } from '@/lib/auth-middleware'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 export async function GET(request: NextRequest) {
   try {
@@ -115,8 +115,10 @@ export async function POST(request: NextRequest) {
 
     if (sessionUser?.id) {
       try {
+        const db = await getDb()
+
         // Get user's current PXP status
-        const user = await prisma.user.findUnique({
+        const user = await db.user.findUnique({
           where: { id: sessionUser.id },
           select: {
             id: true,
@@ -131,7 +133,7 @@ export async function POST(request: NextRequest) {
 
           // Award 50 PXP for venue submission
           pxpEarned = 50
-          await prisma.user.update({
+          await db.user.update({
             where: { id: user.id },
             data: {
               totalCAVEarned: { increment: pxpEarned },

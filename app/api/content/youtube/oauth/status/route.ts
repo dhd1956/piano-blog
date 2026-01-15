@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/content/youtube/oauth/status
@@ -34,8 +34,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Fetch user's YouTube verification status
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: sessionUser.id },
       select: {
         youtubeChannelId: true,

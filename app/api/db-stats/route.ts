@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { detectEnvironment, getDatabaseIdentifier } from '@/lib/env-config'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * Database statistics endpoint
@@ -13,21 +11,22 @@ export async function GET() {
   try {
     const env = detectEnvironment()
     const dbIdentifier = getDatabaseIdentifier()
+    const db = await getDb()
 
     const stats = {
       environment: env,
       database: dbIdentifier,
       counts: {
-        users: await prisma.user.count(),
-        venues: await prisma.venue.count(),
-        verifications: await prisma.venueVerification.count(),
-        reviews: await prisma.venueReview.count(),
-        events: await prisma.event.count(),
-        pxpPayments: await prisma.pXPPayment.count(),
-        appConfigs: await prisma.appConfig.count(),
+        users: await db.user.count(),
+        venues: await db.venue.count(),
+        verifications: await db.venueVerification.count(),
+        reviews: await db.venueReview.count(),
+        events: await db.event.count(),
+        pxpPayments: await db.pXPPayment.count(),
+        appConfigs: await db.appConfig.count(),
       },
       sampleData: {
-        firstUser: await prisma.user.findFirst({
+        firstUser: await db.user.findFirst({
           select: {
             username: true,
             email: true,
@@ -35,11 +34,9 @@ export async function GET() {
             createdAt: true,
           },
         }),
-        venueCount: await prisma.venue.count(),
+        venueCount: await db.venue.count(),
       },
     }
-
-    await prisma.$disconnect()
 
     return NextResponse.json(stats, {
       headers: {
@@ -47,7 +44,6 @@ export async function GET() {
       },
     })
   } catch (error) {
-    await prisma.$disconnect()
     return NextResponse.json(
       {
         error: 'Failed to fetch database stats',

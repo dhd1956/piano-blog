@@ -3,13 +3,14 @@
  * Helper functions to award PXP for various user actions
  */
 
-import { prisma } from '@/lib/database'
+import { getDb } from '@/lib/get-db'
 
 /**
  * Get PXP configuration value by key
  */
 async function getPXPConfig(key: string): Promise<number> {
-  const config = await prisma.pXPConfig.findUnique({
+  const db = await getDb()
+  const config = await db.pXPConfig.findUnique({
     where: { key },
     select: { value: true, enabled: true },
   })
@@ -33,7 +34,8 @@ async function awardPXP(
     return { success: false, newTotal: 0 }
   }
 
-  const user = await prisma.user.update({
+  const db = await getDb()
+  const user = await db.user.update({
     where: { id: userId },
     data: {
       totalCAVEarned: { increment: amount },
@@ -58,8 +60,9 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
   referrerUsername?: string
 }> {
   try {
+    const db = await getDb()
     // Get user with referrer info
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -98,7 +101,7 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
     }
 
     // Award PXP to referrer
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.referredByUser.id },
       data: {
         totalCAVEarned: { increment: pxpAmount },
@@ -130,8 +133,9 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
   referrerUsername?: string
 }> {
   try {
+    const db = await getDb()
     // Get user with referrer info and check if this is their first event
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -173,7 +177,7 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
     }
 
     // Award PXP to referrer
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.referredByUser.id },
       data: {
         totalCAVEarned: { increment: pxpAmount },

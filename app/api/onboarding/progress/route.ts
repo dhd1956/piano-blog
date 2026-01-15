@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * API Route: Save onboarding progress
@@ -20,8 +20,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'userId and step are required' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Update user onboarding progress
-    await prisma.user.update({
+    await db.user.update({
       where: { id: userId },
       data: {
         onboardingStep: step,

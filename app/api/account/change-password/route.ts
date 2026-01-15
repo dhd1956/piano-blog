@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { sendSecurityAlertEmail } from '@/lib/email'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, currentPassword, newPassword } = validation.data
+    const db = await getDb()
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
     // Update password and invalidate sessions
     // Note: In a production app, you'd typically have a sessions table
     // For now, we'll just update the password
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         passwordHash: newPasswordHash,

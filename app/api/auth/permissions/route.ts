@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { UserRole } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
@@ -24,9 +24,10 @@ export async function GET(request: NextRequest) {
     }
 
     const normalizedAddress = address.toLowerCase()
+    const db = await getDb()
 
     // Get user with role from database
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { walletAddress: normalizedAddress },
       select: {
         id: true,

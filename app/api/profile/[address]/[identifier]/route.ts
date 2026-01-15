@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 
 export async function GET(
   request: NextRequest,
@@ -13,9 +13,10 @@ export async function GET(
 ) {
   try {
     const { identifier } = await params
+    const db = await getDb()
 
     // Find user by wallet address OR username
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [{ walletAddress: identifier }, { username: identifier }, { profileSlug: identifier }],
       },
@@ -88,12 +89,13 @@ export async function PUT(
   try {
     const { identifier } = await params
     const body = await request.json()
+    const db = await getDb()
 
     // TODO: Add authentication - verify user is updating their own profile
     // For now, basic implementation
 
     // Find user by wallet address OR username
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [{ walletAddress: identifier }, { username: identifier }],
       },
@@ -126,7 +128,7 @@ export async function PUT(
     if (body.repertoire !== undefined) musicianProfileData.repertoire = body.repertoire
 
     // Upsert musician profile
-    const musicianProfile = await prisma.musicianProfile.upsert({
+    const musicianProfile = await db.musicianProfile.upsert({
       where: { userId: user.id },
       update: musicianProfileData,
       create: {
@@ -144,7 +146,7 @@ export async function PUT(
     if (body.title !== undefined) userUpdateData.title = body.title
 
     if (Object.keys(userUpdateData).length > 0) {
-      await prisma.user.update({
+      await db.user.update({
         where: { id: user.id },
         data: userUpdateData,
       })

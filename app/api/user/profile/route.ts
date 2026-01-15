@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 import { getSessionUser } from '@/lib/auth-middleware'
 
 /**
@@ -40,7 +40,8 @@ export async function PATCH(request: NextRequest) {
     if (socialLinks !== undefined) updateData.socialLinks = socialLinks
 
     // Update user profile
-    const updatedUser = await prisma.user.update({
+    const db = await getDb()
+    const updatedUser = await db.user.update({
       where: { id: userId },
       data: {
         ...updateData,

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database'
+import { getDb } from '@/lib/get-db'
 import { requireAuth } from '@/lib/auth-middleware'
 
 // Generate a random referral code (e.g., "PIANIST123")
@@ -29,9 +29,10 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authResult.user.id
+    const db = await getDb()
 
     // Check if user already has a referral code
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { id: userId },
       select: { referralCode: true },
     })
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Ensure uniqueness
     while (attempts < maxAttempts) {
-      const existing = await prisma.user.findUnique({
+      const existing = await db.user.findUnique({
         where: { referralCode },
       })
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user with referral code
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: userId },
       data: { referralCode },
       select: { referralCode: true, displayName: true, username: true },
@@ -99,7 +100,8 @@ export async function GET(request: NextRequest) {
       return authResult
     }
 
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { id: authResult.user.id },
       select: {
         referralCode: true,

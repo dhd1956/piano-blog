@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/events/[id]
@@ -17,7 +15,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 })
     }
 
-    const event = await prisma.event.findUnique({
+    const db = await getDb()
+
+    const event = await db.event.findUnique({
       where: { id: eventId },
       include: {
         organizer: {
@@ -86,8 +86,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   } catch (error) {
     console.error('Error fetching event:', error)
     return NextResponse.json({ error: 'Failed to fetch event' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -112,8 +110,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Missing requesterAddress' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find event
-    const event = await prisma.event.findUnique({
+    const event = await db.event.findUnique({
       where: { id: eventId },
       include: {
         organizer: true,
@@ -125,7 +125,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Find requester
-    const requester = await prisma.user.findFirst({
+    const requester = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: requesterAddress, mode: 'insensitive' } },
@@ -162,7 +162,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         )
       }
 
-      const venue = await prisma.venue.findUnique({ where: { id: updateData.venueId } })
+      const venue = await db.venue.findUnique({ where: { id: updateData.venueId } })
       if (!venue) {
         return NextResponse.json({ error: 'Venue not found' }, { status: 404 })
       }
@@ -179,7 +179,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { customLocation, ...safeUpdateData } = updateData as any
 
     // Update event
-    const updatedEvent = await prisma.event.update({
+    const updatedEvent = await db.event.update({
       where: { id: eventId },
       data: {
         ...safeUpdateData,
@@ -213,8 +213,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   } catch (error) {
     console.error('Error updating event:', error)
     return NextResponse.json({ error: 'Failed to update event' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -242,8 +240,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Missing requesterAddress' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find event
-    const event = await prisma.event.findUnique({
+    const event = await db.event.findUnique({
       where: { id: eventId },
       include: { organizer: true },
     })
@@ -253,7 +253,7 @@ export async function DELETE(
     }
 
     // Find requester
-    const requester = await prisma.user.findFirst({
+    const requester = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: requesterAddress, mode: 'insensitive' } },
@@ -282,7 +282,7 @@ export async function DELETE(
     }
 
     // Cancel event (don't actually delete, just mark as cancelled)
-    const cancelledEvent = await prisma.event.update({
+    const cancelledEvent = await db.event.update({
       where: { id: eventId },
       data: {
         status: 'CANCELLED',
@@ -295,7 +295,5 @@ export async function DELETE(
   } catch (error) {
     console.error('Error cancelling event:', error)
     return NextResponse.json({ error: 'Failed to cancel event' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

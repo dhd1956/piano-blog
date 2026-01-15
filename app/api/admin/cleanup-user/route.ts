@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * Admin API endpoint to clean up a user profile and all associated data
@@ -55,8 +53,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Admin cleanup: Searching for user: ${identifier}`)
 
+    const db = await getDb()
+
     // Find user by username, wallet address, or display name
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [
           { username: { equals: identifier, mode: 'insensitive' } },
@@ -100,25 +100,25 @@ export async function POST(request: NextRequest) {
     }
 
     if (user.musicianProfile) {
-      await prisma.musicianProfile.delete({ where: { id: user.musicianProfile.id } })
+      await db.musicianProfile.delete({ where: { id: user.musicianProfile.id } })
       deletedData.musicianProfile = true
       console.log('   ✓ Deleted musician profile')
     }
 
     if (user.sessions.length > 0) {
-      const result = await prisma.session.deleteMany({ where: { userId: user.id } })
+      const result = await db.session.deleteMany({ where: { userId: user.id } })
       deletedData.sessionsDeleted = result.count
       console.log(`   ✓ Deleted ${result.count} session(s)`)
     }
 
     if (user.reviews.length > 0) {
-      const result = await prisma.venueReview.deleteMany({ where: { userId: user.id } })
+      const result = await db.venueReview.deleteMany({ where: { userId: user.id } })
       deletedData.reviewsDeleted = result.count
       console.log(`   ✓ Deleted ${result.count} review(s)`)
     }
 
     // Delete user
-    await prisma.user.delete({ where: { id: user.id } })
+    await db.user.delete({ where: { id: user.id } })
     console.log('   ✓ Deleted user account')
     console.log('✅ User cleanup completed successfully')
 
@@ -134,8 +134,6 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -164,8 +162,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing query parameter: identifier' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user by username, wallet address, or display name
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [
           { username: { equals: identifier, mode: 'insensitive' } },
@@ -210,7 +210,5 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

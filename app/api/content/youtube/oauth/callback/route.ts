@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/content/youtube/oauth/callback
@@ -53,8 +53,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Verify state parameter for CSRF protection
-    const storedStateConfig = await prisma.appConfig.findUnique({
+    const storedStateConfig = await db.appConfig.findUnique({
       where: {
         key: `youtube_oauth_state_${sessionUser.id}`,
       },
@@ -74,7 +76,7 @@ export async function GET(request: NextRequest) {
     // Validate state matches and hasn't expired
     if (storedState !== state) {
       // Clean up expired state
-      await prisma.appConfig.delete({
+      await db.appConfig.delete({
         where: { key: `youtube_oauth_state_${sessionUser.id}` },
       })
 
@@ -85,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     if (expiresAt < new Date()) {
       // Clean up expired state
-      await prisma.appConfig.delete({
+      await db.appConfig.delete({
         where: { key: `youtube_oauth_state_${sessionUser.id}` },
       })
 
@@ -98,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Clean up state (one-time use)
-    await prisma.appConfig.delete({
+    await db.appConfig.delete({
       where: { key: `youtube_oauth_state_${sessionUser.id}` },
     })
 
@@ -176,7 +178,7 @@ export async function GET(request: NextRequest) {
     const channelName = channel.snippet.title
 
     // Check if channel is already verified by another user
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await db.user.findFirst({
       where: {
         youtubeChannelId: channelId,
         NOT: {
@@ -206,7 +208,7 @@ export async function GET(request: NextRequest) {
 
     // Store OAuth credentials and channel info in database
     // Note: In production, you should encrypt the tokens before storing
-    await prisma.user.update({
+    await db.user.update({
       where: { id: sessionUser.id },
       data: {
         youtubeChannelId: channelId,
@@ -219,7 +221,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Mark all videos from this channel as verified
-    await prisma.youTubeVideo.updateMany({
+    await db.youTubeVideo.updateMany({
       where: {
         userId: sessionUser.id,
         channelId: channelId,

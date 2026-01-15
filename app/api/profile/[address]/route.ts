@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { getDb } from '@/lib/get-db'
 import { UserService } from '@/lib/database'
-
-const prisma = new PrismaClient()
 
 export async function GET(
   request: NextRequest,
@@ -20,8 +18,10 @@ export async function GET(
     // Normalize address to lowercase for case-insensitive search
     const normalizedAddress = address.toLowerCase()
 
+    const db = await getDb()
+
     // Try to find user by wallet address or profile slug
-    let user = await prisma.user.findFirst({
+    let user = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: address, mode: 'insensitive' } },
@@ -51,7 +51,7 @@ export async function GET(
       })
 
       // Fetch full user data with relations after creation
-      user = await prisma.user.findUnique({
+      user = await db.user.findUnique({
         where: { walletAddress: address.toLowerCase() },
         include: {
           reviews: {
@@ -73,7 +73,7 @@ export async function GET(
 
     // Count venues discovered (venues submitted by this user)
     const venuesDiscovered = user.walletAddress
-      ? await prisma.venue.count({
+      ? await db.venue.count({
           where: {
             submittedBy: { equals: user.walletAddress, mode: 'insensitive' },
           },
@@ -119,8 +119,6 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -143,6 +141,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
+    const db = await getDb()
+
     // Look up the requester user by wallet/username/ID
     // Build OR conditions - only include id if it's a valid positive integer (not a hex address)
     const isValidId = /^\d+$/.test(requesterIdentifier)
@@ -155,7 +155,7 @@ export async function PATCH(
       orConditions.push({ id: Number(requesterIdentifier) })
     }
 
-    const requesterUser = await prisma.user.findFirst({
+    const requesterUser = await db.user.findFirst({
       where: {
         OR: orConditions,
       },
@@ -171,7 +171,7 @@ export async function PATCH(
       requesterUser.role === 'BLOG_OWNER'
 
     // Look up the profile being edited by wallet/username/profile slug
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: address, mode: 'insensitive' } },
@@ -197,7 +197,7 @@ export async function PATCH(
 
     // Username uniqueness validation
     if (body.username) {
-      const existingUserWithUsername = await prisma.user.findFirst({
+      const existingUserWithUsername = await db.user.findFirst({
         where: {
           username: { equals: body.username, mode: 'insensitive' },
           id: { not: user.id }, // Exclude current user
@@ -220,7 +220,7 @@ export async function PATCH(
 
     // Email uniqueness validation
     if (body.email) {
-      const existingUserWithEmail = await prisma.user.findFirst({
+      const existingUserWithEmail = await db.user.findFirst({
         where: {
           email: { equals: body.email, mode: 'insensitive' },
           id: { not: user.id }, // Exclude current user
@@ -252,7 +252,7 @@ export async function PATCH(
 
     // Update user profile using the user's primary key (id)
     const wasProfileCompleted = user.profileCompleted
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: {
         id: user.id,
       },
@@ -296,7 +296,7 @@ export async function PATCH(
 
     // Update or create musician profile if provided
     if (body.musicianProfile) {
-      await prisma.musicianProfile.upsert({
+      await db.musicianProfile.upsert({
         where: {
           userId: user.id,
         },
@@ -345,7 +345,5 @@ export async function PATCH(
       },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

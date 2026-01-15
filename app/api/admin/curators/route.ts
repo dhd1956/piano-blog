@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { requireRole } from '@/lib/auth-middleware'
 import { UserRole } from '@prisma/client'
 
@@ -25,9 +25,10 @@ export async function GET(request: NextRequest) {
 
     // User is authenticated as BLOG_OWNER
     const { user: authUser } = authResult
+    const db = await getDb()
 
     // Get all users with CURATOR role
-    const curators = await prisma.user.findMany({
+    const curators = await db.user.findMany({
       where: {
         role: { in: [UserRole.CURATOR, UserRole.BLOG_OWNER] },
       },
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
 
     // User is authenticated as BLOG_OWNER
     const { user: authUser } = authResult
+    const db = await getDb()
 
     const body = await request.json()
     const { curatorAddress } = body
@@ -113,7 +115,7 @@ export async function POST(request: NextRequest) {
     const normalizedAddress = curatorAddress.toLowerCase()
 
     // Check if user already exists
-    let user = await prisma.user.findUnique({
+    let user = await db.user.findUnique({
       where: {
         walletAddress: normalizedAddress,
       },
@@ -132,7 +134,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      user = await prisma.user.update({
+      user = await db.user.update({
         where: {
           walletAddress: normalizedAddress,
         },
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Create new user with curator status
-      user = await prisma.user.create({
+      user = await db.user.create({
         data: {
           walletAddress: normalizedAddress,
           role: UserRole.CURATOR,

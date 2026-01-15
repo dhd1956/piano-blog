@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { requireRole, can } from '@/lib/auth-middleware'
 import { UserRole } from '@prisma/client'
 import { z } from 'zod'
@@ -42,9 +42,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const { user } = authResult
+    const db = await getDb()
 
     // Verify venue exists
-    const venue = await prisma.venue.findUnique({
+    const venue = await db.venue.findUnique({
       where: { id: venueId },
       include: {
         validations: {
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Blog owner can instantly verify
     if (can.instantVerifyVenue(user)) {
       if (approved) {
-        await prisma.venue.update({
+        await db.venue.update({
           where: { id: venueId },
           data: {
             verified: true,
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         })
 
         // Record the blog owner's validation
-        await prisma.venueValidation.create({
+        await db.venueValidation.create({
           data: {
             venueId,
             validatorId: user.id,
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         })
       } else {
         // Blog owner rejected
-        await prisma.venueValidation.create({
+        await db.venueValidation.create({
           data: {
             venueId,
             validatorId: user.id,
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Create validation record
-    await prisma.venueValidation.create({
+    await db.venueValidation.create({
       data: {
         venueId,
         validatorId: user.id,
@@ -183,7 +184,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     })
 
     // Check if we have 3 approvals
-    const allValidations = await prisma.venueValidation.findMany({
+    const allValidations = await db.venueValidation.findMany({
       where: { venueId },
     })
 
@@ -191,7 +192,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Auto-verify if we have 3 approvals
     if (approvalCount >= 3) {
-      await prisma.venue.update({
+      await db.venue.update({
         where: { id: venueId },
         data: {
           verified: true,
@@ -263,7 +264,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    const venue = await prisma.venue.findUnique({
+    const db = await getDb()
+    const venue = await db.venue.findUnique({
       where: { id: venueId },
       select: {
         id: true,

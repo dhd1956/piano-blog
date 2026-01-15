@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * POST /api/events/[id]/rsvp
@@ -28,8 +26,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Invalid RSVP status' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: userAddress, mode: 'insensitive' } },
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Find event
-    const event = await prisma.event.findUnique({
+    const event = await db.event.findUnique({
       where: { id: eventId },
       include: {
         rsvps: {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Create or update RSVP
-    const rsvp = await prisma.eventRSVP.upsert({
+    const rsvp = await db.eventRSVP.upsert({
       where: {
         eventId_userId: {
           eventId: eventId,
@@ -155,8 +155,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   } catch (error) {
     console.error('Error creating RSVP:', error)
     return NextResponse.json({ error: 'Failed to create RSVP' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -181,8 +179,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find organizer
-    const organizer = await prisma.user.findFirst({
+    const organizer = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: organizerAddress, mode: 'insensitive' } },
@@ -197,7 +197,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Find event and verify organizer
-    const event = await prisma.event.findUnique({
+    const event = await db.event.findUnique({
       where: { id: eventId },
     })
 
@@ -213,7 +213,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Update RSVP
-    const rsvp = await prisma.eventRSVP.update({
+    const rsvp = await db.eventRSVP.update({
       where: { id: rsvpId },
       data: {
         status,
@@ -235,8 +235,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   } catch (error) {
     console.error('Error updating RSVP:', error)
     return NextResponse.json({ error: 'Failed to update RSVP' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -263,8 +261,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Missing userAddress' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user
-    const user = await prisma.user.findFirst({
+    const user = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: userAddress, mode: 'insensitive' } },
@@ -279,7 +279,7 @@ export async function DELETE(
     }
 
     // Delete RSVP
-    await prisma.eventRSVP.delete({
+    await db.eventRSVP.delete({
       where: {
         eventId_userId: {
           eventId: eventId,
@@ -292,7 +292,5 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting RSVP:', error)
     return NextResponse.json({ error: 'Failed to cancel RSVP' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

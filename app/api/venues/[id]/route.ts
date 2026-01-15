@@ -4,7 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { VenueService, AnalyticsService, prisma } from '@/lib/database-simplified'
+import { VenueService, AnalyticsService } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { requireRole, can } from '@/lib/auth-middleware'
 import { UserRole } from '@prisma/client'
 
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     const venueId = id
+
+    const db = await getDb()
 
     // Get venue by ID or slug (without heavy relations to avoid serialization issues)
     const where =
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           ? { slug: venueId }
           : { id: Number(venueId) }
 
-    const venue = await prisma.venue.findUnique({
+    const venue = await db.venue.findUnique({
       where,
       // Don't include relations that might cause serialization issues
       // The frontend doesn't need reviews, verifications, analytics here
@@ -80,6 +83,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { user } = authResult
+    const db = await getDb()
 
     const { id } = await params
     const venueId = parseInt(id)
@@ -188,7 +192,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Update venue
-    const updatedVenue = await prisma.venue.update({
+    const updatedVenue = await db.venue.update({
       where: { id: venueId },
       data: updateData,
     })
@@ -197,14 +201,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (isNewlyVerified && existingVenue.submittedBy) {
       try {
         // Find the scout user by wallet address
-        const scoutUser = await prisma.user.findUnique({
+        const scoutUser = await db.user.findUnique({
           where: { walletAddress: existingVenue.submittedBy.toLowerCase() },
           select: { id: true, walletAddress: true, username: true, displayName: true },
         })
 
         if (scoutUser) {
           // Get venue verification reward from PXP config
-          const verificationConfig = await prisma.pXPConfig.findUnique({
+          const verificationConfig = await db.pXPConfig.findUnique({
             where: { key: 'venue_verified' },
             select: { value: true, enabled: true },
           })
@@ -213,7 +217,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             verificationConfig && verificationConfig.enabled ? verificationConfig.value : 50
 
           // Award PXP to scout
-          await prisma.user.update({
+          await db.user.update({
             where: { id: scoutUser.id },
             data: {
               totalCAVEarned: { increment: rewardAmount },
@@ -241,7 +245,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (isNewlyVerified) {
       try {
         // Get curator verification reward from PXP config
-        const curatorConfig = await prisma.pXPConfig.findUnique({
+        const curatorConfig = await db.pXPConfig.findUnique({
           where: { key: 'curator_verification' },
           select: { value: true, enabled: true },
         })
@@ -249,7 +253,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const curatorReward = curatorConfig && curatorConfig.enabled ? curatorConfig.value : 20
 
         // Award PXP to the curator who verified the venue
-        await prisma.user.update({
+        await db.user.update({
           where: { id: user.id },
           data: {
             totalCAVEarned: { increment: curatorReward },
@@ -299,6 +303,7 @@ export async function DELETE(
     }
 
     const { user } = authResult
+    const db = await getDb()
 
     const { id } = await params
     const venueId = parseInt(id)
@@ -344,7 +349,7 @@ export async function DELETE(
     }
 
     // Soft delete venue (mark as inactive)
-    const deletedVenue = await prisma.venue.update({
+    const deletedVenue = await db.venue.update({
       where: { id: venueId },
       data: {
         isActive: false,
@@ -355,7 +360,7 @@ export async function DELETE(
     })
 
     // Count associated events for info
-    const eventCount = await prisma.event.count({
+    const eventCount = await db.event.count({
       where: { venueId: venueId },
     })
 

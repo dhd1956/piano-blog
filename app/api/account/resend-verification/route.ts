@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { createEmailVerificationToken } from '@/lib/auth'
 import { sendVerificationEmail } from '@/lib/email'
 import { z } from 'zod'
@@ -34,9 +34,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId } = validation.data
+    const db = await getDb()
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,

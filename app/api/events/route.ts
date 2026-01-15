@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient, UserRole } from '@prisma/client'
+import { UserRole } from '@prisma/client'
 import { requireRole } from '@/lib/auth-middleware'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/events
@@ -46,11 +45,13 @@ export async function GET(request: NextRequest) {
       where.organizerId = parseInt(organizerId)
     }
 
+    const db = await getDb()
+
     // Get total count for pagination
-    const totalCount = await prisma.event.count({ where })
+    const totalCount = await db.event.count({ where })
 
     // Fetch events with relations
-    const events = await prisma.event.findMany({
+    const events = await db.event.findMany({
       where,
       select: {
         id: true,
@@ -143,8 +144,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching events:', error)
     return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -213,8 +212,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Find or create organizer
-    const organizer = await prisma.user.findFirst({
+    const organizer = await db.user.findFirst({
       where: {
         OR: [
           { walletAddress: { equals: organizerAddress, mode: 'insensitive' } },
@@ -236,7 +237,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate venue (required)
-    const venue = await prisma.venue.findUnique({ where: { id: venueId } })
+    const venue = await db.venue.findUnique({ where: { id: venueId } })
     if (!venue) {
       return NextResponse.json({ error: 'Venue not found' }, { status: 404 })
     }
@@ -250,7 +251,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create event
-    const event = await prisma.event.create({
+    const event = await db.event.create({
       data: {
         organizerId: organizer.id,
         title,
@@ -301,7 +302,5 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating event:', error)
     return NextResponse.json({ error: 'Failed to create event' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

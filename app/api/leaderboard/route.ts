@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 import { getSessionUser } from '@/lib/auth-middleware'
 import type { LeaderboardResponse, LeaderboardEntry, CurrentUserRank } from '@/types/leaderboard'
 
@@ -23,8 +23,10 @@ export async function GET(request: NextRequest) {
     // Get authenticated user (optional)
     const sessionUser = await getSessionUser()
 
+    const db = await getDb()
+
     // Count total eligible users
-    const totalCount = await prisma.user.count({
+    const totalCount = await db.user.count({
       where: {
         publicProfile: true,
         showPXPBalance: true,
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Fetch leaderboard users
-    const users = await prisma.user.findMany({
+    const users = await db.user.findMany({
       where: {
         publicProfile: true,
         showPXPBalance: true,
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch venue counts for all users in batch
     const walletAddresses = users.map((u) => u.walletAddress).filter(Boolean) as string[]
-    const venueCounts = await prisma.venue.groupBy({
+    const venueCounts = await db.venue.groupBy({
       by: ['submittedBy'],
       where: {
         submittedBy: { in: walletAddresses },
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch review counts for all users in batch
     const userIds = users.map((u) => u.id)
-    const reviewCounts = await prisma.venueReview.groupBy({
+    const reviewCounts = await db.venueReview.groupBy({
       by: ['userId'],
       where: {
         userId: { in: userIds },
@@ -100,7 +102,7 @@ export async function GET(request: NextRequest) {
     let currentUser: CurrentUserRank | undefined = undefined
     if (sessionUser?.id) {
       // Get user's data first
-      const userData = await prisma.user.findUnique({
+      const userData = await db.user.findUnique({
         where: { id: sessionUser.id },
         select: {
           id: true,
@@ -117,7 +119,7 @@ export async function GET(request: NextRequest) {
 
       if (userData) {
         // Get user's rank by counting users with more PXP
-        const usersAhead = await prisma.user.count({
+        const usersAhead = await db.user.count({
           where: {
             publicProfile: true,
             showPXPBalance: true,
@@ -128,10 +130,10 @@ export async function GET(request: NextRequest) {
         })
         const rank = usersAhead + 1
 
-        const userVenueCount = await prisma.venue.count({
+        const userVenueCount = await db.venue.count({
           where: { submittedBy: userData.walletAddress || '' },
         })
-        const userReviewCount = await prisma.venueReview.count({
+        const userReviewCount = await db.venueReview.count({
           where: { userId: userData.id },
         })
 

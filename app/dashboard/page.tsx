@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 import { getSessionUser } from '@/lib/auth-middleware'
 import { redirect } from 'next/navigation'
 import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 }
 
 async function getUserDashboardData(userId: number) {
-  const user = await prisma.user.findUnique({
+  const db = await getDb()
+  const user = await db.user.findUnique({
     where: { id: userId },
     include: {
       musicianProfile: true,
@@ -63,7 +64,7 @@ async function getUserDashboardData(userId: number) {
 
   // Get recently viewed venues (you'd track this in a separate analytics table)
   // For now, just get recent verified venues
-  const recentVenues = await prisma.venue.findMany({
+  const recentVenues = await db.venue.findMany({
     where: { verified: true },
     orderBy: { createdAt: 'desc' },
     take: 6,

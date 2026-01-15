@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database'
+import { getDb } from '@/lib/get-db'
 import { requireRole } from '@/lib/auth-middleware'
 
 /**
@@ -19,8 +19,10 @@ export async function GET(request: NextRequest) {
       return authResult
     }
 
+    const db = await getDb()
+
     // Fetch all PXP config
-    const configs = await prisma.pXPConfig.findMany({
+    const configs = await db.pXPConfig.findMany({
       orderBy: [{ category: 'asc' }, { key: 'asc' }],
     })
 
@@ -68,6 +70,8 @@ export async function POST(request: NextRequest) {
       return authResult
     }
 
+    const db = await getDb()
+
     const body = await request.json()
     const { updates } = body as {
       updates: Array<{ key: string; value: number; enabled?: boolean }>
@@ -99,9 +103,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Update all configs in a transaction
-    const results = await prisma.$transaction(
+    const results = await db.$transaction(
       updates.map((update) =>
-        prisma.pXPConfig.update({
+        db.pXPConfig.update({
           where: { key: update.key },
           data: {
             value: update.value,
@@ -145,6 +149,8 @@ export async function PUT(request: NextRequest) {
       return authResult
     }
 
+    const db = await getDb()
+
     const body = await request.json()
     const { key, value, label, description, category, enabled } = body
 
@@ -156,7 +162,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Upsert the config
-    const config = await prisma.pXPConfig.upsert({
+    const config = await db.pXPConfig.upsert({
       where: { key },
       create: {
         key,

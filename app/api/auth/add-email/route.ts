@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { createEmailVerificationToken } from '@/lib/auth'
 import { sendVerificationEmail } from '@/lib/email'
 import { z } from 'zod'
@@ -32,9 +32,10 @@ export async function POST(request: NextRequest) {
 
     const { walletAddress, email } = validation.data
     const normalizedAddress = walletAddress.toLowerCase()
+    const db = await getDb()
 
     // Find user by wallet address
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { walletAddress: normalizedAddress },
       select: {
         id: true,
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email is already used by another account
-    const existingEmail = await prisma.user.findUnique({
+    const existingEmail = await db.user.findUnique({
       where: { email },
       select: {
         id: true,
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user with email
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         email,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * Fetch current view count from YouTube Data API v3
@@ -47,8 +47,9 @@ async function awardMilestonePXP(
   const milestoneField = milestone === '1k' ? 'milestone1kAwarded' : 'milestone10kAwarded'
 
   try {
+    const db = await getDb()
     // Award PXP to user
-    await prisma.user.update({
+    await db.user.update({
       where: { id: userId },
       data: {
         totalCAVEarned: { increment: pxpAmount },
@@ -56,7 +57,7 @@ async function awardMilestonePXP(
     })
 
     // Update video record
-    await prisma.youTubeVideo.update({
+    await db.youTubeVideo.update({
       where: { id: videoId },
       data: {
         [milestoneField]: true,
@@ -127,8 +128,10 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Starting YouTube view count check...')
 
+    const db = await getDb()
+
     // Fetch all verified videos that haven't reached all milestones yet
-    const videos = await prisma.youTubeVideo.findMany({
+    const videos = await db.youTubeVideo.findMany({
       where: {
         verified: true,
         status: 'APPROVED',
@@ -167,7 +170,7 @@ export async function POST(request: NextRequest) {
         videosChecked++
 
         // Update video view count and last checked time
-        await prisma.youTubeVideo.update({
+        await db.youTubeVideo.update({
           where: { id: video.id },
           data: {
             viewCount: currentViewCount,
@@ -247,9 +250,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const configured = !!process.env.YOUTUBE_API_KEY
+    const db = await getDb()
 
     // Count videos eligible for milestone tracking
-    const videosEligible = await prisma.youTubeVideo.count({
+    const videosEligible = await db.youTubeVideo.count({
       where: {
         verified: true,
         status: 'APPROVED',
@@ -258,7 +262,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Get videos close to milestones
-    const closeToMilestone = await prisma.youTubeVideo.findMany({
+    const closeToMilestone = await db.youTubeVideo.findMany({
       where: {
         verified: true,
         status: 'APPROVED',

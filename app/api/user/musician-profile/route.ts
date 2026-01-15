@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * API Route: Create or update musician profile
@@ -29,8 +29,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Check if musician profile already exists
-    const existingProfile = await prisma.musicianProfile.findUnique({
+    const existingProfile = await db.musicianProfile.findUnique({
       where: { userId },
     })
 
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (existingProfile) {
       // Update existing profile
-      musicianProfile = await prisma.musicianProfile.update({
+      musicianProfile = await db.musicianProfile.update({
         where: { userId },
         data: {
           ...profileData,
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Create new musician profile with defaults
-      musicianProfile = await prisma.musicianProfile.create({
+      musicianProfile = await db.musicianProfile.create({
         data: {
           userId,
           instruments: profileData.instruments || [],
@@ -88,7 +90,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    const musicianProfile = await prisma.musicianProfile.findUnique({
+    const db = await getDb()
+    const musicianProfile = await db.musicianProfile.findUnique({
       where: { userId: parseInt(userId) },
     })
 

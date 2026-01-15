@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { generateToken, getUserById } from '@/lib/auth'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * GET /api/auth/magic-link/verify?token=xxx
@@ -19,8 +17,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or missing verification token' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user by token
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { emailVerificationToken: token },
       select: {
         id: true,
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     // Check if token has expired
     if (!user.emailVerificationExpiry || user.emailVerificationExpiry < new Date()) {
       // Clear expired token
-      await prisma.user.update({
+      await db.user.update({
         where: { id: user.id },
         data: {
           emailVerificationToken: null,
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Valid token - clear it and log user in
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: user.id },
       data: {
         emailVerificationToken: null,
@@ -110,7 +110,5 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error during verification' },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

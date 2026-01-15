@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
 import { detectEnvironment } from '@/lib/env-config'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * API route for seeding the database
@@ -40,16 +39,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Check if already seeded
-    const existingUsers = await prisma.user.count()
+    const existingUsers = await db.user.count()
     if (existingUsers > 0) {
       return NextResponse.json(
         {
           message: 'Database already seeded',
           stats: {
             users: existingUsers,
-            venues: await prisma.venue.count(),
-            verifications: await prisma.venueVerification.count(),
+            venues: await db.venue.count(),
+            verifications: await db.venueVerification.count(),
           },
         },
         { status: 200 }
@@ -57,17 +58,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Seed production data
-    await seedProductionData()
+    await seedProductionData(db)
 
     // Get final counts
     const stats = {
-      users: await prisma.user.count(),
-      venues: await prisma.venue.count(),
-      verifications: await prisma.venueVerification.count(),
-      reviews: await prisma.venueReview.count(),
-      pxpPayments: await prisma.pXPPayment.count(),
-      analytics: await prisma.venueAnalytics.count(),
-      appConfigs: await prisma.appConfig.count(),
+      users: await db.user.count(),
+      venues: await db.venue.count(),
+      verifications: await db.venueVerification.count(),
+      reviews: await db.venueReview.count(),
+      pxpPayments: await db.pXPPayment.count(),
+      analytics: await db.venueAnalytics.count(),
+      appConfigs: await db.appConfig.count(),
     }
 
     console.log('✨ Database seeded successfully via API!')
@@ -90,15 +91,13 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
 /**
  * Seed production environment with minimal essential data
  */
-async function seedProductionData() {
+async function seedProductionData(db: PrismaClient) {
   console.log('🏭 Loading minimal production data...')
 
   // Create blog owner/admin account
@@ -107,7 +106,7 @@ async function seedProductionData() {
   const blogOwnerWallet =
     process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS || '0xe8985aedf83e2a58fef53b45db2d9556cd5f453a'
 
-  const adminUser = await prisma.user.upsert({
+  const adminUser = await db.user.upsert({
     where: { walletAddress: blogOwnerWallet.toLowerCase() },
     update: {},
     create: {
@@ -130,7 +129,7 @@ async function seedProductionData() {
   // Create app configuration
   console.log('⚙️ Creating app configuration...')
 
-  await prisma.appConfig.upsert({
+  await db.appConfig.upsert({
     where: { key: 'cav_rewards' },
     update: {
       value: {
@@ -170,19 +169,18 @@ export async function GET(request: NextRequest) {
   }
 
   const env = detectEnvironment()
+  const db = await getDb()
 
   const stats = {
     environment: env,
-    users: await prisma.user.count(),
-    venues: await prisma.venue.count(),
-    verifications: await prisma.venueVerification.count(),
-    reviews: await prisma.venueReview.count(),
-    pxpPayments: await prisma.pXPPayment.count(),
-    analytics: await prisma.venueAnalytics.count(),
-    appConfigs: await prisma.appConfig.count(),
+    users: await db.user.count(),
+    venues: await db.venue.count(),
+    verifications: await db.venueVerification.count(),
+    reviews: await db.venueReview.count(),
+    pxpPayments: await db.pXPPayment.count(),
+    analytics: await db.venueAnalytics.count(),
+    appConfigs: await db.appConfig.count(),
   }
-
-  await prisma.$disconnect()
 
   return NextResponse.json({
     message: 'Database status',

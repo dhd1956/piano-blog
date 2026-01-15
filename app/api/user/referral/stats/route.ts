@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database'
+import { getDb } from '@/lib/get-db'
 import { requireAuth } from '@/lib/auth-middleware'
 
 /**
@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
       return authResult
     }
 
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { id: authResult.user.id },
       select: {
         referralCode: true,
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get PXP config for referral rewards
-    const referralConfigs = await prisma.pXPConfig.findMany({
+    const referralConfigs = await db.pXPConfig.findMany({
       where: { category: 'referral' },
     })
 

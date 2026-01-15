@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { sendSecurityAlertEmail } from '@/lib/email'
 import { z } from 'zod'
 
@@ -32,9 +32,10 @@ export async function POST(request: NextRequest) {
 
     const { userId, walletAddress } = validation.data
     const normalizedAddress = walletAddress.toLowerCase()
+    const db = await getDb()
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Remove wallet address
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         walletAddress: null,

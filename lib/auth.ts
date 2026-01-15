@@ -5,7 +5,7 @@
 
 import { SignJWT, jwtVerify } from 'jose'
 import bcrypt from 'bcryptjs'
-import { prisma } from './database-simplified'
+import { getDb } from './get-db'
 import { UserRole } from '@prisma/client'
 
 // JWT configuration
@@ -85,7 +85,8 @@ export async function authenticateUser(
   password: string
 ): Promise<AuthUser | null> {
   try {
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { username },
       select: {
         id: true,
@@ -109,7 +110,7 @@ export async function authenticateUser(
     }
 
     // Update last active
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: { lastActive: new Date() },
     })
@@ -133,7 +134,8 @@ export async function authenticateUser(
  */
 export async function getUserById(userId: number): Promise<AuthUser | null> {
   try {
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -169,7 +171,8 @@ export async function getUserById(userId: number): Promise<AuthUser | null> {
  */
 export async function getUserByWallet(walletAddress: string): Promise<AuthUser | null> {
   try {
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { walletAddress: walletAddress.toLowerCase() },
       select: {
         id: true,
@@ -187,7 +190,7 @@ export async function getUserByWallet(walletAddress: string): Promise<AuthUser |
     }
 
     // Update last active
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: { lastActive: new Date() },
     })
@@ -211,8 +214,9 @@ export async function getUserByWallet(walletAddress: string): Promise<AuthUser |
  */
 export async function upsertWalletUser(walletAddress: string): Promise<AuthUser> {
   const normalizedAddress = walletAddress.toLowerCase()
+  const db = await getDb()
 
-  const user = await prisma.user.upsert({
+  const user = await db.user.upsert({
     where: { walletAddress: normalizedAddress },
     update: { lastActive: new Date() },
     create: {
@@ -244,7 +248,8 @@ export async function upsertWalletUser(walletAddress: string): Promise<AuthUser>
  * Store session in database
  */
 export async function createSession(userId: number, token: string, expiresAt: Date): Promise<void> {
-  await prisma.session.create({
+  const db = await getDb()
+  await db.session.create({
     data: {
       userId,
       token,
@@ -257,7 +262,8 @@ export async function createSession(userId: number, token: string, expiresAt: Da
  * Delete session from database
  */
 export async function deleteSession(token: string): Promise<void> {
-  await prisma.session.delete({
+  const db = await getDb()
+  await db.session.delete({
     where: { token },
   })
 }
@@ -266,7 +272,8 @@ export async function deleteSession(token: string): Promise<void> {
  * Check if session exists and is valid
  */
 export async function isSessionValid(token: string): Promise<boolean> {
-  const session = await prisma.session.findUnique({
+  const db = await getDb()
+  const session = await db.session.findUnique({
     where: { token },
   })
 
@@ -301,7 +308,8 @@ export async function createEmailVerificationToken(userId: number): Promise<stri
   const expiresAt = new Date()
   expiresAt.setHours(expiresAt.getHours() + 24) // 24 hour expiration
 
-  await prisma.user.update({
+  const db = await getDb()
+  await db.user.update({
     where: { id: userId },
     data: {
       emailVerificationToken: token,
@@ -321,7 +329,8 @@ export async function verifyEmailToken(token: string): Promise<{
   user?: AuthUser
 }> {
   try {
-    const user = await prisma.user.findUnique({
+    const db = await getDb()
+    const user = await db.user.findUnique({
       where: { emailVerificationToken: token },
       select: {
         id: true,
@@ -348,7 +357,7 @@ export async function verifyEmailToken(token: string): Promise<{
     }
 
     // Mark email as verified and clear token
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,

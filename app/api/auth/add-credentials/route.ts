@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { ethers } from 'ethers'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * POST /api/auth/add-credentials
@@ -39,8 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature format' }, { status: 401 })
     }
 
+    const db = await getDb()
+
     // Find the wallet-based user
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { walletAddress: normalizedAddress },
     })
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username is already taken
-    const existingUsername = await prisma.user.findUnique({
+    const existingUsername = await db.user.findUnique({
       where: { username: username.toLowerCase() },
     })
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     // Update user with username and password
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { walletAddress: normalizedAddress },
       data: {
         username: username.toLowerCase(),
@@ -128,7 +128,5 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error while adding credentials' },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

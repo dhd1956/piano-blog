@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import crypto from 'crypto'
 import { sendMagicLinkEmail } from '@/lib/email'
-
-const prisma = new PrismaClient()
+import { getDb } from '@/lib/get-db'
 
 /**
  * POST /api/auth/magic-link/request
@@ -28,8 +26,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid email address format' }, { status: 400 })
     }
 
+    const db = await getDb()
+
     // Find user by email
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email: normalizedEmail },
       select: {
         id: true,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     expiry.setMinutes(expiry.getMinutes() + 15)
 
     // Store token in database
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         emailVerificationToken: token,
@@ -93,7 +93,5 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error while requesting magic link' },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

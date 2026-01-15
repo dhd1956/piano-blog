@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser, generateToken, getUserByWallet, upsertWalletUser } from '@/lib/auth'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { z } from 'zod'
 
 // 7-day grace period for email verification (in milliseconds)
@@ -46,8 +46,10 @@ export async function POST(request: NextRequest) {
       // For wallet-based auth, we just upsert the user (creates if doesn't exist)
       const user = await upsertWalletUser(validation.data.walletAddress)
 
+      const db = await getDb()
+
       // Check if this is a new wallet user (never earned PXP before)
-      const fullUser = await prisma.user.findUnique({
+      const fullUser = await db.user.findUnique({
         where: { id: user.id },
         select: {
           totalCAVEarned: true,
@@ -62,7 +64,7 @@ export async function POST(request: NextRequest) {
         // This is a brand new wallet user - award welcome reward
         try {
           // Get welcome reward amount from PXP config
-          const welcomeConfig = await prisma.pXPConfig.findUnique({
+          const welcomeConfig = await db.pXPConfig.findUnique({
             where: { key: 'wallet_connection' },
             select: { value: true, enabled: true },
           })
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
           welcomePXP = welcomeConfig && welcomeConfig.enabled ? welcomeConfig.value : 100
 
           // Award PXP
-          await prisma.user.update({
+          await db.user.update({
             where: { id: user.id },
             data: {
               totalCAVEarned: { increment: welcomePXP },
@@ -145,7 +147,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check email verification status with grace period
-    const fullUser = await prisma.user.findUnique({
+    const db = await getDb()
+    const fullUser = await db.user.findUnique({
       where: { id: user.id },
       select: {
         id: true,

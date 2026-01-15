@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * Extract YouTube video ID from various URL formats
@@ -97,8 +97,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Verify event exists
-    const event = await prisma.event.findUnique({
+    const event = await db.event.findUnique({
       where: { id: eventId },
       select: {
         id: true,
@@ -156,7 +158,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if video already submitted
-    const existingVideo = await prisma.youTubeVideo.findUnique({
+    const existingVideo = await db.youTubeVideo.findUnique({
       where: { youtubeId },
       select: {
         id: true,
@@ -203,7 +205,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create video record in database
-    const video = await prisma.youTubeVideo.create({
+    const video = await db.youTubeVideo.create({
       data: {
         userId: sessionUser.id,
         eventId: eventId,
@@ -223,18 +225,18 @@ export async function POST(request: NextRequest) {
 
     try {
       // Get PXP reward amounts from config
-      const performerConfig = await prisma.pXPConfig.findUnique({
+      const performerConfig = await db.pXPConfig.findUnique({
         where: { key: 'youtube_upload' },
         select: { value: true, enabled: true },
       })
 
-      const organizerConfig = await prisma.pXPConfig.findUnique({
+      const organizerConfig = await db.pXPConfig.findUnique({
         where: { key: 'youtube_upload_organizer' },
         select: { value: true, enabled: true },
       })
 
       // Get user's current PXP status
-      const user = await prisma.user.findUnique({
+      const user = await db.user.findUnique({
         where: { id: sessionUser.id },
         select: {
           id: true,
@@ -250,7 +252,7 @@ export async function POST(request: NextRequest) {
         // Award PXP to performer for video submission (from config or default to 100)
         performerPXP = performerConfig && performerConfig.enabled ? performerConfig.value : 100
 
-        await prisma.user.update({
+        await db.user.update({
           where: { id: user.id },
           data: {
             totalCAVEarned: { increment: performerPXP },
@@ -259,7 +261,7 @@ export async function POST(request: NextRequest) {
         })
 
         // Update video record with PXP awarded
-        await prisma.youTubeVideo.update({
+        await db.youTubeVideo.update({
           where: { id: video.id },
           data: {
             pxpAwarded: performerPXP,
@@ -278,7 +280,7 @@ export async function POST(request: NextRequest) {
         if (event.organizerId !== sessionUser.id) {
           organizerPXP = organizerConfig && organizerConfig.enabled ? organizerConfig.value : 50
 
-          await prisma.user.update({
+          await db.user.update({
             where: { id: event.organizerId },
             data: {
               totalCAVEarned: { increment: organizerPXP },
@@ -394,9 +396,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const db = await getDb()
+
     // Fetch videos
     const [videos, totalCount] = await Promise.all([
-      prisma.youTubeVideo.findMany({
+      db.youTubeVideo.findMany({
         where: whereClause,
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -433,7 +437,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.youTubeVideo.count({
+      db.youTubeVideo.count({
         where: whereClause,
       }),
     ])

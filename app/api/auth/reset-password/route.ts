@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database-simplified'
+import { getDb } from '@/lib/get-db'
 import { hashPassword, generateToken } from '@/lib/auth'
 import { sendSecurityAlertEmail } from '@/lib/email'
 import { z } from 'zod'
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { token, password, confirmPassword } = validation.data
+    const db = await getDb()
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by reset token
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { passwordResetToken: token },
       select: {
         id: true,
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
     // Check if token has expired
     if (!user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
       // Clear expired token
-      await prisma.user.update({
+      await db.user.update({
         where: { id: user.id },
         data: {
           passwordResetToken: null,
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await hashPassword(password)
 
     // Update user password and clear reset token
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         passwordHash,
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Invalidate all existing sessions for security
-    await prisma.session.deleteMany({
+    await db.session.deleteMany({
       where: { userId: user.id },
     })
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/get-db'
 
 /**
  * POST /api/profile/dismiss-wallet-prompt
@@ -25,8 +25,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const db = await getDb()
+
     // Get user from database
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: sessionUser.id },
       select: {
         id: true,
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
     const now = new Date()
     const dismissedUntil = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
 
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.id },
       data: {
         walletLinkingPromptDismissedAt: now,
@@ -97,8 +99,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const db = await getDb()
+
     // Get user from database
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: sessionUser.id },
       select: {
         id: true,
