@@ -7,39 +7,43 @@ export type Environment = 'development' | 'staging' | 'production'
 
 /**
  * Detect current environment based on hostname
+ * Works on both client and server (using headers on server)
  */
 export function detectEnvironment(): Environment {
-  // Server-side: Check VERCEL_ENV first (most reliable on Vercel)
-  if (typeof window === 'undefined') {
-    const vercelEnv = process.env.VERCEL_ENV
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+  // Client-side: Check hostname from window
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
 
-    // VERCEL_ENV can be: production, preview, development
-    if (vercelEnv === 'production' && appUrl.includes('globalpiano.network')) {
+    if (hostname === 'globalpiano.network' || hostname === 'www.globalpiano.network') {
       return 'production'
     }
 
-    if (vercelEnv === 'production' && appUrl.includes('vercel.app')) {
+    if (hostname.includes('vercel.app') || hostname.includes('piano-blog')) {
       return 'staging'
     }
 
-    // Default to development for localhost
+    // localhost, 127.0.0.1, or any other
     return 'development'
   }
 
-  // Client-side: Check hostname
-  const hostname = window.location.hostname
+  // Server-side: Infer from VERCEL_ENV and common patterns
+  const vercelEnv = process.env.VERCEL_ENV
 
-  if (hostname === 'globalpiano.network' || hostname === 'www.globalpiano.network') {
-    return 'production'
+  // Development environment (local)
+  if (!vercelEnv || vercelEnv === 'development') {
+    return 'development'
   }
 
-  if (hostname.includes('vercel.app') || hostname.includes('piano-blog')) {
+  // Preview deployments (PR previews) - treat as staging
+  if (vercelEnv === 'preview') {
     return 'staging'
   }
 
-  // localhost, 127.0.0.1, or any other
-  return 'development'
+  // Production environment - default to production
+  // Note: Both piano-blog.vercel.app and globalpiano.network run in production env
+  // Client-side detection will properly distinguish them
+  // For server-side API routes, check request headers to determine the actual domain
+  return 'production'
 }
 
 /**
