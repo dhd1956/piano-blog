@@ -19,6 +19,7 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import { headers } from 'next/headers'
 import { PXPRewardsService } from '@/utils/rewards-contract'
 
 // Environment variables for multi-database support
@@ -126,6 +127,25 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
+ * Get database client from request context (for use in services)
+ * This is the internal version used by services in this file
+ */
+async function getDbInternal(): Promise<PrismaClient> {
+  if (!isMultiDatabaseEnabled()) {
+    return prisma
+  }
+
+  try {
+    const headersList = await headers()
+    const hostname = headersList.get('host') || 'localhost'
+    return getPrismaForHost(hostname)
+  } catch {
+    // headers() can fail outside of request context
+    return prisma
+  }
+}
+
+/**
  * Simplified Venue Service
  */
 export const VenueService = {
@@ -205,8 +225,10 @@ export const VenueService = {
         }
       : undefined
 
+    const db = await getDbInternal()
+
     // Execute query with or without relations
-    const venues = await prisma.venue.findMany({
+    const venues = await db.venue.findMany({
       where,
       include,
       orderBy: { [orderBy]: orderDirection },
@@ -214,7 +236,7 @@ export const VenueService = {
       skip: offset,
     })
 
-    const totalCount = await prisma.venue.count({ where })
+    const totalCount = await db.venue.count({ where })
 
     return {
       venues,
@@ -234,7 +256,9 @@ export const VenueService = {
           ? { slug: identifier }
           : { id: Number(identifier) }
 
-    const venue = await prisma.venue.findUnique({
+    const db = await getDbInternal()
+
+    const venue = await db.venue.findUnique({
       where,
       include: {
         reviews: {
@@ -282,8 +306,10 @@ export const VenueService = {
     amenities?: string[]
     tags?: string[]
   }) {
+    const db = await getDbInternal()
+
     // Check for duplicate venue by name and city
-    const existingVenue = await prisma.venue.findFirst({
+    const existingVenue = await db.venue.findFirst({
       where: {
         name: { equals: data.name, mode: 'insensitive' },
         city: { equals: data.city, mode: 'insensitive' },
@@ -300,7 +326,7 @@ export const VenueService = {
     }
 
     // Check for similar venues (optional warning)
-    const similarVenues = await prisma.venue.findMany({
+    const similarVenues = await db.venue.findMany({
       where: {
         OR: [
           {
@@ -324,7 +350,7 @@ export const VenueService = {
 
     let slug = baseSlug
     let counter = 1
-    while (await prisma.venue.findUnique({ where: { slug } })) {
+    while (await db.venue.findUnique({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`
       counter++
     }
@@ -339,7 +365,7 @@ export const VenueService = {
       if (hash) {
         venueHash = hash
 
-        const existingHash = await prisma.venue.findUnique({
+        const existingHash = await db.venue.findUnique({
           where: { venueHash },
         })
 
@@ -365,7 +391,7 @@ export const VenueService = {
 
     // Create venue immediately in PostgreSQL
     try {
-      return await prisma.venue.create({
+      return await db.venue.create({
         data: {
           ...data,
           slug,
@@ -401,7 +427,8 @@ export const VenueService = {
    * Update venue verification status (called when blockchain event is detected)
    */
   async markVenueAsVerified(venueHash: string, transactionHash: string) {
-    return prisma.venue.updateMany({
+    const db = await getDbInternal()
+    return db.venue.updateMany({
       where: { venueHash },
       data: {
         verified: true,
@@ -421,7 +448,8 @@ export const VenueService = {
     if (typeof options.hasPiano === 'boolean') where.hasPiano = options.hasPiano
     if (typeof options.verified === 'boolean') where.verified = options.verified
 
-    return prisma.venue.findMany({
+    const db = await getDbInternal()
+    return db.venue.findMany({
       where,
       include: {
         reviews: { take: 3, orderBy: { createdAt: 'desc' } },
@@ -449,8 +477,9 @@ export const UserService = {
     }
   ) {
     const normalizedAddress = walletAddress.toLowerCase()
+    const db = await getDbInternal()
 
-    let user = await prisma.user.findUnique({
+    let user = await db.user.findUnique({
       where: { walletAddress: normalizedAddress },
     })
 
@@ -467,7 +496,7 @@ export const UserService = {
         console.warn('Could not fetch user blockchain status:', error)
       }
 
-      user = await prisma.user.create({
+      user = await db.user.create({
         data: {
           walletAddress: normalizedAddress,
           hasClaimedNewUserReward,
@@ -500,7 +529,8 @@ export const UserService = {
       totalCAVEarned?: number
     }
   ) {
-    return prisma.user.update({
+    const db = await getDbInternal()
+    return db.user.update({
       where: { walletAddress: walletAddress.toLowerCase() },
       data: {
         ...updates,
@@ -521,7 +551,8 @@ export const AnalyticsService = {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    await prisma.venueAnalytics.upsert({
+    const db = await getDbInternal()
+    await db.venueAnalytics.upsert({
       where: {
         venueId_date: { venueId, date: today },
       },
@@ -545,7 +576,8 @@ export const AnalyticsService = {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    await prisma.venueAnalytics.upsert({
+    const db = await getDbInternal()
+    await db.venueAnalytics.upsert({
       where: {
         venueId_date: { venueId, date: today },
       },
@@ -567,7 +599,8 @@ export const AnalyticsService = {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    await prisma.venueAnalytics.upsert({
+    const db = await getDbInternal()
+    await db.venueAnalytics.upsert({
       where: {
         venueId_date: { venueId, date: today },
       },
@@ -598,7 +631,8 @@ export const BlockchainEventService = {
     blockTimestamp: Date
     eventData: any
   }) {
-    return prisma.blockchainEvent.create({
+    const db = await getDbInternal()
+    return db.blockchainEvent.create({
       data: eventData,
     })
   },
@@ -607,7 +641,8 @@ export const BlockchainEventService = {
    * Process pending blockchain events
    */
   async processPendingEvents() {
-    const pendingEvents = await prisma.blockchainEvent.findMany({
+    const db = await getDbInternal()
+    const pendingEvents = await db.blockchainEvent.findMany({
       where: { processed: false },
       orderBy: { blockNumber: 'asc' },
       take: 10, // Process in batches
@@ -616,7 +651,7 @@ export const BlockchainEventService = {
     for (const event of pendingEvents) {
       try {
         await this.processEvent(event)
-        await prisma.blockchainEvent.update({
+        await db.blockchainEvent.update({
           where: { id: event.id },
           data: { processed: true, processedAt: new Date() },
         })
@@ -630,6 +665,7 @@ export const BlockchainEventService = {
    * Process individual blockchain event
    */
   async processEvent(event: any) {
+    const db = await getDbInternal()
     switch (event.eventType) {
       case 'VenueVerified':
         // Update venue verification status
@@ -660,7 +696,7 @@ export const BlockchainEventService = {
 
       case 'PaymentTracked':
         // Record PXP payment
-        await prisma.pXPPayment.create({
+        await db.pXPPayment.create({
           data: {
             fromAddress: event.eventData.from,
             toAddress: event.eventData.to,

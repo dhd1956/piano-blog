@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
 interface LoginModalProps {
@@ -21,6 +22,7 @@ interface LoginModalProps {
 type TabType = 'email' | 'google' | 'wallet'
 
 export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }: LoginModalProps) {
+  const router = useRouter()
   const { login, loginWithWallet } = useAuth()
 
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab)
@@ -315,10 +317,8 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
                     <button
                       type="button"
                       onClick={() => {
-                        // TODO: Open signup modal
-                        setError(
-                          'Signup coming soon! For now, please contact the blog owner to create an account.'
-                        )
+                        onClose()
+                        router.push('/auth/signup')
                       }}
                       className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
                     >
