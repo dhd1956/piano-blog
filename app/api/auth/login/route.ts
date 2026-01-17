@@ -4,7 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateUser, generateToken, getUserByWallet, upsertWalletUser } from '@/lib/auth'
+import {
+  authenticateUser,
+  generateToken,
+  getUserByWallet,
+  upsertWalletUser,
+  AuthUser,
+} from '@/lib/auth'
 import { getDb } from '@/lib/get-db'
 import { z } from 'zod'
 
@@ -155,7 +161,7 @@ export async function POST(request: NextRequest) {
 
     // Detect if identifier is an email or username
     const isEmail = identifier.includes('@')
-    let user = null
+    let user: AuthUser | null = null
 
     if (isEmail) {
       // Look up by email first, then authenticate
