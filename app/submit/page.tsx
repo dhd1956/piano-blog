@@ -90,7 +90,7 @@ export default function SubmitVenue() {
   }
 
   /**
-   * Auto-fill address using Gemini AI
+   * Auto-fill address using Gemini AI. Note: The original plan to use AI was discarded. The following was recommended by CC.
    */
   const handleLookupAddress = async () => {
     if (!formData.name.trim()) {
