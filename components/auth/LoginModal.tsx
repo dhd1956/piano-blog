@@ -3,10 +3,10 @@
 /**
  * LoginModal Component
  *
- * Session-first authentication modal with three tabs:
- * 1. Email/Username - Primary auth method (no wallet needed)
- * 2. Google - OAuth login (no wallet needed)
- * 3. Wallet - For existing wallet-only users
+ * Simplified authentication modal with:
+ * - Social login buttons at top
+ * - Email/username + password form
+ * - Wallet connection button
  */
 
 import { useState } from 'react'
@@ -16,26 +16,23 @@ import { useAuth } from '@/context/AuthContext'
 interface LoginModalProps {
   onClose: () => void
   onSuccess?: () => void
-  defaultTab?: 'email' | 'google' | 'wallet'
 }
 
-type TabType = 'email' | 'google' | 'wallet'
-
-export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }: LoginModalProps) {
+export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
   const router = useRouter()
   const { login, loginWithWallet } = useAuth()
 
-  const [activeTab, setActiveTab] = useState<TabType>(defaultTab)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  // Email/Username tab state
-  const [username, setUsername] = useState('')
+  // Login form state
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  // Wallet tab state
+  // Wallet login state
+  const [showWalletInput, setShowWalletInput] = useState(false)
   const [walletAddress, setWalletAddress] = useState('')
 
   // Forgot password state
@@ -46,13 +43,14 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
   /**
    * Handle email/username login
    */
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const result = await login({ username, password })
+      // Send identifier instead of username to support both email and username
+      const result = await login({ identifier, password })
 
       if (result.success) {
         setSuccess(true)
@@ -79,7 +77,6 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
     setError('')
 
     try {
-      // Validate wallet address format
       if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
         throw new Error('Invalid wallet address format')
       }
@@ -103,10 +100,10 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
   }
 
   /**
-   * Handle Google OAuth login (placeholder - will implement in Phase 7)
+   * Handle Google OAuth login (placeholder)
    */
   const handleGoogleLogin = () => {
-    setError('Google login coming soon! For now, please use email/username or create an account.')
+    setError('Google login coming soon! For now, please use email/username.')
   }
 
   /**
@@ -139,23 +136,19 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
   }
 
   /**
-   * Tab button component
+   * Divider component
    */
-  const TabButton = ({ tab, label }: { tab: TabType; label: string }) => (
-    <button
-      type="button"
-      onClick={() => {
-        setActiveTab(tab)
-        setError('')
-      }}
-      className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-        activeTab === tab
-          ? 'border-b-2 border-purple-600 text-purple-600 dark:text-purple-400'
-          : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-      }`}
-    >
-      {label}
-    </button>
+  const Divider = ({ text }: { text: string }) => (
+    <div className="relative my-4">
+      <div className="absolute inset-0 flex items-center">
+        <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+      </div>
+      <div className="relative flex justify-center text-sm">
+        <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+          {text}
+        </span>
+      </div>
+    </div>
   )
 
   return (
@@ -164,7 +157,7 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome to the Global Piano Network
+            {showForgotPassword ? 'Reset Password' : 'Welcome Back'}
           </h2>
           <button
             onClick={onClose}
@@ -182,166 +175,24 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="mt-4 flex border-b border-gray-200 dark:border-gray-700">
-          <TabButton tab="email" label="Email" />
-          <TabButton tab="google" label="Google" />
-          <TabButton tab="wallet" label="Wallet" />
-        </div>
-
         {/* Content */}
         {!success ? (
           <div className="mt-6">
-            {/* Error message (shown across all tabs) */}
+            {/* Error message */}
             {error && (
               <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950">
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}
 
-            {/* Email Tab */}
-            {activeTab === 'email' && !showForgotPassword && (
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="your_username"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="password"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Password
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-xs font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      id="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                      required
-                      disabled={loading}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-200 pt-4 text-center dark:border-gray-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Don't have an account?{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onClose()
-                        router.push('/auth/signup')
-                      }}
-                      className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
-                    >
-                      Sign up
-                    </button>
-                  </p>
-                </div>
-              </form>
-            )}
-
             {/* Forgot Password Form */}
-            {activeTab === 'email' && showForgotPassword && (
+            {showForgotPassword ? (
               <div className="space-y-4">
                 {!forgotPasswordSent ? (
                   <form onSubmit={handleForgotPassword} className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        Reset Your Password
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        Enter your email or username and we'll send you a password reset link.
-                      </p>
-                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Enter your email or username and we'll send you a password reset link.
+                    </p>
 
                     <div>
                       <label
@@ -362,7 +213,7 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
                       />
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-2">
+                    <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={() => {
@@ -370,14 +221,14 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
                           setForgotPasswordEmail('')
                           setError('')
                         }}
-                        className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                        className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                         disabled={loading}
                       >
-                        Back to Login
+                        Back
                       </button>
                       <button
                         type="submit"
-                        className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                        className="flex-1 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 disabled:opacity-50"
                         disabled={loading}
                       >
                         {loading ? 'Sending...' : 'Send Reset Link'}
@@ -406,8 +257,7 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
                             Email Sent!
                           </h4>
                           <p className="mt-1 text-sm text-green-700 dark:text-green-300">
-                            If an account exists with that email or username, you'll receive a
-                            password reset link shortly.
+                            Check your inbox for the password reset link.
                           </p>
                         </div>
                       </div>
@@ -420,26 +270,69 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
                         setForgotPasswordSent(false)
                         setForgotPasswordEmail('')
                       }}
-                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                     >
                       Back to Login
                     </button>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Google Tab */}
-            {activeTab === 'google' && (
-              <div className="space-y-4">
+            ) : showWalletInput ? (
+              /* Wallet Login Form */
+              <form onSubmit={handleWalletLogin} className="space-y-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Sign in with your Google account to get started quickly. No wallet needed!
+                  Enter your wallet address to sign in.
                 </p>
 
+                <div>
+                  <label
+                    htmlFor="walletAddress"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Wallet Address
+                  </label>
+                  <input
+                    type="text"
+                    id="walletAddress"
+                    value={walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
+                    placeholder="0x..."
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowWalletInput(false)
+                      setWalletAddress('')
+                      setError('')
+                    }}
+                    className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    disabled={loading}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? 'Signing in...' : 'Sign In'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Main Login Form */
+              <div className="space-y-4">
+                {/* Google Button */}
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                  className="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                   disabled={loading}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -463,73 +356,151 @@ export default function LoginModal({ onClose, onSuccess, defaultTab = 'email' }:
                   Continue with Google
                 </button>
 
-                <div className="border-t border-gray-200 pt-4 text-center dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    By continuing, you agree to our Terms of Service and Privacy Policy
-                  </p>
-                </div>
-              </div>
-            )}
+                <Divider text="or" />
 
-            {/* Wallet Tab */}
-            {activeTab === 'wallet' && (
-              <form onSubmit={handleWalletLogin} className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    For existing users with wallet addresses.
-                  </p>
-                </div>
+                {/* Email/Username Login Form */}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="identifier"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Email or Username
+                    </label>
+                    <input
+                      type="text"
+                      id="identifier"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="email@example.com or username"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
 
-                <div>
-                  <label
-                    htmlFor="walletAddress"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Wallet Address
-                  </label>
-                  <input
-                    type="text"
-                    id="walletAddress"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder="0x..."
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                    required
-                    disabled={loading}
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Enter your Ethereum wallet address (0x...)
-                  </p>
-                </div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label
+                        htmlFor="password"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(true)}
+                        className="text-xs font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                        required
+                        disabled={loading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    <strong>Tip:</strong> Add an email to your account for easier login next time.
-                    You won't need to enter your wallet address anymore!
-                  </p>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
                   <button
                     type="submit"
-                    className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                    className="w-full rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 disabled:opacity-50"
                     disabled={loading}
                   >
                     {loading ? 'Signing in...' : 'Sign In'}
                   </button>
+                </form>
+
+                <Divider text="or" />
+
+                {/* Wallet Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowWalletInput(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                  disabled={loading}
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  </svg>
+                  Connect Wallet
+                </button>
+
+                {/* Sign Up Link */}
+                <div className="pt-2 text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Don't have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose()
+                        router.push('/auth/signup')
+                      }}
+                      className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
+                    >
+                      Sign up
+                    </button>
+                  </p>
                 </div>
-              </form>
+              </div>
             )}
           </div>
         ) : (
+          /* Success State */
           <div className="mt-6 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
               <svg

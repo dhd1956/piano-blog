@@ -7,8 +7,9 @@
  * No wallet required - simple email/username signup
  */
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { isEmail, generateUsernameFromEmail } from '@/lib/auth-helpers'
 
 interface SignupModalProps {
   onClose: () => void
@@ -39,6 +40,8 @@ export default function SignupModal({ onClose, onSuccess, onSwitchToLogin }: Sig
     email: '',
     displayName: '',
   })
+  const [emailDetected, setEmailDetected] = useState(false)
+  const [suggestedUsername, setSuggestedUsername] = useState<string | null>(null)
 
   /**
    * Handle input change
@@ -50,6 +53,29 @@ export default function SignupModal({ onClose, onSuccess, onSwitchToLogin }: Sig
     }))
     setError('') // Clear error on input change
   }
+
+  /**
+   * Handle username input - detect if user enters an email and auto-fill fields
+   */
+  const handleUsernameChange = useCallback((value: string) => {
+    if (isEmail(value)) {
+      // User entered an email - generate username and fill email field
+      const generated = generateUsernameFromEmail(value)
+      setFormData((prev) => ({
+        ...prev,
+        username: generated,
+        email: value.toLowerCase(),
+      }))
+      setSuggestedUsername(generated)
+      setEmailDetected(true)
+    } else {
+      // Regular username input
+      setFormData((prev) => ({ ...prev, username: value }))
+      setEmailDetected(false)
+      setSuggestedUsername(null)
+    }
+    setError('')
+  }, [])
 
   /**
    * Validate form
@@ -184,22 +210,29 @@ export default function SignupModal({ onClose, onSuccess, onSwitchToLogin }: Sig
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Username <span className="text-red-500">*</span>
+                Username or Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 id="username"
                 name="username"
                 value={formData.username}
-                onChange={handleChange}
-                placeholder="your_username"
+                onChange={(e) => handleUsernameChange(e.target.value)}
+                placeholder="username or email@example.com"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 required
                 disabled={loading}
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                3-50 characters, letters, numbers, - and _ only
-              </p>
+              {emailDetected && suggestedUsername ? (
+                <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                  We'll use <strong>{suggestedUsername}</strong> as your username and fill your
+                  email below
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Enter a username or your email address
+                </p>
+              )}
             </div>
 
             <div>

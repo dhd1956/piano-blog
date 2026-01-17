@@ -38,9 +38,10 @@ export interface AuthActions {
   clearError: () => void
 }
 
-// Login credentials type
+// Login credentials type (supports both username and identifier for flexibility)
 export type LoginCredentials = {
-  username: string
+  username?: string
+  identifier?: string // Email or username - new flexible field
   password: string
 }
 

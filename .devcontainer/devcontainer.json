@@ -1,7 +1,7 @@
 {
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
   "hostRequirements": {
-    "memory": "8gb"
+    "memory": "4gb"
   },
   "waitFor": "onCreateCommand",
   "updateContentCommand": "yarn",

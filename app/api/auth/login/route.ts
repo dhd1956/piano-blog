@@ -12,11 +12,21 @@ import { z } from 'zod'
 const GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000
 
 // Validation schemas
+// Accept either email or username as the identifier
+const credentialsLoginSchema = z.object({
+  identifier: z
+    .string()
+    .min(3)
+    .transform((val) => val.toLowerCase()), // Normalize to lowercase
+  password: z.string().min(6),
+})
+
+// Legacy support: also accept 'username' field for backwards compatibility
 const usernameLoginSchema = z.object({
   username: z
     .string()
     .min(3)
-    .transform((val) => val.toLowerCase()), // Normalize to lowercase
+    .transform((val) => val.toLowerCase()),
   password: z.string().min(6),
 })
 
@@ -116,31 +126,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Username/password authentication
-    const validation = usernameLoginSchema.safeParse(body)
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          message: 'Invalid username or password format',
-          details: validation.error.issues,
-        },
-        { status: 400 }
-      )
+    // Username/password authentication (accepts email or username)
+    // Try new schema first, fall back to legacy username field
+    let identifier: string
+    let password: string
+
+    const newValidation = credentialsLoginSchema.safeParse(body)
+    if (newValidation.success) {
+      identifier = newValidation.data.identifier
+      password = newValidation.data.password
+    } else {
+      // Fall back to legacy 'username' field for backwards compatibility
+      const legacyValidation = usernameLoginSchema.safeParse(body)
+      if (!legacyValidation.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Validation failed',
+            message: 'Invalid email/username or password format',
+            details: legacyValidation.error.issues,
+          },
+          { status: 400 }
+        )
+      }
+      identifier = legacyValidation.data.username
+      password = legacyValidation.data.password
     }
 
-    const { username, password } = validation.data
+    // Detect if identifier is an email or username
+    const isEmail = identifier.includes('@')
+    let user = null
 
-    // Authenticate user
-    const user = await authenticateUser(username, password)
+    if (isEmail) {
+      // Look up by email first, then authenticate
+      const db = await getDb()
+      const userByEmail = await db.user.findUnique({
+        where: { email: identifier },
+        select: { username: true },
+      })
+      if (userByEmail && userByEmail.username) {
+        user = await authenticateUser(userByEmail.username, password)
+      }
+    } else {
+      // Look up by username
+      user = await authenticateUser(identifier, password)
+    }
 
     if (!user) {
       return NextResponse.json(
         {
           success: false,
           error: 'Authentication failed',
-          message: 'Invalid username or password',
+          message: 'Invalid email/username or password',
         },
         { status: 401 }
       )

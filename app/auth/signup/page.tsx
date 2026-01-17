@@ -5,9 +5,10 @@
  * Allows new users to create an account with username/password
  */
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { isEmail, generateUsernameFromEmail } from '@/lib/auth-helpers'
 
 // Separate component for reading search params
 function ReferralCodeReader({ onReferralCode }: { onReferralCode: (code: string | null) => void }) {
@@ -35,6 +36,30 @@ function SignupForm() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [emailDetected, setEmailDetected] = useState(false)
+  const [suggestedUsername, setSuggestedUsername] = useState<string | null>(null)
+
+  /**
+   * Handle username input - detect if user enters an email and auto-fill fields
+   */
+  const handleUsernameChange = useCallback((value: string) => {
+    if (isEmail(value)) {
+      // User entered an email - generate username and fill email field
+      const generated = generateUsernameFromEmail(value)
+      setFormData((prev) => ({
+        ...prev,
+        username: generated,
+        email: value.toLowerCase(),
+      }))
+      setSuggestedUsername(generated)
+      setEmailDetected(true)
+    } else {
+      // Regular username input
+      setFormData((prev) => ({ ...prev, username: value }))
+      setEmailDetected(false)
+      setSuggestedUsername(null)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,21 +170,28 @@ function SignupForm() {
                   htmlFor="username"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Username <span className="text-red-500">*</span>
+                  Username or Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="username"
                   type="text"
                   required
                   value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="yourname"
+                  placeholder="yourname or email@example.com"
                   disabled={loading}
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Letters, numbers, hyphens, and underscores only
-                </p>
+                {emailDetected && suggestedUsername ? (
+                  <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                    We'll use <strong>{suggestedUsername}</strong> as your username and fill your
+                    email below
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter a username or your email address
+                  </p>
+                )}
               </div>
 
               {/* Display Name */}
