@@ -389,7 +389,10 @@ export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
                       </label>
                       <button
                         type="button"
-                        onClick={() => setShowForgotPassword(true)}
+                        onClick={() => {
+                          setShowForgotPassword(true)
+                          setError('')
+                        }}
                         className="text-xs font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
                       >
                         Forgot password?
