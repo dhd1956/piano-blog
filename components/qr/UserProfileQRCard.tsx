@@ -46,7 +46,7 @@ export default function UserProfileQRCard({
   // Default configuration
   const defaultConfig: QRCardConfig = {
     layout: 'business-card',
-    theme: DEFAULT_THEMES.professional,
+    theme: DEFAULT_THEMES.piano,
     includeDescription: true,
     includePayment: false,
     qrCodeSize: 150,
