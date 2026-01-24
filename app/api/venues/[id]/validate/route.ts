@@ -6,7 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/get-db'
-import { requireRole, can, AuthUser } from '@/lib/auth-middleware'
+import { requireRole, can } from '@/lib/auth-middleware'
+import { AuthUser } from '@/lib/auth'
 import { UserRole, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 
