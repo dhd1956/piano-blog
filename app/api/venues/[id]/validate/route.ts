@@ -6,9 +6,85 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/get-db'
-import { requireRole, can } from '@/lib/auth-middleware'
-import { UserRole } from '@prisma/client'
+import { requireRole, can, AuthUser } from '@/lib/auth-middleware'
+import { UserRole, PrismaClient } from '@prisma/client'
 import { z } from 'zod'
+
+/**
+ * Award PXP rewards when a venue is verified
+ * Awards to both the scout (submitter) and the verifier (curator/validator)
+ */
+async function awardVerificationRewards(
+  db: PrismaClient,
+  venue: { id: number; name: string; submittedBy: string },
+  verifier: AuthUser,
+  isInstantVerify: boolean
+): Promise<{ scoutReward: number; verifierReward: number }> {
+  let scoutReward = 0
+  let verifierReward = 0
+
+  // Award PXP to scout (venue submitter)
+  try {
+    const scoutUser = await db.user.findUnique({
+      where: { walletAddress: venue.submittedBy.toLowerCase() },
+      select: { id: true, walletAddress: true, username: true, firstPXPEarnedAt: true },
+    })
+
+    if (scoutUser) {
+      const scoutConfig = await db.pXPConfig.findUnique({
+        where: { key: 'venue_verified' },
+        select: { value: true, enabled: true },
+      })
+
+      scoutReward = scoutConfig && scoutConfig.enabled ? scoutConfig.value : 50
+
+      await db.user.update({
+        where: { id: scoutUser.id },
+        data: {
+          totalCAVEarned: { increment: scoutReward },
+          firstPXPEarnedAt: scoutUser.firstPXPEarnedAt || new Date(),
+        },
+      })
+
+      console.log(
+        `✅ Awarded ${scoutReward} PXP to scout ${scoutUser.walletAddress || scoutUser.username} for verified venue "${venue.name}"`
+      )
+    }
+  } catch (error) {
+    console.error('Error awarding scout PXP:', error)
+  }
+
+  // Award PXP to verifier (curator/blog owner)
+  try {
+    const verifierConfig = await db.pXPConfig.findUnique({
+      where: { key: 'curator_verification' },
+      select: { value: true, enabled: true },
+    })
+
+    verifierReward = verifierConfig && verifierConfig.enabled ? verifierConfig.value : 20
+
+    const verifierUser = await db.user.findUnique({
+      where: { id: verifier.id },
+      select: { firstPXPEarnedAt: true },
+    })
+
+    await db.user.update({
+      where: { id: verifier.id },
+      data: {
+        totalCAVEarned: { increment: verifierReward },
+        firstPXPEarnedAt: verifierUser?.firstPXPEarnedAt || new Date(),
+      },
+    })
+
+    console.log(
+      `✅ Awarded ${verifierReward} PXP to ${isInstantVerify ? 'blog owner' : 'validator'} ${verifier.walletAddress || verifier.username} for verifying venue "${venue.name}"`
+    )
+  } catch (error) {
+    console.error('Error awarding verifier PXP:', error)
+  }
+
+  return { scoutReward, verifierReward }
+}
 
 const validationSchema = z.object({
   approved: z.boolean(),
@@ -124,6 +200,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           },
         })
 
+        // Award PXP to scout and blog owner
+        const rewards = await awardVerificationRewards(
+          db,
+          { id: venue.id, name: venue.name, submittedBy: venue.submittedBy },
+          user,
+          true
+        )
+
         return NextResponse.json({
           success: true,
           message: 'Venue instantly verified by blog owner',
@@ -132,6 +216,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             name: venue.name,
             verified: true,
             verifiedAt: new Date(),
+          },
+          pxpAwarded: {
+            scout: rewards.scoutReward,
+            verifier: rewards.verifierReward,
           },
         })
       } else {
@@ -200,6 +288,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         },
       })
 
+      // Award PXP to scout and the validator who triggered verification
+      const rewards = await awardVerificationRewards(
+        db,
+        { id: venue.id, name: venue.name, submittedBy: venue.submittedBy },
+        user,
+        false
+      )
+
       return NextResponse.json({
         success: true,
         message: 'Venue automatically verified (3 validators approved)',
@@ -213,6 +309,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           total: allValidations.length,
           approved: approvalCount,
           required: 3,
+        },
+        pxpAwarded: {
+          scout: rewards.scoutReward,
+          verifier: rewards.verifierReward,
         },
       })
     }
