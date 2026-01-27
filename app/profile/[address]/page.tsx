@@ -320,7 +320,7 @@ export default function ProfilePage() {
               >
                 📱 Show QR Code
               </button>
-              {!isOwnProfile && profile.walletAddress && (
+              {profile.walletAddress && (
                 <TipButton
                   recipientAddress={profile.walletAddress}
                   recipientName={profile.displayName || profile.username}
