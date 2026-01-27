@@ -14,6 +14,7 @@ import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
 import YouTubeUploadForm from '@/components/content/YouTubeUploadForm'
 import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 import YouTubeChannelVerification from '@/components/content/YouTubeChannelVerification'
+import TipButton from '@/components/tips/TipButton'
 
 interface UserProfile {
   id: number
@@ -319,6 +320,12 @@ export default function ProfilePage() {
               >
                 📱 Show QR Code
               </button>
+              {!isOwnProfile && profile.walletAddress && (
+                <TipButton
+                  recipientAddress={profile.walletAddress}
+                  recipientName={profile.displayName || profile.username}
+                />
+              )}
               {isOwnProfile && (
                 <button
                   onClick={() => (window.location.href = `/profile/${address}/edit`)}
