@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { PXPRewardsService } from '@/utils/rewards-contract'
-import Web3 from 'web3'
+import React, { useState, useEffect } from 'react'
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { parseEther } from 'viem'
+import { PXP_TOKEN_ADDRESS, ERC20_ABI } from '@/utils/rewards-contract'
 
 interface TipModalProps {
   recipientAddress: string
@@ -17,13 +17,13 @@ interface TipModalProps {
 
 const PRESET_AMOUNTS = [5, 10, 25]
 
-type ModalState = 'idle' | 'processing' | 'success' | 'error'
+type ModalState = 'idle' | 'processing' | 'confirming' | 'success' | 'error'
 
 export default function TipModal({
   recipientAddress,
   recipientName,
-  walletAddress: appKitWalletAddress,
-  isWalletConnected: appKitConnected,
+  walletAddress,
+  isWalletConnected,
   openWalletModal,
   onClose,
   onTipSent,
@@ -33,18 +33,73 @@ export default function TipModal({
   const [message, setMessage] = useState('')
   const [modalState, setModalState] = useState<ModalState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
-  const [transactionHash, setTransactionHash] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Ref-based guard to absolutely prevent multiple transaction attempts
-  const transactionInProgressRef = useRef(false)
+  // Use wagmi's writeContract hook - this integrates with Reown/AppKit and gas sponsorship
+  const {
+    data: txHash,
+    writeContract,
+    isPending: isWritePending,
+    error: writeError,
+    reset: resetWrite,
+  } = useWriteContract()
 
-  // Get wallet address from auth session (works even if AppKit not "connected")
-  const { user } = useAuth()
+  // Wait for transaction confirmation
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    error: confirmError,
+  } = useWaitForTransactionReceipt({
+    hash: txHash,
+  })
 
-  // Use AppKit wallet if connected, otherwise fall back to session wallet
-  const walletAddress = appKitWalletAddress || user?.walletAddress
-  const isConnected = (appKitConnected && !!appKitWalletAddress) || !!user?.walletAddress
+  // Handle transaction states
+  useEffect(() => {
+    if (isWritePending) {
+      setModalState('processing')
+    }
+  }, [isWritePending])
+
+  useEffect(() => {
+    if (isConfirming) {
+      setModalState('confirming')
+    }
+  }, [isConfirming])
+
+  useEffect(() => {
+    if (isConfirmed && txHash) {
+      setModalState('success')
+
+      // Record the tip to the database
+      const amount = getAmount()
+      fetch('/api/tips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fromAddress: walletAddress,
+          toAddress: recipientAddress,
+          amount,
+          transactionHash: txHash,
+          message: message || undefined,
+        }),
+      }).catch((err) => console.warn('Failed to record tip to database:', err))
+
+      // Notify parent after a short delay
+      setTimeout(() => {
+        onTipSent(txHash, amount)
+      }, 2000)
+    }
+  }, [isConfirmed, txHash])
+
+  useEffect(() => {
+    const error = writeError || confirmError
+    if (error) {
+      console.error('[TipModal] Transaction error:', error)
+      setErrorMessage(error.message || 'Transaction failed')
+      setModalState('error')
+    }
+  }, [writeError, confirmError])
+
+  const isConnected = isWalletConnected && !!walletAddress
 
   const connectWallet = () => {
     openWalletModal()
@@ -72,26 +127,14 @@ export default function TipModal({
     setSelectedAmount(null)
   }
 
-  const handleSendTip = async () => {
-    // Absolute ref-based guard - checked synchronously before any async work
-    if (transactionInProgressRef.current) {
-      console.log('[TipModal] Transaction already in progress (ref guard)')
+  const handleSendTip = () => {
+    // Guard against multiple submissions
+    if (modalState === 'processing' || modalState === 'confirming') {
       return
     }
 
-    // State-based guard
-    if (isSubmitting || modalState === 'processing') {
-      console.log('[TipModal] Blocked duplicate submission (state guard)')
-      return
-    }
-
-    if (!isConnected || !walletAddress) {
-      try {
-        connectWallet()
-      } catch {
-        setErrorMessage('Failed to connect wallet')
-        setModalState('error')
-      }
+    if (!isConnected) {
+      connectWallet()
       return
     }
 
@@ -101,86 +144,23 @@ export default function TipModal({
       return
     }
 
-    // Set ref guard IMMEDIATELY (synchronous, before any await)
-    transactionInProgressRef.current = true
-
     const amount = getAmount()
-
-    // Set state flags
-    setIsSubmitting(true)
-    setModalState('processing')
     setErrorMessage('')
+    resetWrite()
 
-    try {
-      // Check if MetaMask is available
-      if (typeof window === 'undefined' || !window.ethereum) {
-        throw new Error('MetaMask is not installed. Please install MetaMask to send tips.')
-      }
+    // Use wagmi to write contract - this will use gas sponsorship if configured
+    writeContract({
+      address: PXP_TOKEN_ADDRESS as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: 'transfer',
+      args: [recipientAddress as `0x${string}`, parseEther(amount.toString())],
+    })
+  }
 
-      console.log('[TipModal] Step 1: Requesting accounts...')
-
-      // Request account access and get the actual connected account
-      const accounts = (await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      })) as string[]
-
-      if (!accounts || accounts.length === 0) {
-        throw new Error('No accounts found. Please unlock MetaMask.')
-      }
-
-      const senderAddress = accounts[0]
-      console.log('[TipModal] Step 2: Got sender address:', senderAddress)
-
-      // Create Web3 instance with MetaMask provider
-      const web3 = new Web3(window.ethereum as any)
-      const pxpService = new PXPRewardsService(web3)
-
-      console.log('[TipModal] Step 3: Calling transferPXP (this triggers MetaMask)...')
-
-      // Execute the transfer - this will trigger ONE MetaMask prompt
-      const result = await pxpService.transferPXP(
-        recipientAddress,
-        amount.toString(),
-        senderAddress
-      )
-
-      console.log('[TipModal] Step 4: Transfer complete!', result)
-
-      const txHash = result.transactionHash
-
-      // Record the tip to the database
-      const recordResponse = await fetch('/api/tips', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fromAddress: senderAddress,
-          toAddress: recipientAddress,
-          amount,
-          transactionHash: txHash,
-          message: message || undefined,
-        }),
-      })
-
-      if (!recordResponse.ok) {
-        console.warn('Failed to record tip to database, but transfer succeeded')
-      }
-
-      setTransactionHash(txHash)
-      setModalState('success')
-
-      // Notify parent after a short delay to show success state
-      setTimeout(() => {
-        onTipSent(txHash, amount)
-      }, 2000)
-    } catch (error: any) {
-      console.error('[TipModal] Tip failed:', error)
-      setErrorMessage(error.message || 'Failed to send tip')
-      setModalState('error')
-      setIsSubmitting(false)
-      transactionInProgressRef.current = false
-    }
+  const handleRetry = () => {
+    setModalState('idle')
+    setErrorMessage('')
+    resetWrite()
   }
 
   const displayName =
@@ -233,11 +213,38 @@ export default function TipModal({
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 You sent {getAmount()} PXP to {displayName}
               </p>
-              {transactionHash && (
+              {txHash && (
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                  Transaction: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
+                  Transaction: {txHash.slice(0, 10)}...{txHash.slice(-8)}
                 </p>
               )}
+            </div>
+          ) : modalState === 'confirming' ? (
+            <div className="py-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+                <svg className="h-10 w-10 animate-spin text-amber-500" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+                Confirming Transaction...
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Waiting for blockchain confirmation
+              </p>
             </div>
           ) : (
             <>
@@ -314,6 +321,12 @@ export default function TipModal({
               {modalState === 'error' && errorMessage && (
                 <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
                   <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                  <button
+                    onClick={handleRetry}
+                    className="mt-2 text-sm font-medium text-red-700 underline hover:text-red-800 dark:text-red-300"
+                  >
+                    Try again
+                  </button>
                 </div>
               )}
             </>
@@ -321,7 +334,7 @@ export default function TipModal({
         </div>
 
         {/* Footer */}
-        {modalState !== 'success' && (
+        {modalState !== 'success' && modalState !== 'confirming' && (
           <div className="flex gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
             <button
               onClick={onClose}
@@ -331,9 +344,7 @@ export default function TipModal({
             </button>
             <button
               onClick={handleSendTip}
-              disabled={
-                isSubmitting || modalState === 'processing' || (!isConnected && !isValidAmount())
-              }
+              disabled={modalState === 'processing' || (!isConnected && !isValidAmount())}
               className="flex-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {modalState === 'processing' ? (
@@ -354,7 +365,7 @@ export default function TipModal({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Sending...
+                  Confirm in Wallet...
                 </span>
               ) : isConnected ? (
                 `Send ${isValidAmount() ? getAmount() : ''} PXP`
