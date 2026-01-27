@@ -11,8 +11,14 @@ import { detectEnvironment } from './env-config'
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Piano Blog <onboarding@resend.dev>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+// Read env vars at runtime (not module load time) to avoid caching issues
+function getFromEmail() {
+  return process.env.EMAIL_FROM || 'Piano Blog <onboarding@resend.dev>'
+}
+
+function getAppUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+}
 
 /**
  * Add environment prefix to email subject
@@ -37,18 +43,22 @@ export interface SendEmailParams {
  * Send an email using Resend
  */
 export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
+  const fromEmail = getFromEmail()
+  console.log('📧 Sending email with FROM:', fromEmail, 'TO:', to, 'SUBJECT:', subject)
+
   try {
     const data = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromEmail,
       to: [to],
       subject,
       html,
       text,
     })
 
+    console.log('✅ Email sent successfully:', data)
     return { success: true, data }
   } catch (error) {
-    console.error('Error sending email:', error)
+    console.error('❌ Error sending email:', error)
     return { success: false, error }
   }
 }
@@ -57,7 +67,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
  * Send email verification email
  */
 export async function sendVerificationEmail(email: string, token: string, username?: string) {
-  const verificationUrl = `${APP_URL}/auth/verify-email?token=${token}`
+  const verificationUrl = `${getAppUrl()}/auth/verify-email?token=${token}`
 
   const html = `
     <!DOCTYPE html>
@@ -158,7 +168,7 @@ export async function sendWelcomeEmail(email: string, username: string) {
           </ul>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${APP_URL}/profile" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+            <a href="${getAppUrl()}/profile" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
               Complete Your Profile
             </a>
           </div>
@@ -188,7 +198,7 @@ export async function sendWelcomeEmail(email: string, username: string) {
     - Join events - RSVP to jam sessions, concerts, and workshops
     - Link your wallet - Unlock blockchain features and earn PXP tokens
 
-    Get started: ${APP_URL}/profile
+    Get started: ${getAppUrl()}/profile
 
     Need help? Reply to this email or visit our help center.
 
@@ -272,7 +282,7 @@ export async function sendSecurityAlertEmail(
           </div>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${APP_URL}/account/settings" style="background: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+            <a href="${getAppUrl()}/account/settings" style="background: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
               Review Account Settings
             </a>
           </div>
@@ -301,7 +311,7 @@ export async function sendSecurityAlertEmail(
 
     Time: ${new Date().toLocaleString()}
 
-    Review your account settings: ${APP_URL}/account/settings
+    Review your account settings: ${getAppUrl()}/account/settings
 
     If you have any concerns, please contact support immediately.
 
@@ -320,7 +330,7 @@ export async function sendSecurityAlertEmail(
  * Send password reset email
  */
 export async function sendPasswordResetEmail(email: string, token: string, username?: string) {
-  const resetUrl = `${APP_URL}/auth/reset-password?token=${token}`
+  const resetUrl = `${getAppUrl()}/auth/reset-password?token=${token}`
 
   const html = `
     <!DOCTYPE html>
@@ -399,7 +409,7 @@ export async function sendPasswordResetEmail(email: string, token: string, usern
  * Send magic link login email
  */
 export async function sendMagicLinkEmail(email: string, token: string, username?: string) {
-  const loginUrl = `${APP_URL}/api/auth/magic-link/verify?token=${token}`
+  const loginUrl = `${getAppUrl()}/api/auth/magic-link/verify?token=${token}`
 
   const html = `
     <!DOCTYPE html>
