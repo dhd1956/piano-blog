@@ -482,6 +482,13 @@ export class PXPRewardsService {
    * Transfer PXP tokens directly
    */
   async transferPXP(toAddress: string, amount: string, fromAddress: string) {
+    console.log('[PXPRewardsService] transferPXP called', {
+      isDevelopment: this.isDevelopment,
+      toAddress,
+      amount,
+      fromAddress,
+    })
+
     // In development mode, simulate the transfer without calling real contract
     if (this.isDevelopment) {
       console.log('🔧 Development Mode: PXP transfer simulated', {
@@ -499,9 +506,13 @@ export class PXPRewardsService {
       }
     }
 
+    console.log('[PXPRewardsService] Estimating gas...')
     const gasEstimate = await this.tokenContract.methods
       .transfer(toAddress, this.web3.utils.toWei(amount, 'ether'))
       .estimateGas({ from: fromAddress })
+
+    console.log('[PXPRewardsService] Gas estimate:', gasEstimate)
+    console.log('[PXPRewardsService] Sending transaction (MetaMask will prompt)...')
 
     return this.tokenContract.methods
       .transfer(toAddress, this.web3.utils.toWei(amount, 'ether'))
