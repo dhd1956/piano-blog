@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { PXPRewardsService } from '@/utils/rewards-contract'
 import Web3 from 'web3'
@@ -36,6 +36,9 @@ export default function TipModal({
   const [transactionHash, setTransactionHash] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Ref-based guard to absolutely prevent multiple transaction attempts
+  const transactionInProgressRef = useRef(false)
+
   // Get wallet address from auth session (works even if AppKit not "connected")
   const { user } = useAuth()
 
@@ -70,9 +73,15 @@ export default function TipModal({
   }
 
   const handleSendTip = async () => {
-    // Strict guard to prevent multiple executions
+    // Absolute ref-based guard - checked synchronously before any async work
+    if (transactionInProgressRef.current) {
+      console.log('[TipModal] Transaction already in progress (ref guard)')
+      return
+    }
+
+    // State-based guard
     if (isSubmitting || modalState === 'processing') {
-      console.log('[TipModal] Blocked duplicate submission')
+      console.log('[TipModal] Blocked duplicate submission (state guard)')
       return
     }
 
@@ -92,51 +101,50 @@ export default function TipModal({
       return
     }
 
+    // Set ref guard IMMEDIATELY (synchronous, before any await)
+    transactionInProgressRef.current = true
+
     const amount = getAmount()
 
-    // Set both flags immediately
+    // Set state flags
     setIsSubmitting(true)
     setModalState('processing')
     setErrorMessage('')
 
     try {
-      // Check if we're in development mode (no real contract deployed)
-      const isDevelopment =
-        !process.env.NEXT_PUBLIC_PXP_REWARDS_ADDRESS ||
-        process.env.NEXT_PUBLIC_PXP_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
-
-      let senderAddress = walletAddress || ''
-      let web3: Web3 | undefined
-
-      // Only request MetaMask in production mode
-      if (!isDevelopment) {
-        // Check if MetaMask is available
-        if (typeof window === 'undefined' || !window.ethereum) {
-          throw new Error('MetaMask is not installed. Please install MetaMask to send tips.')
-        }
-
-        // Request account access and get the actual connected account
-        const accounts = (await window.ethereum.request({
-          method: 'eth_requestAccounts',
-        })) as string[]
-
-        if (!accounts || accounts.length === 0) {
-          throw new Error('No accounts found. Please unlock MetaMask.')
-        }
-
-        senderAddress = accounts[0]
-        web3 = new Web3(window.ethereum as any)
+      // Check if MetaMask is available
+      if (typeof window === 'undefined' || !window.ethereum) {
+        throw new Error('MetaMask is not installed. Please install MetaMask to send tips.')
       }
 
-      // Create PXP service (uses mock in dev mode)
+      console.log('[TipModal] Step 1: Requesting accounts...')
+
+      // Request account access and get the actual connected account
+      const accounts = (await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      })) as string[]
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found. Please unlock MetaMask.')
+      }
+
+      const senderAddress = accounts[0]
+      console.log('[TipModal] Step 2: Got sender address:', senderAddress)
+
+      // Create Web3 instance with MetaMask provider
+      const web3 = new Web3(window.ethereum as any)
       const pxpService = new PXPRewardsService(web3)
 
-      // Execute the transfer (simulated in dev mode, real in production)
+      console.log('[TipModal] Step 3: Calling transferPXP (this triggers MetaMask)...')
+
+      // Execute the transfer - this will trigger ONE MetaMask prompt
       const result = await pxpService.transferPXP(
         recipientAddress,
         amount.toString(),
         senderAddress
       )
+
+      console.log('[TipModal] Step 4: Transfer complete!', result)
 
       const txHash = result.transactionHash
 
@@ -171,6 +179,7 @@ export default function TipModal({
       setErrorMessage(error.message || 'Failed to send tip')
       setModalState('error')
       setIsSubmitting(false)
+      transactionInProgressRef.current = false
     }
   }
 
