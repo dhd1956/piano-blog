@@ -18,6 +18,7 @@ import OAuthEmailCapture from '@/components/OAuthEmailCapture'
 import MigrationBanner from '@/components/auth/MigrationBanner'
 import MigrationPrompt from '@/components/auth/MigrationPrompt'
 import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
+import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -106,6 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ErrorBoundary>
           <AuthProvider>
             <ReownProvider>
+              <WalletAutoDisconnect />
               <OAuthEmailCapture />
               <WorkingWeb3Provider>
                 <ThemeProviders>

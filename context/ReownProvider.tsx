@@ -33,6 +33,8 @@ if (typeof window !== 'undefined') {
 }
 
 // Create the AppKit modal instance
+// Note: SIWE (Sign-In With Ethereum) prompts on reconnect are a known AppKit behavior
+// See: https://github.com/reown-com/appkit/issues/2218
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
