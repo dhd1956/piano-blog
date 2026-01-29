@@ -238,35 +238,70 @@ export default function VenueQRCard({
 
       console.log('Canvas created:', canvas.width, 'x', canvas.height)
 
-      // Convert to blob
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            console.error('Failed to create blob from canvas')
-            alert('Failed to create image. Please try again.')
-            return
-          }
+      const filename = venueData.name.replace(/\s+/g, '-').toLowerCase()
 
-          console.log('Blob created successfully, size:', blob.size, 'bytes')
+      if (format === 'pdf') {
+        // Generate actual PDF using jsPDF
+        const { jsPDF } = await import('jspdf')
+        console.log('jsPDF loaded successfully')
 
-          // Create download link
-          const url = URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.download = `${venueData.name.replace(/\s+/g, '-').toLowerCase()}-qr-${config.layout}.${format}`
-          link.href = url
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          URL.revokeObjectURL(url)
+        // Get dimensions based on layout
+        const dimensions = QR_CARD_SIZES[config.layout]
 
-          console.log('Download triggered successfully')
+        // Create PDF with proper dimensions (jsPDF uses mm by default)
+        // Convert inches to mm (1 inch = 25.4mm)
+        const widthMm = dimensions.width * 25.4
+        const heightMm = dimensions.height * 25.4
 
-          // Call optional callback
-          onExport?.(url)
-        },
-        `image/${format}`,
-        0.95
-      ) // 95% quality
+        const pdf = new jsPDF({
+          orientation: widthMm > heightMm ? 'landscape' : 'portrait',
+          unit: 'mm',
+          format: [widthMm, heightMm],
+        })
+
+        // Convert canvas to image data
+        const imgData = canvas.toDataURL('image/png', 1.0)
+
+        // Add image to PDF (fill the entire page)
+        pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm)
+
+        // Save the PDF
+        pdf.save(`${filename}-qr-${config.layout}.pdf`)
+        console.log('PDF download triggered successfully')
+
+        // Call optional callback
+        onExport?.(imgData)
+      } else {
+        // PNG export - use blob
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              console.error('Failed to create blob from canvas')
+              alert('Failed to create image. Please try again.')
+              return
+            }
+
+            console.log('Blob created successfully, size:', blob.size, 'bytes')
+
+            // Create download link
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.download = `${filename}-qr-${config.layout}.png`
+            link.href = url
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+
+            console.log('PNG download triggered successfully')
+
+            // Call optional callback
+            onExport?.(url)
+          },
+          'image/png',
+          0.95
+        )
+      }
     } catch (error) {
       console.error('Failed to export QR code:', error)
       if (error instanceof Error) {
