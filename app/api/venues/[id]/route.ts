@@ -203,7 +203,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         // Find the scout user by wallet address
         const scoutUser = await db.user.findUnique({
           where: { walletAddress: existingVenue.submittedBy.toLowerCase() },
-          select: { id: true, walletAddress: true, username: true, displayName: true },
+          select: {
+            id: true,
+            walletAddress: true,
+            username: true,
+            displayName: true,
+            firstPXPEarnedAt: true,
+          },
         })
 
         if (scoutUser) {
@@ -221,7 +227,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             where: { id: scoutUser.id },
             data: {
               totalCAVEarned: { increment: rewardAmount },
-              firstPXPEarnedAt: scoutUser.id ? undefined : new Date(), // Set if first time earning
+              // Set firstPXPEarnedAt only if this is their first time earning PXP
+              ...(scoutUser.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
             },
           })
 
@@ -244,11 +251,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Award PXP to curator for verifying venue
     if (isNewlyVerified) {
       try {
-        // Get curator verification reward from PXP config
-        const curatorConfig = await db.pXPConfig.findUnique({
-          where: { key: 'curator_verification' },
-          select: { value: true, enabled: true },
-        })
+        // Get curator verification reward from PXP config and curator's firstPXPEarnedAt
+        const [curatorConfig, curatorUser] = await Promise.all([
+          db.pXPConfig.findUnique({
+            where: { key: 'curator_verification' },
+            select: { value: true, enabled: true },
+          }),
+          db.user.findUnique({
+            where: { id: user.id },
+            select: { firstPXPEarnedAt: true },
+          }),
+        ])
 
         const curatorReward = curatorConfig && curatorConfig.enabled ? curatorConfig.value : 20
 
@@ -257,7 +270,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           where: { id: user.id },
           data: {
             totalCAVEarned: { increment: curatorReward },
-            firstPXPEarnedAt: user.id ? undefined : new Date(), // Set if first time earning
+            // Set firstPXPEarnedAt only if this is their first time earning PXP
+            ...(curatorUser?.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
           },
         })
 
