@@ -11,6 +11,8 @@ import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import LoginModal from '@/components/auth/LoginModal'
+import RecurrenceForm from '@/components/events/RecurrenceForm'
+import { RecurrencePattern, RecurrenceConfig } from '@/types/event'
 
 interface Venue {
   id: number
@@ -59,6 +61,12 @@ export default function CreateEventPage() {
   const [coverImage, setCoverImage] = useState('')
   const [externalLink, setExternalLink] = useState('')
   const [streamingLink, setStreamingLink] = useState('')
+
+  // Recurrence state
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern>('WEEKLY')
+  const [recurrenceConfig, setRecurrenceConfig] = useState<RecurrenceConfig>({ daysOfWeek: [6] })
+  const [seriesEndDate, setSeriesEndDate] = useState('')
 
   // UI state
   const [venues, setVenues] = useState<Venue[]>([])
@@ -150,41 +158,91 @@ export default function CreateEventPage() {
         return
       }
 
-      // Prepare request body
-      const requestBody = {
-        organizerAddress,
-        title,
-        description,
-        eventType,
-        venueId, // Required - always set
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime.toISOString(),
-        maxAttendees,
-        requireApproval,
-        isFree,
-        price: isFree ? null : price,
-        genres,
-        coverImage: coverImage || null,
-        externalLink: externalLink || null,
-        streamingLink: streamingLink || null,
+      // Validate series end date if recurring
+      if (isRecurring && !seriesEndDate) {
+        setError('Please set an end date for the recurring series')
+        setSubmitting(false)
+        return
       }
 
-      const response = await fetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include auth cookies
-        body: JSON.stringify(requestBody),
-      })
+      if (isRecurring) {
+        // Create a recurring event series
+        const requestBody = {
+          organizerAddress,
+          title,
+          description,
+          eventType,
+          venueId,
+          startTime,
+          endTime,
+          timezone: 'America/New_York',
+          maxAttendees,
+          requireApproval,
+          isFree,
+          price: isFree ? null : price,
+          genres,
+          coverImage: coverImage || null,
+          externalLink: externalLink || null,
+          streamingLink: streamingLink || null,
+          recurrencePattern,
+          recurrenceConfig,
+          seriesStartDate: startDate,
+          seriesEndDate,
+        }
 
-      if (!response.ok) {
+        const response = await fetch('/api/event-series', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody),
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || 'Failed to create event series')
+        }
+
         const data = await response.json()
-        throw new Error(data.error || 'Failed to create event')
-      }
+        router.push(`/events/series/${data.series.id}`)
+      } else {
+        // Create a standalone event
+        const requestBody = {
+          organizerAddress,
+          title,
+          description,
+          eventType,
+          venueId,
+          startDate: startDateTime.toISOString(),
+          endDate: endDateTime.toISOString(),
+          maxAttendees,
+          requireApproval,
+          isFree,
+          price: isFree ? null : price,
+          genres,
+          coverImage: coverImage || null,
+          externalLink: externalLink || null,
+          streamingLink: streamingLink || null,
+        }
 
-      const data = await response.json()
-      router.push(`/events/${data.event.id}`)
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody),
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || 'Failed to create event')
+        }
+
+        const data = await response.json()
+        router.push(`/events/${data.event.id}`)
+      }
     } catch (err: any) {
       console.error('Error creating event:', err)
       setError(err.message || 'Failed to create event')
@@ -410,6 +468,19 @@ export default function CreateEventPage() {
           </div>
         </div>
 
+        {/* Recurring Event */}
+        <RecurrenceForm
+          isRecurring={isRecurring}
+          onRecurringChange={setIsRecurring}
+          pattern={recurrencePattern}
+          onPatternChange={setRecurrencePattern}
+          config={recurrenceConfig}
+          onConfigChange={setRecurrenceConfig}
+          seriesEndDate={seriesEndDate}
+          onSeriesEndDateChange={setSeriesEndDate}
+          startDate={startDate}
+        />
+
         {/* Event Settings */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -578,7 +649,13 @@ export default function CreateEventPage() {
             disabled={submitting}
             className="rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? 'Creating Event...' : 'Create Event'}
+            {submitting
+              ? isRecurring
+                ? 'Creating Series...'
+                : 'Creating Event...'
+              : isRecurring
+                ? 'Create Recurring Series'
+                : 'Create Event'}
           </button>
         </div>
       </form>

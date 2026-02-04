@@ -96,6 +96,7 @@ model Venue {
   validations  VenueValidation[]
   analytics    VenueAnalytics[]
   events       Event[] // Events hosted at this venue
+  eventSeries  EventSeries[] // Recurring event series at this venue
 
   // Indexes for performance
   @@index([city, verified, isActive])
@@ -207,6 +208,7 @@ model User {
   validations     VenueValidation[]
   musicianProfile MusicianProfile? // One-to-one relation with musician profile
   organizedEvents Event[]          @relation("OrganizedEvents") // Events created by this user
+  organizedSeries EventSeries[]    @relation("OrganizedSeries") // Event series created by this user
   rsvps           EventRSVP[]      @relation("EventRSVPs") // Events this user RSVPed to
   youtubeVideos   YouTubeVideo[]   // Submitted YouTube videos for PXP rewards
 
@@ -500,6 +502,12 @@ model Event {
   cancelledAt     DateTime?
   cancellationReason String? @db.Text
 
+  // Series relation (optional - null for standalone events)
+  series            EventSeries? @relation("SeriesEvents", fields: [seriesId], references: [id], onDelete: SetNull)
+  seriesId          Int?
+  seriesOccurrence  Int?         // Which occurrence in series (1, 2, 3...)
+  isSeriesException Boolean      @default(false)  // True if edited independently
+
   // Metadata
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -513,6 +521,70 @@ model Event {
   @@index([startDate, status])
   @@index([eventType, status])
   @@index([isPublic, status])
+  @@index([seriesId])
+}
+
+// EventSeries - Recurring event template that spawns individual Event instances
+model EventSeries {
+  id                Int       @id @default(autoincrement())
+
+  // Organizer (same as Event)
+  organizer         User      @relation("OrganizedSeries", fields: [organizerId], references: [id], onDelete: Cascade)
+  organizerId       Int
+
+  // Template fields (copied to each Event instance)
+  title             String
+  description       String    @db.Text
+  eventType         EventType
+  venueId           Int
+  venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  // Time template (time of day, duration)
+  startTime         String    // "19:00" - time portion only
+  endTime           String    // "21:00" - time portion only
+  timezone          String    @default("America/New_York")
+
+  // Event settings (copied to instances)
+  maxAttendees      Int?
+  requireApproval   Boolean   @default(false)
+  isPublic          Boolean   @default(true)
+  isFree            Boolean   @default(true)
+  price             Float?
+  genres            String[]
+  coverImage        String?
+  externalLink      String?
+  streamingLink     String?
+
+  // Recurrence configuration
+  recurrencePattern RecurrencePattern
+  recurrenceConfig  Json      // Pattern-specific config (see types/event.ts)
+  seriesStartDate   DateTime  // First occurrence
+  seriesEndDate     DateTime  // Last occurrence (max 1 year from start)
+
+  // Status
+  status            EventSeriesStatus @default(ACTIVE)
+  cancelledAt       DateTime?
+  cancellationReason String?  @db.Text
+
+  // Metadata
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  events            Event[]   @relation("SeriesEvents")
+
+  @@index([organizerId])
+  @@index([venueId])
+  @@index([recurrencePattern])
+  @@index([seriesEndDate])
+  @@index([status])
+}
+
+enum EventSeriesStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  COMPLETED
 }
 
 // WPB-211: Event RSVP system
@@ -558,6 +630,13 @@ enum EventStatus {
   ONGOING
   COMPLETED
   CANCELLED
+}
+
+enum RecurrencePattern {
+  DAILY           // Every day or every N days
+  WEEKLY          // Specific day(s) of week
+  MONTHLY         // Same date or Nth weekday of month
+  WEEKDAYS        // Monday-Friday
 }
 
 enum RSVPStatus {

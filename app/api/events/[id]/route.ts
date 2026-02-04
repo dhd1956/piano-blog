@@ -43,6 +43,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             pianoType: true,
           },
         },
+        series: {
+          select: {
+            id: true,
+            title: true,
+            recurrencePattern: true,
+            recurrenceConfig: true,
+            status: true,
+          },
+        },
         rsvps: {
           include: {
             user: {
@@ -176,7 +185,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Remove customLocation from update data (field no longer exists)
-    const { customLocation, ...safeUpdateData } = updateData as any
+    const { customLocation, markAsException, ...safeUpdateData } = updateData as any
+
+    // If this event is part of a series and being edited, mark it as an exception
+    // so future series updates don't overwrite the custom changes
+    const shouldMarkException = event.seriesId && markAsException !== false
 
     // Update event
     const updatedEvent = await db.event.update({
@@ -186,6 +199,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         // Convert date strings to Date objects if provided
         startDate: safeUpdateData.startDate ? new Date(safeUpdateData.startDate) : undefined,
         endDate: safeUpdateData.endDate ? new Date(safeUpdateData.endDate) : undefined,
+        // Mark as exception if part of a series and being edited
+        isSeriesException: shouldMarkException ? true : undefined,
       },
       include: {
         organizer: {

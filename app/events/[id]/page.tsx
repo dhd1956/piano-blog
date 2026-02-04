@@ -51,6 +51,14 @@ interface RSVP {
   createdAt: string
 }
 
+interface EventSeries {
+  id: number
+  title: string
+  recurrencePattern: string
+  recurrenceConfig: any
+  status: string
+}
+
 interface Event {
   id: number
   title: string
@@ -73,6 +81,11 @@ interface Event {
   organizer: Organizer
   venue: Venue
   rsvps: RSVP[]
+  // Series fields
+  seriesId: number | null
+  series: EventSeries | null
+  seriesOccurrence: number | null
+  isSeriesException: boolean
 }
 
 interface EventStats {
@@ -95,6 +108,13 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   REHEARSAL: '🎼 Rehearsal',
   MEETUP: '👥 Meetup',
   OTHER: '📌 Event',
+}
+
+const RECURRENCE_LABELS: Record<string, string> = {
+  DAILY: 'Daily',
+  WEEKLY: 'Weekly',
+  MONTHLY: 'Monthly',
+  WEEKDAYS: 'Weekdays',
 }
 
 export default function EventDetailPage() {
@@ -355,12 +375,34 @@ export default function EventDetailPage() {
       )}
 
       {/* Event Type Badge */}
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="inline-block rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200">
           {eventTypeLabel}
         </span>
+        {event.series && (
+          <Link
+            href={`/events/series/${event.seriesId}`}
+            className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-800 transition-colors hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            {RECURRENCE_LABELS[event.series.recurrencePattern] || 'Recurring'} Series
+            {event.seriesOccurrence && ` (#${event.seriesOccurrence})`}
+          </Link>
+        )}
+        {event.isSeriesException && (
+          <span className="inline-block rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+            Edited
+          </span>
+        )}
         {event.status === 'CANCELLED' && (
-          <span className="ml-2 inline-block rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
+          <span className="inline-block rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
             Cancelled
           </span>
         )}
