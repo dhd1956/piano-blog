@@ -96,47 +96,6 @@ export default function AccountSettingsPage() {
     }
   }
 
-  const handleUnlinkWallet = async () => {
-    if (!profile || !profile.walletAddress) return
-
-    const confirmed = window.confirm(
-      'Are you sure you want to unlink your wallet? You will need a username and password to access your account after unlinking.'
-    )
-
-    if (!confirmed) return
-
-    setActionLoading(true)
-    setActionError('')
-    setActionSuccess('')
-
-    try {
-      const response = await fetch('/api/account/unlink-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: profile.id,
-          walletAddress: profile.walletAddress,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to unlink wallet')
-      }
-
-      setActionSuccess(data.message)
-      // Refresh profile to show updated wallet status
-      fetchProfile()
-    } catch (err: any) {
-      setActionError(err.message || 'An error occurred')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
   const handleLogoutAllSessions = async () => {
     if (!profile) return
 
@@ -343,15 +302,15 @@ export default function AccountSettingsPage() {
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Linked Wallet
+                Your Wallet
               </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Connect your wallet to use blockchain features and earn PXP tokens
+                Your wallet is automatically managed and secured by Reown
               </p>
             </div>
 
             {profile.walletAddress ? (
-              <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
                     <svg
@@ -372,23 +331,22 @@ export default function AccountSettingsPage() {
                     <p className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
                       {profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}
                     </p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Connected</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">Secured by Reown</p>
                   </div>
                 </div>
-                <button
-                  onClick={handleUnlinkWallet}
-                  disabled={actionLoading}
-                  className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-red-800 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900"
-                >
-                  {actionLoading ? 'Unlinking...' : 'Unlink Wallet'}
-                </button>
+                <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    Your wallet was automatically created when you signed in. It's securely managed
+                    by Reown and linked to your Google/email account. You can receive PXP tokens and
+                    payments at this address.
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-sm text-gray-600 dark:text-gray-400">No wallet connected</p>
-                <button className="mt-4 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none">
-                  Connect Wallet
-                </button>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Sign in with Google or email to get your wallet
+                </p>
               </div>
             )}
           </div>

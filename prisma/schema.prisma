@@ -174,6 +174,11 @@ model User {
   walletLinkingPromptShownCount  Int       @default(0) // Number of times prompt was shown
   firstPXPEarnedAt               DateTime? // When user earned their first PXP
 
+  // Embedded wallet tracking (for OAuth/email users via Reown)
+  walletType              String?   // "embedded" | "external" | "linked"
+  authProvider            String?   // "google" | "email" | "wallet" | "credentials"
+  embeddedWalletCreatedAt DateTime? // When embedded wallet was auto-created
+
   // YouTube OAuth integration (for channel verification)
   youtubeChannelId       String?   @unique // Verified YouTube channel ID
   youtubeChannelName     String?   // Channel display name

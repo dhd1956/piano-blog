@@ -45,14 +45,14 @@ export default function ConnectButton() {
     setIsOpen(false)
   }
 
-  // Show "Connect" button if not connected
+  // Show "Sign In" button if not connected
   if (!isConnected) {
     return (
       <button
         onClick={() => open()}
         className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
       >
-        Connect
+        Sign In
       </button>
     )
   }

@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticate } from '@/lib/auth-middleware'
+import { getDb } from '@/lib/get-db'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,15 +22,46 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Fetch full user data including wallet type fields
+    const db = await getDb()
+    const fullUser = await db.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        username: true,
+        walletAddress: true,
+        role: true,
+        email: true,
+        displayName: true,
+        emailVerified: true,
+        walletType: true,
+        authProvider: true,
+      },
+    })
+
+    if (!fullUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'User not found',
+          message: 'User no longer exists',
+        },
+        { status: 404 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       user: {
-        id: user.id,
-        username: user.username,
-        walletAddress: user.walletAddress,
-        role: user.role,
-        email: user.email,
-        displayName: user.displayName,
+        id: fullUser.id,
+        username: fullUser.username,
+        walletAddress: fullUser.walletAddress,
+        role: fullUser.role,
+        email: fullUser.email,
+        displayName: fullUser.displayName,
+        emailVerified: fullUser.emailVerified,
+        walletType: fullUser.walletType,
+        authProvider: fullUser.authProvider,
       },
     })
   } catch (error: any) {

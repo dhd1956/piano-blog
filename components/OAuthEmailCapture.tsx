@@ -1,8 +1,9 @@
 'use client'
 
-import { useAppKitAccount } from '@reown/appkit/react'
+import { useAppKitAccount, useDisconnect } from '@reown/appkit/react'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 /**
  * OAuthEmailCapture Component
@@ -17,23 +18,72 @@ import { useRouter } from 'next/navigation'
  */
 export default function OAuthEmailCapture() {
   const { address, isConnected, embeddedWalletInfo } = useAppKitAccount()
+  const { refreshUser, isAuthenticated } = useAuth()
+  const { disconnect } = useDisconnect()
   const hasProcessedRef = useRef<Set<string>>(new Set())
   const router = useRouter()
 
   useEffect(() => {
     const captureEmail = async () => {
-      // Only process if:
-      // 1. User is connected
-      // 2. We have a wallet address
-      // 3. We have embedded wallet info (OAuth login)
-      // 4. Email is available from OAuth provider
-      // 5. We haven't already processed this address
-      if (
-        !isConnected ||
-        !address ||
-        !embeddedWalletInfo?.user?.email ||
-        hasProcessedRef.current.has(address)
-      ) {
+      // Only process if connected with an address and not already processed
+      if (!isConnected || !address || hasProcessedRef.current.has(address)) {
+        return
+      }
+
+      // --- Wallet Linking Mode ---
+      // If user is already authenticated AND has a wallet_linking_intent flag,
+      // link this new embedded wallet to their existing account instead of creating a new session.
+      const isLinkingMode =
+        typeof window !== 'undefined' &&
+        sessionStorage.getItem('wallet_linking_intent') === 'true' &&
+        isAuthenticated
+
+      if (isLinkingMode) {
+        // Mark as processed immediately to prevent duplicate calls
+        hasProcessedRef.current.add(address)
+
+        const email = embeddedWalletInfo?.user?.email
+        const authProvider = embeddedWalletInfo?.authProvider
+
+        console.log(
+          `[OAuthEmailCapture] Wallet linking mode: linking ${address} to existing account`
+        )
+
+        try {
+          const response = await fetch('/api/auth/link-embedded-wallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              walletAddress: address,
+              ...(email && { email }),
+              ...(authProvider && { authProvider }),
+            }),
+          })
+
+          const data = await response.json()
+
+          if (response.ok && data.success) {
+            console.log('[OAuthEmailCapture] Embedded wallet linked successfully')
+            await refreshUser()
+            console.log('[OAuthEmailCapture] AuthContext refreshed after wallet linking')
+          } else {
+            console.error('[OAuthEmailCapture] Wallet linking failed:', data.message)
+          }
+        } catch (error) {
+          console.error('[OAuthEmailCapture] Error linking wallet:', error)
+        } finally {
+          // Clean up: clear intent flag and disconnect the Reown wallet session
+          sessionStorage.removeItem('wallet_linking_intent')
+          disconnect()
+        }
+
+        return
+      }
+
+      // --- Normal Flow (unauthenticated users) ---
+      // Requires embedded wallet info with email
+      if (!embeddedWalletInfo?.user?.email) {
         return
       }
 
@@ -55,6 +105,44 @@ export default function OAuthEmailCapture() {
 
           // Mark this address as processed to avoid duplicate calls
           hasProcessedRef.current.add(address)
+
+          // Create session via embedded-login endpoint
+          try {
+            const loginResponse = await fetch('/api/auth/embedded-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                walletAddress: address,
+                email: email,
+                authProvider: authProvider,
+              }),
+            })
+
+            if (loginResponse.ok) {
+              const loginData = await loginResponse.json()
+              console.log(
+                `[OAuthEmailCapture] Session created for embedded wallet user (isNew: ${loginData.isNewUser})`
+              )
+
+              // Sync AuthContext with the new session
+              await refreshUser()
+              console.log('[OAuthEmailCapture] AuthContext refreshed')
+
+              if (loginData.showWelcomeReward) {
+                console.log(
+                  `[OAuthEmailCapture] User earned ${loginData.welcomePXP} PXP welcome reward`
+                )
+              }
+            } else {
+              console.warn(
+                '[OAuthEmailCapture] Failed to create session:',
+                loginResponse.statusText
+              )
+            }
+          } catch (loginError) {
+            console.error('[OAuthEmailCapture] Error creating session:', loginError)
+          }
 
           // Smart completion logic: Check if user has essential fields
           const profile = data.profile
@@ -96,7 +184,7 @@ export default function OAuthEmailCapture() {
     }
 
     captureEmail()
-  }, [isConnected, address, embeddedWalletInfo, router])
+  }, [isConnected, address, embeddedWalletInfo, router, refreshUser, isAuthenticated, disconnect])
 
   // This component doesn't render anything
   return null

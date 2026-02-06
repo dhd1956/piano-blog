@@ -18,6 +18,8 @@ export interface User {
   role: UserRole
   displayName: string | null
   emailVerified?: boolean
+  walletType?: 'embedded' | 'external' | 'linked' | null
+  authProvider?: string | null
 }
 
 // Auth state interface
@@ -26,6 +28,7 @@ export interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   hasWallet: boolean
+  isEmbeddedWallet: boolean
   error: string | null
 }
 
@@ -76,6 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Derived state
   const isAuthenticated = user !== null
   const hasWallet = user?.walletAddress !== null && user?.walletAddress !== undefined
+  const isEmbeddedWallet = user?.walletType === 'embedded'
 
   /**
    * Fetch current user from /api/auth/me
@@ -231,6 +235,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isLoading,
     hasWallet,
+    isEmbeddedWallet,
     error,
     // Actions
     login,

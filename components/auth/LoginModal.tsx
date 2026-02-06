@@ -4,14 +4,14 @@
  * LoginModal Component
  *
  * Simplified authentication modal with:
- * - Social login buttons at top
- * - Email/username + password form
- * - Wallet connection button
+ * - Social login buttons at top (opens Reown modal for embedded wallet)
+ * - Email/username + password form for existing credentials users
  */
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { useAppKit } from '@reown/appkit/react'
 
 interface LoginModalProps {
   onClose: () => void
@@ -20,7 +20,8 @@ interface LoginModalProps {
 
 export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
   const router = useRouter()
-  const { login, loginWithWallet } = useAuth()
+  const { login } = useAuth()
+  const { open } = useAppKit()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -30,10 +31,6 @@ export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-
-  // Wallet login state
-  const [showWalletInput, setShowWalletInput] = useState(false)
-  const [walletAddress, setWalletAddress] = useState('')
 
   // Forgot password state
   const [showForgotPassword, setShowForgotPassword] = useState(false)
@@ -69,41 +66,11 @@ export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
   }
 
   /**
-   * Handle wallet login
-   */
-  const handleWalletLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
-        throw new Error('Invalid wallet address format')
-      }
-
-      const result = await loginWithWallet(walletAddress)
-
-      if (result.success) {
-        setSuccess(true)
-        setTimeout(() => {
-          onSuccess?.()
-          onClose()
-        }, 1500)
-      } else {
-        setError(result.error || 'Wallet login failed')
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during wallet login')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  /**
-   * Handle Google OAuth login (placeholder)
+   * Handle Google OAuth login via Reown embedded wallet
    */
   const handleGoogleLogin = () => {
-    setError('Google login coming soon! For now, please use email/username.')
+    onClose() // Close this modal first
+    open() // Open Reown modal for social login
   }
 
   /**
@@ -277,54 +244,6 @@ export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
                   </div>
                 )}
               </div>
-            ) : showWalletInput ? (
-              /* Wallet Login Form */
-              <form onSubmit={handleWalletLogin} className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Enter your wallet address to sign in.
-                </p>
-
-                <div>
-                  <label
-                    htmlFor="walletAddress"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Wallet Address
-                  </label>
-                  <input
-                    type="text"
-                    id="walletAddress"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder="0x..."
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowWalletInput(false)
-                      setWalletAddress('')
-                      setError('')
-                    }}
-                    className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                    disabled={loading}
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </button>
-                </div>
-              </form>
             ) : (
               /* Main Login Form */
               <div className="space-y-4">
@@ -462,26 +381,6 @@ export default function LoginModal({ onClose, onSuccess }: LoginModalProps) {
                     {loading ? 'Signing in...' : 'Sign In'}
                   </button>
                 </form>
-
-                <Divider text="or" />
-
-                {/* Wallet Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowWalletInput(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                  disabled={loading}
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  </svg>
-                  Connect Wallet
-                </button>
 
                 {/* Sign Up Link */}
                 <div className="pt-2 text-center">

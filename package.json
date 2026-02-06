@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "next dev",
-    "dev": "cross-env NODE_OPTIONS='--max-old-space-size=8192' INIT_CWD=$PWD next dev",
+    "dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' INIT_CWD=$PWD next dev",
     "build": "(prisma migrate deploy || echo 'Migrations skipped or already applied') && cross-env INIT_CWD=$PWD next build && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/postbuild.mjs",
     "serve": "next start",
     "analyze": "cross-env ANALYZE=true next build",

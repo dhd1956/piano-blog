@@ -43,10 +43,14 @@ createAppKit({
   features: {
     analytics: true, // Enable analytics (optional)
     email: true, // Enable email login
-    socials: ['google'], // Re-enabled: CSP fix resolved hanging issue (added WalletConnect domains to frame-src)
-    emailShowWallets: true, // Show wallet options in email flow
-    onramp: !paymasterUrl, // Disable onramp when gas is sponsored (users don't need to buy tokens)
+    socials: ['google'], // OAuth providers for embedded wallet
+    emailShowWallets: false, // Hide wallet options in email flow
+    onramp: !paymasterUrl, // Disable onramp when gas is sponsored
   },
+  // Disable external wallet connections - embedded wallets only
+  enableWallets: false, // Disable injected wallets (MetaMask, etc.)
+  enableWalletConnect: false, // Disable WalletConnect QR
+  allWallets: 'HIDE', // Hide "All Wallets" section
   themeMode: 'light', // or 'dark' - can be made dynamic later
   themeVariables: {
     '--w3m-accent': '#3b82f6', // Primary blue color (matches your theme)

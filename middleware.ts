@@ -81,8 +81,11 @@ export async function middleware(request: NextRequest) {
   if (matchesRoute(pathname, PROTECTED_ROUTES)) {
     const token = request.cookies.get('auth_token')?.value
 
+    console.log(`[Middleware] Protected route: ${pathname}, has token: ${!!token}`)
+
     // No token - redirect to login
     if (!token) {
+      console.log(`[Middleware] No token, redirecting to login`)
       const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
@@ -90,8 +93,11 @@ export async function middleware(request: NextRequest) {
 
     // Verify token
     const isValid = await verifyToken(token)
+    console.log(`[Middleware] Token valid: ${isValid}`)
+
     if (!isValid) {
       // Invalid token - clear cookie and redirect to login
+      console.log(`[Middleware] Invalid token, clearing and redirecting`)
       const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       const response = NextResponse.redirect(loginUrl)
