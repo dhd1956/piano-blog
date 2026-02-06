@@ -10,14 +10,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { useAppKit } from '@reown/appkit/react'
 import Link from './Link'
 import LoginModal from './auth/LoginModal'
 import SignupModal from './auth/SignupModal'
 
 export default function AuthButton() {
   const { user, isAuthenticated, isLoading, logout } = useAuth()
-  const { open } = useAppKit()
 
   const [isOpen, setIsOpen] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -61,12 +59,6 @@ export default function AuthButton() {
   const handleSwitchToLogin = () => {
     setShowSignupModal(false)
     setShowLoginModal(true)
-  }
-
-  const handleLinkWallet = () => {
-    sessionStorage.setItem('wallet_linking_intent', 'true')
-    open()
-    setIsOpen(false)
   }
 
   // Show loading state
@@ -192,26 +184,6 @@ export default function AuthButton() {
             </div>
           </Link>
 
-          {/* Connect Wallet option (if no wallet linked) */}
-          {!user?.walletAddress && (
-            <button
-              onClick={handleLinkWallet}
-              className="hover:bg-primary-50 dark:hover:bg-primary-900/20 block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300"
-            >
-              <div className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Connect Wallet (for PXP)
-              </div>
-            </button>
-          )}
-
           {/* Wallet info (if wallet linked) */}
           {user?.walletAddress && (
             <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-700">
@@ -219,14 +191,6 @@ export default function AuthButton() {
               <p className="truncate font-mono text-xs text-gray-700 dark:text-gray-300">
                 {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
               </p>
-              {user.walletType !== 'embedded' && (
-                <button
-                  onClick={handleLinkWallet}
-                  className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 mt-1 text-xs"
-                >
-                  Switch to Embedded Wallet
-                </button>
-              )}
             </div>
           )}
 
