@@ -184,16 +184,6 @@ export default function AuthButton() {
             </div>
           </Link>
 
-          {/* Wallet info (if wallet linked) */}
-          {user?.walletAddress && (
-            <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Wallet</p>
-              <p className="truncate font-mono text-xs text-gray-700 dark:text-gray-300">
-                {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
-              </p>
-            </div>
-          )}
-
           {/* Logout button */}
           <button
             onClick={handleLogout}
