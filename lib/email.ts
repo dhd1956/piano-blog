@@ -6,6 +6,7 @@
  */
 
 import { Resend } from 'resend'
+import { headers } from 'next/headers'
 import { detectEnvironment } from './env-config'
 
 // Initialize Resend client
@@ -16,7 +17,19 @@ function getFromEmail() {
   return process.env.EMAIL_FROM || 'Piano Blog <onboarding@resend.dev>'
 }
 
-function getAppUrl() {
+async function getAppUrl() {
+  // Derive URL from the incoming request host so email links
+  // point to the correct deployment (staging, preview, production)
+  try {
+    const h = await headers()
+    const host = h.get('host')
+    if (host) {
+      const protocol = host.startsWith('localhost') ? 'http' : 'https'
+      return `${protocol}://${host}`
+    }
+  } catch {
+    // headers() unavailable outside of a request context
+  }
   return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 }
 
@@ -67,7 +80,8 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
  * Send email verification email
  */
 export async function sendVerificationEmail(email: string, token: string, username?: string) {
-  const verificationUrl = `${getAppUrl()}/auth/verify-email?token=${token}`
+  const appUrl = await getAppUrl()
+  const verificationUrl = `${appUrl}/auth/verify-email?token=${token}`
 
   const html = `
     <!DOCTYPE html>
@@ -138,6 +152,7 @@ export async function sendVerificationEmail(email: string, token: string, userna
  * Send welcome email after verification
  */
 export async function sendWelcomeEmail(email: string, username: string) {
+  const appUrl = await getAppUrl()
   const html = `
     <!DOCTYPE html>
     <html>
@@ -168,7 +183,7 @@ export async function sendWelcomeEmail(email: string, username: string) {
           </ul>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${getAppUrl()}/profile" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+            <a href="${appUrl}/profile" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
               Complete Your Profile
             </a>
           </div>
@@ -198,7 +213,7 @@ export async function sendWelcomeEmail(email: string, username: string) {
     - Join events - RSVP to jam sessions, concerts, and workshops
     - Link your wallet - Unlock blockchain features and earn PXP tokens
 
-    Get started: ${getAppUrl()}/profile
+    Get started: ${appUrl}/profile
 
     Need help? Reply to this email or visit our help center.
 
@@ -226,6 +241,7 @@ export async function sendSecurityAlertEmail(
     | 'wallet_unlinked'
     | 'sessions_logged_out'
 ) {
+  const appUrl = await getAppUrl()
   const alertMessages = {
     email_changed: {
       title: 'Email Address Changed',
@@ -282,7 +298,7 @@ export async function sendSecurityAlertEmail(
           </div>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${getAppUrl()}/account/settings" style="background: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+            <a href="${appUrl}/account/settings" style="background: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
               Review Account Settings
             </a>
           </div>
@@ -311,7 +327,7 @@ export async function sendSecurityAlertEmail(
 
     Time: ${new Date().toLocaleString()}
 
-    Review your account settings: ${getAppUrl()}/account/settings
+    Review your account settings: ${appUrl}/account/settings
 
     If you have any concerns, please contact support immediately.
 
@@ -330,7 +346,8 @@ export async function sendSecurityAlertEmail(
  * Send password reset email
  */
 export async function sendPasswordResetEmail(email: string, token: string, username?: string) {
-  const resetUrl = `${getAppUrl()}/auth/reset-password?token=${token}`
+  const appUrl = await getAppUrl()
+  const resetUrl = `${appUrl}/auth/reset-password?token=${token}`
 
   const html = `
     <!DOCTYPE html>
@@ -409,7 +426,8 @@ export async function sendPasswordResetEmail(email: string, token: string, usern
  * Send magic link login email
  */
 export async function sendMagicLinkEmail(email: string, token: string, username?: string) {
-  const loginUrl = `${getAppUrl()}/api/auth/magic-link/verify?token=${token}`
+  const appUrl = await getAppUrl()
+  const loginUrl = `${appUrl}/api/auth/magic-link/verify?token=${token}`
 
   const html = `
     <!DOCTYPE html>
