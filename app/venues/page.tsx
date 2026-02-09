@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
-import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 interface Venue {
   id: number
@@ -24,9 +23,6 @@ interface Venue {
 }
 
 export default function VenueList() {
-  // Require authentication to access this page
-  const { isLoading: authLoading } = useRequireAuth()
-
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'verified' | 'pianos' | 'jams'>('all')
