@@ -32,9 +32,9 @@ function VerifyEmailContent() {
         setStatus('success')
         setMessage(data.message || 'Email verified successfully!')
 
-        // Redirect to profile setup or dashboard after 3 seconds
+        // Redirect to home after 3 seconds
         setTimeout(() => {
-          router.push('/profile')
+          router.push('/')
         }, 3000)
       } else {
         setStatus('error')

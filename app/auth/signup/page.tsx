@@ -106,8 +106,8 @@ function SignupForm() {
         return
       }
 
-      // Redirect to profile page
-      router.push(`/profile/${formData.username}`)
+      // Redirect to home page
+      router.push('/')
     } catch (err: any) {
       console.error('Signup error:', err)
       setError('An error occurred. Please try again.')

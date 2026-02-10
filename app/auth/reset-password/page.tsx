@@ -73,9 +73,9 @@ function ResetPasswordForm() {
       }
 
       setSuccess(true)
-      // Redirect to profile after 2 seconds
+      // Redirect to home after 2 seconds
       setTimeout(() => {
-        router.push('/profile')
+        router.push('/')
       }, 2000)
     } catch (err: any) {
       console.error('Reset password error:', err)
@@ -114,9 +114,7 @@ function ResetPasswordForm() {
             </div>
 
             <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-              <p className="text-center text-gray-600 dark:text-gray-400">
-                Redirecting to your profile...
-              </p>
+              <p className="text-center text-gray-600 dark:text-gray-400">Redirecting to home...</p>
             </div>
           </div>
         </div>
