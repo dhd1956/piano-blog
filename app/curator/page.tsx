@@ -23,6 +23,9 @@ interface Venue {
   rating: number
   reviewCount: number
   createdAt: Date
+  rejectedAt?: string | null
+  rejectedBy?: string | null
+  rejectionReason?: string | null
 }
 
 const VENUE_TYPES = [
@@ -175,6 +178,9 @@ export default function CuratorDashboard() {
           rating: venue.rating || 0,
           reviewCount: venue.reviewCount || 0,
           createdAt: new Date(venue.createdAt),
+          rejectedAt: venue.rejectedAt || null,
+          rejectedBy: venue.rejectedBy || null,
+          rejectionReason: venue.rejectionReason || null,
         }))
 
         console.log('✅ Processed venues:', processedVenues.length)
@@ -577,8 +583,9 @@ export default function CuratorDashboard() {
           <h1 className="mb-2 text-3xl font-bold text-gray-900">🎹 Curator Dashboard</h1>
           <div className="mb-4 flex items-center gap-6 text-sm text-gray-600">
             <span>Total Venues: {venues.length}</span>
-            <span>Pending: {venues.filter((v) => !v.verified).length}</span>
+            <span>Pending: {venues.filter((v) => !v.verified && !v.rejectedAt).length}</span>
             <span>Verified: {venues.filter((v) => v.verified).length}</span>
+            <span>Rejected: {venues.filter((v) => !v.verified && v.rejectedAt).length}</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -644,6 +651,10 @@ export default function CuratorDashboard() {
                         {venue.verified ? (
                           <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">
                             ✓ Verified
+                          </span>
+                        ) : venue.rejectedAt ? (
+                          <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-800">
+                            ✗ Rejected
                           </span>
                         ) : (
                           <span className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
@@ -1049,7 +1060,14 @@ export default function CuratorDashboard() {
                               : new Date(selectedVenue.createdAt).toLocaleDateString()}
                           </p>
                           <p>By: {selectedVenue.submittedBy}</p>
-                          <p>Status: {selectedVenue.verified ? 'Verified' : 'Pending'}</p>
+                          <p>
+                            Status:{' '}
+                            {selectedVenue.verified
+                              ? 'Verified'
+                              : selectedVenue.rejectedAt
+                                ? 'Rejected'
+                                : 'Pending'}
+                          </p>
                           {selectedVenue.rating > 0 && (
                             <p>
                               ⭐ {selectedVenue.rating.toFixed(1)} ({selectedVenue.reviewCount}{' '}
