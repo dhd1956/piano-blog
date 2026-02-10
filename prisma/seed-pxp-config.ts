@@ -157,7 +157,7 @@ const initialPXPConfig = [
     key: 'profile_complete',
     value: 30,
     label: 'Profile: Complete Profile',
-    description: 'PXP earned for completing full musician profile',
+    description: 'PXP earned for completing your profile (display name, bio, location, title)',
     category: 'community',
     enabled: true,
   },

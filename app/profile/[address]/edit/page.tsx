@@ -172,18 +172,18 @@ export default function ProfileEditPage() {
         currentUser.walletAddress || currentUser.username || String(currentUser.id)
 
       // Determine if profile is complete (for PXP rewards)
-      // Profile is considered complete if user has:
-      // - Display name
-      // - Bio (at least 20 characters)
-      // - Location
-      // - Title
-      // - At least one instrument
-      const isProfileComplete =
+      // Base requirements for all users:
+      // - Display name, Bio (20+ chars), Location, Title
+      // Musicians additionally need at least one instrument
+      const hasBaseProfile =
         displayName.trim().length > 0 &&
         bio.trim().length >= 20 &&
         location.trim().length > 0 &&
-        title.trim().length > 0 &&
-        instruments.length > 0
+        title.trim().length > 0
+      const isMusician = instruments.length > 0
+      const isProfileComplete = isMusician
+        ? hasBaseProfile && instruments.length > 0
+        : hasBaseProfile
 
       const response = await fetch(`/api/profile/${address}`, {
         method: 'PATCH',
@@ -365,13 +365,17 @@ export default function ProfileEditPage() {
   }
 
   // Calculate profile completion percentage
-  const completionChecks = [
+  // Musicians need instruments; observers/non-musicians don't
+  const baseChecks = [
     { name: 'Display Name', complete: displayName.trim().length > 0 },
     { name: 'Bio (20+ characters)', complete: bio.trim().length >= 20 },
     { name: 'Location', complete: location.trim().length > 0 },
     { name: 'Title/Role', complete: title.trim().length > 0 },
-    { name: 'At least one instrument', complete: instruments.length > 0 },
   ]
+  const completionChecks =
+    instruments.length > 0
+      ? [...baseChecks, { name: 'At least one instrument', complete: instruments.length > 0 }]
+      : baseChecks
   const completedCount = completionChecks.filter((check) => check.complete).length
   const completionPercentage = Math.round((completedCount / completionChecks.length) * 100)
   const isProfileComplete = completionPercentage === 100
