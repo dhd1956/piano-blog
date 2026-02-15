@@ -407,7 +407,7 @@ export default function ProfileEditPage() {
           </h3>
           {isProfileComplete && (
             <span className="rounded-full bg-green-600 px-3 py-1 text-sm font-semibold text-white">
-              Complete! Earn 80 PXP on save
+              Complete! Earn 30 PXP on save
             </span>
           )}
         </div>
