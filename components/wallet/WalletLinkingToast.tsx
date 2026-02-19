@@ -58,7 +58,8 @@ export default function WalletLinkingToast({
   }, [autoHideDuration, handleClose])
 
   const handleLinkWallet = async () => {
-    // Open Reown AppKit modal
+    // Set intent flag so OAuthEmailCapture takes the linking path
+    sessionStorage.setItem('wallet_linking_intent', 'true')
     await open()
     handleClose()
   }

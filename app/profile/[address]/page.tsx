@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
-import LinkWalletButton from '@/components/wallet/LinkWalletButton'
 import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
 import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
 import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
@@ -377,19 +376,6 @@ export default function ProfilePage() {
           <div className="text-sm text-purple-700">Reviews Written</div>
         </div>
       </div>
-
-      {/* Wallet Linking Section - Only show on own profile if no wallet linked */}
-      {isOwnProfile && profile.username && !profile.walletAddress && (
-        <div className="mb-8">
-          <LinkWalletButton
-            username={profile.username}
-            pendingPXP={profile.totalPXPEarned}
-            onSuccess={() => {
-              console.log('Wallet linked successfully')
-            }}
-          />
-        </div>
-      )}
 
       {/* Add Credentials Section - Only show on own profile if wallet exists but no username */}
       {isOwnProfile && profile.walletAddress && !profile.username && (

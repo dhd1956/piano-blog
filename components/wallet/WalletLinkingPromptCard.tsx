@@ -28,7 +28,8 @@ export default function WalletLinkingPromptCard({
   }
 
   const handleLinkWallet = async () => {
-    // Open Reown AppKit modal to connect wallet
+    // Set intent flag so OAuthEmailCapture takes the linking path
+    sessionStorage.setItem('wallet_linking_intent', 'true')
     await open()
   }
 
