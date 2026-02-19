@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import WalletLinkingToast from '@/components/wallet/WalletLinkingToast'
 
 interface Event {
   id: number
@@ -28,10 +27,6 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-
-  // PXP toast state
-  const [showFirstPXPToast, setShowFirstPXPToast] = useState(false)
-  const [pxpEarned, setPxpEarned] = useState(0)
 
   // Fetch user's events on mount
   useEffect(() => {
@@ -110,12 +105,6 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
       if (response.ok && result.success) {
         setSuccess(result.message || 'Video submitted successfully!')
         setYoutubeUrl('') // Clear form
-
-        // Check if user earned first PXP and show celebration toast
-        if (result.showFirstPXPToast && result.performerPXP) {
-          setPxpEarned(result.performerPXP)
-          setShowFirstPXPToast(true)
-        }
 
         if (onSuccess) onSuccess(result.video)
       } else {
@@ -342,11 +331,6 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
           <li>• View count milestones are tracked automatically</li>
         </ul>
       </div>
-
-      {/* First PXP Celebration Toast */}
-      {showFirstPXPToast && (
-        <WalletLinkingToast pxpAmount={pxpEarned} onClose={() => setShowFirstPXPToast(false)} />
-      )}
     </div>
   )
 }

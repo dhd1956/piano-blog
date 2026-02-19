@@ -1,25 +1,15 @@
 'use client'
 
-/**
- * AuthButton Component
- *
- * Session-first authentication button for the header
- * Shows "Sign In" when not authenticated, user menu when authenticated
- * No wallet connection required unless user wants blockchain features
- */
-
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useAppKit } from '@reown/appkit/react'
 import Link from './Link'
-import LoginModal from './auth/LoginModal'
-import SignupModal from './auth/SignupModal'
 
 export default function AuthButton() {
   const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { open } = useAppKit()
 
   const [isOpen, setIsOpen] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const [showSignupModal, setShowSignupModal] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const displayName = user?.displayName || user?.username || 'User'
@@ -47,20 +37,6 @@ export default function AuthButton() {
     setIsOpen(false)
   }
 
-  const handleOpenLogin = () => {
-    setShowLoginModal(true)
-  }
-
-  const handleOpenSignup = () => {
-    setShowSignupModal(true)
-    setShowLoginModal(false)
-  }
-
-  const handleSwitchToLogin = () => {
-    setShowSignupModal(false)
-    setShowLoginModal(true)
-  }
-
   // Show loading state
   if (isLoading) {
     return <div className="h-9 w-20 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
@@ -69,38 +45,12 @@ export default function AuthButton() {
   // Show "Sign In" button if not authenticated
   if (!isAuthenticated) {
     return (
-      <>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleOpenLogin}
-            className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
-          >
-            Sign In
-          </button>
-          <span className="text-gray-400 dark:text-gray-600">|</span>
-          <button
-            onClick={handleOpenSignup}
-            className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
-          >
-            Sign Up
-          </button>
-        </div>
-
-        {showLoginModal && (
-          <LoginModal
-            onClose={() => setShowLoginModal(false)}
-            onSuccess={() => setShowLoginModal(false)}
-          />
-        )}
-
-        {showSignupModal && (
-          <SignupModal
-            onClose={() => setShowSignupModal(false)}
-            onSuccess={() => setShowSignupModal(false)}
-            onSwitchToLogin={handleSwitchToLogin}
-          />
-        )}
-      </>
+      <button
+        onClick={() => open()}
+        className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
+      >
+        Sign In
+      </button>
     )
   }
 

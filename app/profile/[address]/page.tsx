@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
-import AddCredentialsForm from '@/components/auth/AddCredentialsForm'
 import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
 import AccountMergeDialog from '@/components/profile/AccountMergeDialog'
 import WelcomeRewardBanner from '@/components/rewards/WelcomeRewardBanner'
@@ -376,19 +375,6 @@ export default function ProfilePage() {
           <div className="text-sm text-purple-700">Reviews Written</div>
         </div>
       </div>
-
-      {/* Add Credentials Section - Only show on own profile if wallet exists but no username */}
-      {isOwnProfile && profile.walletAddress && !profile.username && (
-        <div className="mb-8">
-          <AddCredentialsForm
-            walletAddress={profile.walletAddress}
-            onSuccess={() => {
-              console.log('Credentials added successfully')
-              loadProfile() // Reload profile to show updated data
-            }}
-          />
-        </div>
-      )}
 
       {/* Skills */}
       {profile.skills && profile.skills.length > 0 && (

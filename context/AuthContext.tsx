@@ -2,8 +2,8 @@
 
 /**
  * AuthContext - Session-based Authentication Context
- * Provides session auth state to the entire application without requiring wallets
- * Wraps existing backend auth infrastructure (JWT tokens, HttpOnly cookies)
+ * Provides session auth state to the entire application
+ * Authentication is handled via Reown (Google/email), which gives every user an embedded wallet
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
@@ -14,7 +14,7 @@ export interface User {
   id: number
   username: string | null
   email: string | null
-  walletAddress: string | null // Optional - only needed for PXP rewards
+  walletAddress: string | null
   role: UserRole
   displayName: string | null
   emailVerified?: boolean
@@ -34,18 +34,10 @@ export interface AuthState {
 
 // Auth actions interface
 export interface AuthActions {
-  login: (credentials: LoginCredentials) => Promise<LoginResult>
   loginWithWallet: (walletAddress: string) => Promise<LoginResult>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
   clearError: () => void
-}
-
-// Login credentials type (supports both username and identifier for flexibility)
-export type LoginCredentials = {
-  username?: string
-  identifier?: string // Email or username - new flexible field
-  password: string
 }
 
 // Login result type
@@ -110,48 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   /**
-   * Login with username and password
-   */
-  const login = useCallback(async (credentials: LoginCredentials): Promise<LoginResult> => {
-    try {
-      setError(null)
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        setUser(data.user)
-        return {
-          success: true,
-          message: data.message,
-        }
-      } else {
-        setError(data.message || data.error || 'Login failed')
-        return {
-          success: false,
-          error: data.message || data.error || 'Login failed',
-          requiresVerification: data.requiresVerification,
-        }
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Network error during login'
-      setError(errorMessage)
-      return {
-        success: false,
-        error: errorMessage,
-      }
-    }
-  }, [])
-
-  /**
-   * Login with wallet address (for existing wallet users)
+   * Login with wallet address (used by Reown auth flow)
    */
   const loginWithWallet = useCallback(async (walletAddress: string): Promise<LoginResult> => {
     try {
@@ -238,7 +189,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isEmbeddedWallet,
     error,
     // Actions
-    login,
     loginWithWallet,
     logout,
     refreshUser,

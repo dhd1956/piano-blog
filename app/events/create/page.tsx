@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
-import LoginModal from '@/components/auth/LoginModal'
+import { useAppKit } from '@reown/appkit/react'
 import RecurrenceForm from '@/components/events/RecurrenceForm'
 import { RecurrencePattern, RecurrenceConfig } from '@/types/event'
 
@@ -41,7 +41,7 @@ export default function CreateEventPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
   const { role, canCreateEvent } = useRole()
-  const [showLoginModal, setShowLoginModal] = useState(false)
+  const { open } = useAppKit()
 
   // Form state
   const [title, setTitle] = useState('')
@@ -126,7 +126,7 @@ export default function CreateEventPage() {
       // Check authentication - require login for event creation
       if (!isAuthenticated || !user) {
         setError('Please sign in to create an event')
-        setShowLoginModal(true)
+        open()
         setSubmitting(false)
         return
       }
@@ -269,19 +269,12 @@ export default function CreateEventPage() {
             Please sign in to create an event
           </p>
           <button
-            onClick={() => setShowLoginModal(true)}
+            onClick={() => open()}
             className="rounded-md bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
           >
             Sign In
           </button>
         </div>
-
-        {showLoginModal && (
-          <LoginModal
-            onClose={() => setShowLoginModal(false)}
-            onSuccess={() => setShowLoginModal(false)}
-          />
-        )}
       </>
     )
   }

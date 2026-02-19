@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
-import LoginModal from '@/components/auth/LoginModal'
-import WalletLinkingToast from '@/components/wallet/WalletLinkingToast'
 
 interface VenueFormData {
   name: string
@@ -39,8 +37,6 @@ export default function SubmitVenue() {
   const { isLoading: authLoading } = useRequireAuth()
 
   const { user, isAuthenticated, isLoading } = useAuth()
-  const [showLoginModal, setShowLoginModal] = useState(false)
-
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
     city: '',
@@ -67,10 +63,6 @@ export default function SubmitVenue() {
   }>({})
   const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
   const [showAddressTooltip, setShowAddressTooltip] = useState(false)
-
-  // PXP reward toast state
-  const [showFirstPXPToast, setShowFirstPXPToast] = useState(false)
-  const [pxpEarned, setPxpEarned] = useState(0)
 
   // Fetch current venue count from PostgreSQL API
   const fetchVenueCount = async () => {
@@ -175,7 +167,6 @@ export default function SubmitVenue() {
     // Check authentication - require login for venue submission
     if (!isAuthenticated || !user) {
       setError('Please sign in to submit a venue')
-      setShowLoginModal(true)
       return
     }
 
@@ -294,13 +285,6 @@ export default function SubmitVenue() {
         setSubmitStatus(`✅ Venue submitted successfully! ID: ${result.venue?.id}`)
         console.log('✅ Venue submitted to database:', result.venue)
 
-        // Check if user earned first PXP and show celebration toast
-        if (result.showFirstPXPToast && result.pxpEarned) {
-          setPxpEarned(result.pxpEarned)
-          setShowFirstPXPToast(true)
-          console.log('🎉 First PXP earned! Showing celebration toast')
-        }
-
         // Scroll to success message
         setTimeout(() => {
           document
@@ -413,12 +397,6 @@ export default function SubmitVenue() {
               <p className="mb-3 text-blue-800">
                 Optionally sign in to get credit for your submissions
               </p>
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-              >
-                Sign In (Optional)
-              </button>
             </div>
           ) : (
             <div>
@@ -754,23 +732,7 @@ export default function SubmitVenue() {
             </p>
           </div>
         </div>
-
-        {/* Login Modal */}
-        {showLoginModal && (
-          <LoginModal
-            onClose={() => setShowLoginModal(false)}
-            onSuccess={() => {
-              setShowLoginModal(false)
-              setError('')
-            }}
-          />
-        )}
       </div>
-
-      {/* First PXP Celebration Toast */}
-      {showFirstPXPToast && (
-        <WalletLinkingToast pxpAmount={pxpEarned} onClose={() => setShowFirstPXPToast(false)} />
-      )}
     </div>
   )
 }

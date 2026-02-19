@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 import ChangeEmailModal from '@/components/account/ChangeEmailModal'
-import ChangePasswordModal from '@/components/account/ChangePasswordModal'
 
 interface UserProfile {
   id: number
@@ -14,7 +13,6 @@ interface UserProfile {
   email: string | null
   emailVerified: boolean
   displayName: string | null
-  passwordHash: string | null
 }
 
 export default function AccountSettingsPage() {
@@ -23,11 +21,10 @@ export default function AccountSettingsPage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'email' | 'wallet' | 'security'>('email')
+  const [activeTab, setActiveTab] = useState<'email' | 'wallet'>('email')
 
   // Modal states
   const [showChangeEmailModal, setShowChangeEmailModal] = useState(false)
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [actionError, setActionError] = useState('')
   const [actionSuccess, setActionSuccess] = useState('')
@@ -96,55 +93,10 @@ export default function AccountSettingsPage() {
     }
   }
 
-  const handleLogoutAllSessions = async () => {
-    if (!profile) return
-
-    const confirmed = window.confirm(
-      'Are you sure you want to logout all active sessions? You will need to login again on all devices.'
-    )
-
-    if (!confirmed) return
-
-    setActionLoading(true)
-    setActionError('')
-    setActionSuccess('')
-
-    try {
-      const response = await fetch('/api/account/sessions', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: profile.id,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to logout sessions')
-      }
-
-      // Clear localStorage and redirect to login
-      localStorage.clear()
-      router.push('/auth/login?message=All sessions have been logged out')
-    } catch (err: any) {
-      setActionError(err.message || 'An error occurred')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
   const handleEmailModalSuccess = () => {
     setShowChangeEmailModal(false)
     setActionSuccess('Email updated successfully. Please verify your new email.')
     fetchProfile()
-  }
-
-  const handlePasswordModalSuccess = () => {
-    setShowChangePasswordModal(false)
-    setActionSuccess('Password changed successfully.')
   }
 
   if (loading) {
@@ -169,7 +121,7 @@ export default function AccountSettingsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Account Settings</h1>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Manage your account security and preferences
+          Manage your account preferences
         </p>
       </div>
 
@@ -195,16 +147,6 @@ export default function AccountSettingsPage() {
             }`}
           >
             Wallet
-          </button>
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-              activeTab === 'security'
-                ? 'border-purple-600 text-purple-600 dark:text-purple-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
-          >
-            Security
           </button>
         </nav>
       </div>
@@ -351,48 +293,6 @@ export default function AccountSettingsPage() {
             )}
           </div>
         )}
-
-        {activeTab === 'security' && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Security Settings
-              </h2>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Manage your password and active sessions
-              </p>
-            </div>
-
-            {profile.username && profile.passwordHash && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Password</h3>
-                <button
-                  onClick={() => setShowChangePasswordModal(true)}
-                  disabled={actionLoading}
-                  className="mt-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                >
-                  Change Password
-                </button>
-              </div>
-            )}
-
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Active Sessions
-              </h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Manage devices where you're currently logged in
-              </p>
-              <button
-                onClick={handleLogoutAllSessions}
-                disabled={actionLoading}
-                className="mt-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-50 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-red-800 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900"
-              >
-                {actionLoading ? 'Logging out...' : 'Logout All Sessions'}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Modals */}
@@ -402,14 +302,6 @@ export default function AccountSettingsPage() {
           currentEmail={profile.email}
           onClose={() => setShowChangeEmailModal(false)}
           onSuccess={handleEmailModalSuccess}
-        />
-      )}
-
-      {showChangePasswordModal && profile && (
-        <ChangePasswordModal
-          userId={profile.id}
-          onClose={() => setShowChangePasswordModal(false)}
-          onSuccess={handlePasswordModalSuccess}
         />
       )}
     </div>

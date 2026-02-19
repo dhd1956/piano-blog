@@ -16,7 +16,6 @@ import { WorkingWeb3Provider } from '@/components/web3/WorkingWeb3Provider'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthEmailCapture from '@/components/OAuthEmailCapture'
 import MigrationBanner from '@/components/auth/MigrationBanner'
-import MigrationPrompt from '@/components/auth/MigrationPrompt'
 import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
 import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
 import { Metadata } from 'next'
@@ -116,10 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <SectionContainer>
                     <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
                       <Header />
-                      <main className="mb-auto">
-                        <MigrationPrompt className="container mx-auto px-4 pt-6" />
-                        {children}
-                      </main>
+                      <main className="mb-auto">{children}</main>
                     </SearchProvider>
                     <Footer />
                   </SectionContainer>
