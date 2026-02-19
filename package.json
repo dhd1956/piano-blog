@@ -30,6 +30,7 @@
     "@react-email/components": "^1.0.1",
     "@reown/appkit": "^1.8.14",
     "@reown/appkit-adapter-wagmi": "^1.8.14",
+    "@reown/appkit-wallet-button": "^1.8.18",
     "@scure/bip32": "latest",
     "@scure/bip39": "latest",
     "@tailwindcss/forms": "^0.5.9",

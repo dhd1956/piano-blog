@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { useAppKit } from '@reown/appkit/react'
 import Link from './Link'
 
 export default function AuthButton() {
   const { user, isAuthenticated, isLoading, logout } = useAuth()
-  const { open } = useAppKit()
+  const router = useRouter()
 
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -42,11 +42,11 @@ export default function AuthButton() {
     return <div className="h-9 w-20 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
   }
 
-  // Show "Sign In" button if not authenticated
+  // Show "Sign In" button if not authenticated — navigates to login page
   if (!isAuthenticated) {
     return (
       <button
-        onClick={() => open()}
+        onClick={() => router.push('/auth/login')}
         className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
       >
         Sign In

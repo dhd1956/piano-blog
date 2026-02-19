@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
-import { useAppKit } from '@reown/appkit/react'
 import RecurrenceForm from '@/components/events/RecurrenceForm'
 import { RecurrencePattern, RecurrenceConfig } from '@/types/event'
 
@@ -41,7 +40,6 @@ export default function CreateEventPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
   const { role, canCreateEvent } = useRole()
-  const { open } = useAppKit()
 
   // Form state
   const [title, setTitle] = useState('')
@@ -126,7 +124,7 @@ export default function CreateEventPage() {
       // Check authentication - require login for event creation
       if (!isAuthenticated || !user) {
         setError('Please sign in to create an event')
-        open()
+        router.push('/auth/login?redirect=/events/create')
         setSubmitting(false)
         return
       }
@@ -269,7 +267,7 @@ export default function CreateEventPage() {
             Please sign in to create an event
           </p>
           <button
-            onClick={() => open()}
+            onClick={() => router.push('/auth/login?redirect=/events/create')}
             className="rounded-md bg-purple-600 px-6 py-3 text-white hover:bg-purple-700"
           >
             Sign In
