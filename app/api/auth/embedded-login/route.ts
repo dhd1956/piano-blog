@@ -56,33 +56,72 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const isNewUser = !user
     let showWelcomeReward = false
     let welcomePXP = 0
 
-    if (!user) {
-      // Check if email is already in use by another account
-      let emailToUse = email || null
-      if (email) {
-        const existingUserWithEmail = await db.user.findUnique({
-          where: { email },
-          select: { id: true },
-        })
-        if (existingUserWithEmail) {
-          console.log(
-            `[embedded-login] Email ${email} already in use by user ${existingUserWithEmail.id}, creating account without email`
-          )
-          emailToUse = null
-        }
-      }
+    // If no user found by wallet, check if email matches an existing account
+    // This handles returning users who sign in via Reown and get a new embedded wallet
+    if (!user && email) {
+      const existingUserByEmail = await db.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          username: true,
+          walletAddress: true,
+          role: true,
+          email: true,
+          displayName: true,
+          isActive: true,
+          walletType: true,
+          authProvider: true,
+          totalCAVEarned: true,
+          firstPXPEarnedAt: true,
+        },
+      })
 
-      // Create new user with embedded wallet
+      if (existingUserByEmail) {
+        console.log(
+          `[embedded-login] Found existing user ${existingUserByEmail.id} by email ${email}, updating wallet from ${existingUserByEmail.walletAddress} to ${normalizedAddress}`
+        )
+
+        // Update the existing user's wallet address to the new embedded wallet
+        user = await db.user.update({
+          where: { id: existingUserByEmail.id },
+          data: {
+            walletAddress: normalizedAddress,
+            walletType: 'embedded',
+            authProvider: authProvider || existingUserByEmail.authProvider || 'email',
+            embeddedWalletCreatedAt:
+              existingUserByEmail.walletType === 'embedded' ? undefined : new Date(),
+            lastActive: new Date(),
+          },
+          select: {
+            id: true,
+            username: true,
+            walletAddress: true,
+            role: true,
+            email: true,
+            displayName: true,
+            isActive: true,
+            walletType: true,
+            authProvider: true,
+            totalCAVEarned: true,
+            firstPXPEarnedAt: true,
+          },
+        })
+      }
+    }
+
+    const isNewUser = !user
+
+    if (!user) {
+      // Truly new user — create account with embedded wallet
       user = await db.user.create({
         data: {
           walletAddress: normalizedAddress,
-          email: emailToUse,
-          emailVerified: emailToUse ? true : false, // OAuth emails are pre-verified
-          emailVerifiedAt: emailToUse ? new Date() : null,
+          email: email || null,
+          emailVerified: email ? true : false, // OAuth emails are pre-verified
+          emailVerifiedAt: email ? new Date() : null,
           role: UserRole.SCOUT,
           isActive: true,
           walletType: 'embedded',
@@ -128,7 +167,7 @@ export async function POST(request: NextRequest) {
       } catch (pxpError) {
         console.error('[embedded-login] Error awarding welcome PXP:', pxpError)
       }
-    } else {
+    } else if (!isNewUser) {
       // Existing user - update if needed
       const updates: Record<string, any> = {
         lastActive: new Date(),

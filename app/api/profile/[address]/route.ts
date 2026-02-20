@@ -42,29 +42,80 @@ export async function GET(
       },
     })
 
-    // If no user found and address looks like a wallet address (starts with 0x), create user
+    // If no user found and address looks like a wallet address (starts with 0x)
     if (!user && address.toLowerCase().startsWith('0x')) {
-      await UserService.findOrCreateUser(address, {
-        email: email || undefined, // Auto-capture email from OAuth if provided
-        emailVerified, // Set emailVerified to true for OAuth users
-        authProvider: authProvider || undefined, // Track which OAuth provider was used
-      })
-
-      // Fetch full user data with relations after creation
-      user = await db.user.findUnique({
-        where: { walletAddress: address.toLowerCase() },
-        include: {
-          reviews: {
-            select: {
-              id: true,
-              venueId: true,
-              rating: true,
-              createdAt: true,
+      // Check if email matches an existing user (returning user with new embedded wallet)
+      if (email) {
+        user = await db.user.findFirst({
+          where: { email: { equals: email, mode: 'insensitive' } },
+          include: {
+            reviews: {
+              select: {
+                id: true,
+                venueId: true,
+                rating: true,
+                createdAt: true,
+              },
             },
+            musicianProfile: true,
           },
-          musicianProfile: true,
-        },
-      })
+        })
+
+        if (user) {
+          // Update existing user's wallet address to the new embedded wallet
+          console.log(
+            `[Profile API] Found existing user ${user.id} by email ${email}, updating wallet to ${address.toLowerCase()}`
+          )
+          await db.user.update({
+            where: { id: user.id },
+            data: {
+              walletAddress: address.toLowerCase(),
+              walletType: 'embedded',
+              lastActive: new Date(),
+            },
+          })
+          // Re-fetch to get updated data
+          user = await db.user.findUnique({
+            where: { id: user.id },
+            include: {
+              reviews: {
+                select: {
+                  id: true,
+                  venueId: true,
+                  rating: true,
+                  createdAt: true,
+                },
+              },
+              musicianProfile: true,
+            },
+          })
+        }
+      }
+
+      // No existing user found by email either — create new user
+      if (!user) {
+        await UserService.findOrCreateUser(address, {
+          email: email || undefined,
+          emailVerified,
+          authProvider: authProvider || undefined,
+        })
+
+        // Fetch full user data with relations after creation
+        user = await db.user.findUnique({
+          where: { walletAddress: address.toLowerCase() },
+          include: {
+            reviews: {
+              select: {
+                id: true,
+                venueId: true,
+                rating: true,
+                createdAt: true,
+              },
+            },
+            musicianProfile: true,
+          },
+        })
+      }
     }
 
     if (!user) {
