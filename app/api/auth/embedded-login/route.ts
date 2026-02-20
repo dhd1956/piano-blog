@@ -59,9 +59,11 @@ export async function POST(request: NextRequest) {
     let showWelcomeReward = false
     let welcomePXP = 0
 
-    // If no user found by wallet, check if email matches an existing account
-    // This handles returning users who sign in via Reown and get a new embedded wallet
-    if (!user && email) {
+    // Check if email matches a more complete existing account
+    // This handles two cases:
+    // 1. No user found by wallet → email matches existing account (new embedded wallet)
+    // 2. Ghost user found by wallet (no username/email) → email matches real account
+    if (email) {
       const existingUserByEmail = await db.user.findUnique({
         where: { email },
         select: {
@@ -79,12 +81,49 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      if (existingUserByEmail) {
+      if (existingUserByEmail && existingUserByEmail.id !== user?.id) {
+        // Found a real account by email that's different from the wallet lookup result
+        const ghostUser = user // The user found by wallet (may be a ghost, or null)
+
         console.log(
-          `[embedded-login] Found existing user ${existingUserByEmail.id} by email ${email}, updating wallet from ${existingUserByEmail.walletAddress} to ${normalizedAddress}`
+          `[embedded-login] Found existing user ${existingUserByEmail.id} (${existingUserByEmail.username}) by email ${email}, updating wallet to ${normalizedAddress}`
         )
 
-        // Update the existing user's wallet address to the new embedded wallet
+        // Delete the ghost user if it exists and is incomplete (no username, no email)
+        if (ghostUser && !ghostUser.username && !ghostUser.email) {
+          console.log(
+            `[embedded-login] Deleting ghost user ${ghostUser.id} (wallet: ${ghostUser.walletAddress})`
+          )
+          await db.user.delete({ where: { id: ghostUser.id } })
+        }
+
+        // Update the real user's wallet address to the new embedded wallet
+        user = await db.user.update({
+          where: { id: existingUserByEmail.id },
+          data: {
+            walletAddress: normalizedAddress,
+            walletType: 'embedded',
+            authProvider: authProvider || existingUserByEmail.authProvider || 'email',
+            embeddedWalletCreatedAt:
+              existingUserByEmail.walletType === 'embedded' ? undefined : new Date(),
+            lastActive: new Date(),
+          },
+          select: {
+            id: true,
+            username: true,
+            walletAddress: true,
+            role: true,
+            email: true,
+            displayName: true,
+            isActive: true,
+            walletType: true,
+            authProvider: true,
+            totalCAVEarned: true,
+            firstPXPEarnedAt: true,
+          },
+        })
+      } else if (!user && existingUserByEmail) {
+        // No wallet match at all, just update the email-matched user's wallet
         user = await db.user.update({
           where: { id: existingUserByEmail.id },
           data: {

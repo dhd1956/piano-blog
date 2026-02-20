@@ -38,9 +38,60 @@ export async function GET(
             createdAt: true,
           },
         },
-        musicianProfile: true, // Include musician profile data
+        musicianProfile: true,
       },
     })
+
+    // If we found a ghost user by wallet (no username, no email) and have an email
+    // from OAuth, check if that email belongs to a real account
+    if (user && !user.username && !user.email && email) {
+      const realUser = await db.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+        include: {
+          reviews: {
+            select: {
+              id: true,
+              venueId: true,
+              rating: true,
+              createdAt: true,
+            },
+          },
+          musicianProfile: true,
+        },
+      })
+
+      if (realUser) {
+        console.log(
+          `[Profile API] Ghost user ${user.id} found by wallet, but email ${email} matches real user ${realUser.id} (${realUser.username}). Deleting ghost, updating real user wallet.`
+        )
+        // Delete the ghost user
+        await db.user.delete({ where: { id: user.id } })
+        // Update the real user's wallet address
+        await db.user.update({
+          where: { id: realUser.id },
+          data: {
+            walletAddress: address.toLowerCase(),
+            walletType: 'embedded',
+            lastActive: new Date(),
+          },
+        })
+        // Re-fetch with updated wallet
+        user = await db.user.findUnique({
+          where: { id: realUser.id },
+          include: {
+            reviews: {
+              select: {
+                id: true,
+                venueId: true,
+                rating: true,
+                createdAt: true,
+              },
+            },
+            musicianProfile: true,
+          },
+        })
+      }
+    }
 
     // If no user found and address looks like a wallet address (starts with 0x)
     if (!user && address.toLowerCase().startsWith('0x')) {
@@ -62,7 +113,6 @@ export async function GET(
         })
 
         if (user) {
-          // Update existing user's wallet address to the new embedded wallet
           console.log(
             `[Profile API] Found existing user ${user.id} by email ${email}, updating wallet to ${address.toLowerCase()}`
           )
@@ -74,7 +124,6 @@ export async function GET(
               lastActive: new Date(),
             },
           })
-          // Re-fetch to get updated data
           user = await db.user.findUnique({
             where: { id: user.id },
             include: {
@@ -100,7 +149,6 @@ export async function GET(
           authProvider: authProvider || undefined,
         })
 
-        // Fetch full user data with relations after creation
         user = await db.user.findUnique({
           where: { walletAddress: address.toLowerCase() },
           include: {
