@@ -21,7 +21,16 @@ export default function OAuthEmailCapture() {
   const { refreshUser, isAuthenticated } = useAuth()
   const { disconnect } = useDisconnect()
   const hasProcessedRef = useRef<Set<string>>(new Set())
+  const wasAuthenticatedRef = useRef(false)
   const router = useRouter()
+
+  // Clear processed addresses on logout so re-login works
+  useEffect(() => {
+    if (wasAuthenticatedRef.current && !isAuthenticated) {
+      hasProcessedRef.current.clear()
+    }
+    wasAuthenticatedRef.current = isAuthenticated
+  }, [isAuthenticated])
 
   useEffect(() => {
     const captureEmail = async () => {
@@ -31,8 +40,13 @@ export default function OAuthEmailCapture() {
       }
 
       // Don't re-authenticate if user just logged out
-      // This prevents Reown auto-reconnect from immediately creating a new session
       if (typeof window !== 'undefined' && sessionStorage.getItem('user_logged_out') === 'true') {
+        return
+      }
+
+      // Skip if already authenticated (prevent duplicate processing)
+      if (isAuthenticated) {
+        hasProcessedRef.current.add(address)
         return
       }
 

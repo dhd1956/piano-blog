@@ -40,7 +40,8 @@ export default function AuthButton() {
     sessionStorage.removeItem('wallet_auto_disconnect_checked')
     await logout()
     disconnect() // Clear Reown wallet session to prevent wallet modal on next visit
-    setIsOpen(false)
+    // Force full page reload to ensure middleware runs and cookie state is fresh
+    window.location.href = '/'
   }
 
   // Show loading state
