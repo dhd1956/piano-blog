@@ -35,9 +35,11 @@ export default function AuthButton() {
   }, [isOpen])
 
   const handleLogout = async () => {
+    // Set flag BEFORE logout so OAuthEmailCapture doesn't re-authenticate
+    sessionStorage.setItem('user_logged_out', 'true')
+    sessionStorage.removeItem('wallet_auto_disconnect_checked')
     await logout()
     disconnect() // Clear Reown wallet session to prevent wallet modal on next visit
-    sessionStorage.removeItem('wallet_auto_disconnect_checked')
     setIsOpen(false)
   }
 

@@ -30,6 +30,12 @@ export default function OAuthEmailCapture() {
         return
       }
 
+      // Don't re-authenticate if user just logged out
+      // This prevents Reown auto-reconnect from immediately creating a new session
+      if (typeof window !== 'undefined' && sessionStorage.getItem('user_logged_out') === 'true') {
+        return
+      }
+
       // --- Wallet Linking Mode ---
       // If user is already authenticated AND has a wallet_linking_intent flag,
       // link this new embedded wallet to their existing account instead of creating a new session.
