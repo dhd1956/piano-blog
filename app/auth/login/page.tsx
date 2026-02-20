@@ -1,38 +1,17 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAppKitWallet } from '@reown/appkit-wallet-button/react'
+import { useAppKit } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { open } = useAppKit()
   const { isAuthenticated, isLoading } = useAuth()
-  const [connecting, setConnecting] = useState(false)
-  const [error, setError] = useState('')
 
   const redirectTo = searchParams.get('redirect') || '/'
-
-  const google = useAppKitWallet({
-    namespace: 'eip155',
-    onSuccess: () => setConnecting(false),
-    onError: (err) => {
-      setError('Sign in failed. Please try again.')
-      setConnecting(false)
-      console.error('Google sign-in error:', err)
-    },
-  })
-
-  const email = useAppKitWallet({
-    namespace: 'eip155',
-    onSuccess: () => setConnecting(false),
-    onError: (err) => {
-      setError('Sign in failed. Please try again.')
-      setConnecting(false)
-      console.error('Email sign-in error:', err)
-    },
-  })
 
   // Redirect after authentication
   useEffect(() => {
@@ -40,18 +19,6 @@ function LoginContent() {
       router.push(redirectTo)
     }
   }, [isLoading, isAuthenticated, router, redirectTo])
-
-  const handleGoogle = () => {
-    setError('')
-    setConnecting(true)
-    google.connect('google')
-  }
-
-  const handleEmail = () => {
-    setError('')
-    setConnecting(true)
-    email.connect('email')
-  }
 
   if (isLoading) {
     return (
@@ -74,18 +41,11 @@ function LoginContent() {
             </p>
           </div>
 
-          {error && (
-            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-200">
-              {error}
-            </div>
-          )}
-
           <div className="space-y-4">
             {/* Google sign-in */}
             <button
-              onClick={handleGoogle}
-              disabled={connecting || !google.isReady}
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              onClick={() => open()}
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -122,9 +82,8 @@ function LoginContent() {
 
             {/* Email sign-in */}
             <button
-              onClick={handleEmail}
-              disabled={connecting || !email.isReady}
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              onClick={() => open()}
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
             >
               <svg
                 className="h-5 w-5 text-gray-500"
@@ -142,13 +101,6 @@ function LoginContent() {
               Continue with Email
             </button>
           </div>
-
-          {connecting && (
-            <div className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-              Connecting...
-            </div>
-          )}
         </div>
       </div>
     </div>
