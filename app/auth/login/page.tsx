@@ -2,43 +2,38 @@
 
 import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
+import { useAppKit } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { open, close } = useAppKit()
-  const { isConnected } = useAppKitAccount()
+  const { open } = useAppKit()
   const { isAuthenticated, isLoading } = useAuth()
 
   const redirectTo = searchParams.get('redirect') || '/'
 
-  // Close the Reown modal as soon as wallet connects (after Google/email auth)
-  // This prevents users from seeing the wallet management UI
-  useEffect(() => {
-    if (isConnected) {
-      close()
-    }
-  }, [isConnected, close])
-
-  // Redirect after authentication
+  // Redirect after authentication (OAuthEmailCapture handles session creation)
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.push(redirectTo)
     }
   }, [isLoading, isAuthenticated, router, redirectTo])
 
-  // Show spinner while auth is loading OR while connected but not yet authenticated
-  // (OAuthEmailCapture is processing the session in the background)
-  if (isLoading || (isConnected && !isAuthenticated)) {
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          {isConnected && (
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Signing you in...</p>
-          )}
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Redirecting...</p>
         </div>
       </div>
     )
