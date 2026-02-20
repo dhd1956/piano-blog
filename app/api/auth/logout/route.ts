@@ -7,6 +7,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { deleteSession } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
+  // Always clear the cookie, even if something fails
+  const response = NextResponse.json({
+    success: true,
+    message: 'Logged out successfully',
+  })
+
+  response.cookies.set('auth_token', '', {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 0,
+  })
+
   try {
     // Get token from cookies or Authorization header
     const token =
@@ -21,29 +35,9 @@ export async function POST(request: NextRequest) {
         console.log('Session deletion skipped:', error)
       }
     }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Logged out successfully',
-      },
-      {
-        status: 200,
-        headers: {
-          'Set-Cookie': 'auth_token=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0',
-        },
-      }
-    )
   } catch (error: any) {
     console.error('Logout error:', error)
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Logout failed',
-        message: error.message || 'An error occurred during logout',
-      },
-      { status: 500 }
-    )
   }
+
+  return response
 }
