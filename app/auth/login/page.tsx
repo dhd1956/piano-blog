@@ -1,24 +1,24 @@
 'use client'
 
 import { useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useAppKit } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { open } = useAppKit()
   const { isAuthenticated, isLoading } = useAuth()
 
   const redirectTo = searchParams.get('redirect') || '/'
 
-  // Redirect after authentication (OAuthEmailCapture handles session creation)
+  // Redirect after authentication — use full page navigation to ensure
+  // middleware runs and the cookie is properly included in the request
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push(redirectTo)
+      window.location.href = redirectTo
     }
-  }, [isLoading, isAuthenticated, router, redirectTo])
+  }, [isLoading, isAuthenticated, redirectTo])
 
   if (isLoading) {
     return (
