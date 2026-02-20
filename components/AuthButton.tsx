@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDisconnect } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 import Link from './Link'
 
 export default function AuthButton() {
   const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { disconnect } = useDisconnect()
   const router = useRouter()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -34,6 +36,8 @@ export default function AuthButton() {
 
   const handleLogout = async () => {
     await logout()
+    disconnect() // Clear Reown wallet session to prevent wallet modal on next visit
+    sessionStorage.removeItem('wallet_auto_disconnect_checked')
     setIsOpen(false)
   }
 
