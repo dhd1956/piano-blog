@@ -301,32 +301,34 @@ export async function POST(request: NextRequest) {
       `[embedded-login] ${isNewUser ? 'Created' : 'Logged in'} embedded wallet user: ${normalizedAddress} (provider: ${authProvider || 'unknown'})`
     )
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: isNewUser ? 'Account created successfully' : 'Login successful',
-        user: {
-          id: user.id,
-          username: user.username,
-          walletAddress: user.walletAddress,
-          role: user.role,
-          displayName: user.displayName,
-          email: user.email,
-          walletType: user.walletType || 'embedded',
-          authProvider: user.authProvider || authProvider,
-        },
-        token,
-        isNewUser,
-        showWelcomeReward,
-        welcomePXP,
+    const response = NextResponse.json({
+      success: true,
+      message: isNewUser ? 'Account created successfully' : 'Login successful',
+      user: {
+        id: user.id,
+        username: user.username,
+        walletAddress: user.walletAddress,
+        role: user.role,
+        displayName: user.displayName,
+        email: user.email,
+        walletType: user.walletType || 'embedded',
+        authProvider: user.authProvider || authProvider,
       },
-      {
-        status: 200,
-        headers: {
-          'Set-Cookie': `auth_token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}`,
-        },
-      }
-    )
+      token,
+      isNewUser,
+      showWelcomeReward,
+      welcomePXP,
+    })
+
+    response.cookies.set('auth_token', token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60,
+    })
+
+    return response
   } catch (error: any) {
     console.error('[embedded-login] Error:', error)
 
