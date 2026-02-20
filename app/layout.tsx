@@ -15,7 +15,6 @@ import { ReownProvider } from '@/context/ReownProvider'
 import { WorkingWeb3Provider } from '@/components/web3/WorkingWeb3Provider'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthEmailCapture from '@/components/OAuthEmailCapture'
-import MigrationBanner from '@/components/auth/MigrationBanner'
 import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
 import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
 import { Metadata } from 'next'
@@ -110,7 +109,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <OAuthEmailCapture />
               <WorkingWeb3Provider>
                 <ThemeProviders>
-                  <MigrationBanner />
                   <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
                   <SectionContainer>
                     <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
