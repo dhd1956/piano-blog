@@ -32,8 +32,28 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// SIWE prevention: wagmi's cookie persistence is handled by authAwareCookieStorage
+// in config/reown.tsx. But Reown AppKit also stores its own session state in
+// localStorage (with @w3m, W3M, @appkit prefixes) which bypasses wagmi's storage
+// adapter. Clear those for unauthenticated users before createAppKit reads them.
+if (typeof window !== 'undefined' && !document.cookie.includes('auth_active=')) {
+  const keysToRemove: string[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (
+      key &&
+      (key.startsWith('@w3m') ||
+        key.startsWith('W3M') ||
+        key.startsWith('@appkit') ||
+        key.startsWith('wc@'))
+    ) {
+      keysToRemove.push(key)
+    }
+  }
+  keysToRemove.forEach((key) => localStorage.removeItem(key))
+}
+
 // Create the AppKit modal instance
-// SIWE prevention is handled by authAwareCookieStorage in config/reown.tsx
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,

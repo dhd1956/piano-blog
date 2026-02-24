@@ -62,6 +62,7 @@ export default function AuthButton() {
 
       // Also clear relevant cookies by expiring them
       const cookiesToClear = [
+        'auth_active',
         'wagmi.store',
         'wagmi.connected',
         'wagmi.wallet',

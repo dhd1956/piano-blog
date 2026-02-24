@@ -71,16 +71,39 @@ async function verifyToken(token: string): Promise<boolean> {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const token = request.cookies.get('auth_token')?.value
 
-  // Skip middleware for public routes
+  // Set a client-readable auth signal on every response.
+  // auth_token is HttpOnly so JavaScript can't read it. auth_active is a
+  // non-sensitive companion cookie that lets client code (e.g. wagmi storage
+  // adapter) know whether the user has a valid session, preventing the Reown
+  // SIWE popup for unauthenticated visitors.
+  const setAuthActiveCookie = (response: NextResponse, active: boolean) => {
+    if (active) {
+      response.cookies.set('auth_active', '1', {
+        path: '/',
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60,
+      })
+    } else {
+      response.cookies.delete('auth_active')
+    }
+    return response
+  }
+
+  // Public routes — no auth check needed, but still set/clear auth_active
   if (matchesRoute(pathname, PUBLIC_ROUTES)) {
-    return NextResponse.next()
+    const response = NextResponse.next()
+    // Quick check: if no token, clear auth_active. If token exists, set it
+    // (skip full JWT verify on public routes for performance).
+    setAuthActiveCookie(response, !!token)
+    return response
   }
 
   // Check if route requires authentication
   if (matchesRoute(pathname, PROTECTED_ROUTES)) {
-    const token = request.cookies.get('auth_token')?.value
-
     console.log(`[Middleware] Protected route: ${pathname}, has token: ${!!token}`)
 
     // No token - redirect to login
@@ -88,7 +111,9 @@ export async function middleware(request: NextRequest) {
       console.log(`[Middleware] No token, redirecting to login`)
       const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      const response = NextResponse.redirect(loginUrl)
+      setAuthActiveCookie(response, false)
+      return response
     }
 
     // Verify token
@@ -102,11 +127,14 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set('redirect', pathname)
       const response = NextResponse.redirect(loginUrl)
       response.cookies.delete('auth_token')
+      setAuthActiveCookie(response, false)
       return response
     }
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+  setAuthActiveCookie(response, !!token)
+  return response
 }
 
 // Configure which routes the middleware runs on

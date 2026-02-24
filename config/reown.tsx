@@ -60,14 +60,17 @@ export const metadata = {
 const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_URL || ''
 
 // Auth-aware storage wrapper for wagmi.
-// Delegates to cookieStorage but returns null for reads when no auth_token
-// cookie is present. This prevents wagmi from auto-reconnecting a persisted
-// wallet session for unauthenticated users, which would trigger a SIWE
-// "sign this message" popup before React can intervene.
+// Delegates to cookieStorage but returns null for reads when the user isn't
+// authenticated. This prevents wagmi from auto-reconnecting a persisted wallet
+// session for unauthenticated users, which would trigger a SIWE "sign this
+// message" popup before React can intervene.
+//
+// We check for `auth_active` (a non-HttpOnly companion cookie set by middleware)
+// because `auth_token` is HttpOnly and invisible to JavaScript.
 // See: https://github.com/reown-com/appkit/issues/2218
 const authAwareCookieStorage = {
   getItem(key: string): string | null {
-    if (typeof document !== 'undefined' && !document.cookie.includes('auth_token=')) {
+    if (typeof document !== 'undefined' && !document.cookie.includes('auth_active=')) {
       return null
     }
     return cookieStorage.getItem(key)
