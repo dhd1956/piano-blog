@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDisconnect } from '@reown/appkit/react'
+import { useDisconnect } from 'wagmi'
 import { useAuth } from '@/context/AuthContext'
 import Link from './Link'
 

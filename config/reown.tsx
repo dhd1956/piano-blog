@@ -67,10 +67,21 @@ const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_URL || ''
 //
 // We check for `auth_active` (a non-HttpOnly companion cookie set by middleware)
 // because `auth_token` is HttpOnly and invisible to JavaScript.
+//
+// IMPORTANT: On the server (SSR), we also return null. Without this, SSR reads
+// stale wagmi cookies from the request, hydrates the client with that state,
+// and wagmi tries to reconnect — triggering SIWE even though the client-side
+// check would have returned null.
 // See: https://github.com/reown-com/appkit/issues/2218
 const authAwareCookieStorage = {
   getItem(key: string): string | null {
-    if (typeof document !== 'undefined' && !document.cookie.includes('auth_active=')) {
+    // On the server, always return null — we don't want SSR to hydrate with
+    // stale wallet state that triggers reconnection on the client.
+    if (typeof document === 'undefined') {
+      return null
+    }
+    // On the client, block reads when not authenticated.
+    if (!document.cookie.includes('auth_active=')) {
       return null
     }
     return cookieStorage.getItem(key)

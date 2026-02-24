@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useDisconnect } from '@reown/appkit/react'
+import { useDisconnect } from 'wagmi'
 import { useAccount } from 'wagmi'
 import { useAuth } from '@/context/AuthContext'
 
