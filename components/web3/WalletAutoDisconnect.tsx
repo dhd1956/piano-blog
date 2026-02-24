@@ -5,27 +5,24 @@ import { useDisconnect } from '@reown/appkit/react'
 import { useAccount } from 'wagmi'
 import { useAuth } from '@/context/AuthContext'
 
-// Session storage key to track if we've already checked on this browser session
-const CHECKED_KEY = 'wallet_auto_disconnect_checked'
-
 /**
  * WalletAutoDisconnect Component
  *
- * Prevents SIWE (Sign-In With Ethereum) popup from appearing on initial page load
- * and ensures only Reown embedded wallets are used (not MetaMask/injected wallets).
+ * Prevents SIWE (Sign-In With Ethereum) popup from appearing for
+ * unauthenticated users and ensures only Reown embedded wallets are used.
  *
  * Logic:
- * - Always disconnects injected wallets (MetaMask, etc.) since only embedded wallets are allowed
- * - Only runs the unauthenticated check ONCE per browser session (uses sessionStorage)
- * - If user is NOT logged in on first load -> disconnect wallet to prevent SIWE popup
- * - If user IS logged in -> allow embedded wallet to reconnect normally
+ * - Always disconnects injected wallets (MetaMask, etc.)
+ * - Whenever auth state resolves to "not authenticated" and a wallet is
+ *   connected, disconnect immediately to prevent the SIWE prompt
+ * - Authenticated users keep their embedded wallet connection
  *
  * See: https://github.com/reown-com/appkit/issues/2218
  */
 export default function WalletAutoDisconnect() {
   const { disconnect } = useDisconnect()
   const { isAuthenticated, isLoading } = useAuth()
-  const { connector } = useAccount()
+  const { connector, isConnected } = useAccount()
 
   // Always disconnect injected wallets (MetaMask, etc.)
   // Only Reown embedded wallets should be used
@@ -34,40 +31,25 @@ export default function WalletAutoDisconnect() {
 
     if (connector.type === 'injected') {
       console.log(
-        '[WalletAutoDisconnect] Injected wallet detected (e.g. MetaMask), disconnecting — only embedded wallets allowed'
+        '[WalletAutoDisconnect] Injected wallet detected, disconnecting — only embedded wallets allowed'
       )
       disconnect()
     }
   }, [connector, disconnect])
 
-  // Disconnect unauthenticated users on initial load to prevent SIWE popup
+  // Disconnect wallet for unauthenticated users to prevent SIWE popup.
+  // Runs every time auth state changes — not just once per session —
+  // so it catches post-logout state and fresh page loads.
   useEffect(() => {
-    // Wait for auth to load
     if (isLoading) return
 
-    // Only run once per browser session (survives page navigations)
-    if (typeof window !== 'undefined' && sessionStorage.getItem(CHECKED_KEY)) {
-      return
+    if (!isAuthenticated && isConnected) {
+      console.log(
+        '[WalletAutoDisconnect] User not authenticated but wallet connected, disconnecting to prevent SIWE'
+      )
+      disconnect()
     }
-
-    // Mark as checked for this session
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem(CHECKED_KEY, 'true')
-    }
-
-    // If user is not authenticated on initial load, disconnect any pending wallet sessions
-    // This prevents the SIWE popup from appearing for anonymous visitors
-    if (!isAuthenticated) {
-      const timer = setTimeout(() => {
-        console.log(
-          '[WalletAutoDisconnect] User not authenticated on initial load, clearing wallet session'
-        )
-        disconnect()
-      }, 50)
-
-      return () => clearTimeout(timer)
-    }
-  }, [isAuthenticated, isLoading, disconnect])
+  }, [isAuthenticated, isLoading, isConnected, disconnect])
 
   return null
 }
