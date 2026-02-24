@@ -5,7 +5,7 @@ import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'bo
 import { Fragment, useState, useEffect, useRef } from 'react'
 import Link from './Link'
 import headerNavLinks, { type NavGroup } from '@/data/headerNavLinks'
-import ConnectButton from './ConnectButton'
+import AuthButton from './AuthButton'
 
 const MobileNav = () => {
   const [navShow, setNavShow] = useState(false)
@@ -105,7 +105,7 @@ const MobileNav = () => {
                   )
                 )}
                 <div className="mb-4 py-2 pr-4">
-                  <ConnectButton />
+                  <AuthButton />
                 </div>
               </nav>
 

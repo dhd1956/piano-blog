@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useWallet } from '@/hooks/useWallet'
-import { usePermissions } from '@/components/web3/WorkingWeb3Provider'
-import WalletConnection from '@/components/web3/WalletConnection'
+import { useAuth } from '@/context/AuthContext'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +16,9 @@ interface Curator {
 }
 
 export default function CuratorManagementPage() {
-  const { isConnected, walletAddress } = useWallet()
-  const { isBlogOwner } = usePermissions()
+  const { user, isAuthenticated } = useAuth()
+  const walletAddress = user?.walletAddress ?? null
+  const isBlogOwner = user?.role === 'BLOG_OWNER'
 
   const [curators, setCurators] = useState<Curator[]>([])
   const [loading, setLoading] = useState(false)
@@ -134,12 +133,12 @@ export default function CuratorManagementPage() {
     }
   }
 
-  // Load curators when connected
+  // Load curators when authenticated
   useEffect(() => {
-    if (isConnected && isBlogOwner) {
+    if (isAuthenticated && isBlogOwner) {
       loadCurators()
     }
-  }, [isConnected, isBlogOwner])
+  }, [isAuthenticated, isBlogOwner])
 
   // Clear messages after delay
   useEffect(() => {
@@ -156,16 +155,13 @@ export default function CuratorManagementPage() {
     }
   }, [error])
 
-  // Not connected
-  if (!isConnected) {
+  // Not authenticated
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-12">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="mb-8 text-3xl font-bold text-gray-900">👥 Curator Management</h1>
-          <p className="mb-8 text-gray-600">Connect your wallet to manage authorized curators.</p>
-          <div className="mx-auto max-w-sm">
-            <WalletConnection size="lg" showNetworkStatus={true} />
-          </div>
+          <h1 className="mb-8 text-3xl font-bold text-gray-900">Curator Management</h1>
+          <p className="mb-8 text-gray-600">Sign in to manage authorized curators.</p>
         </div>
       </div>
     )
@@ -197,14 +193,6 @@ export default function CuratorManagementPage() {
           <p className="text-gray-600">
             Manage authorized curators who can verify and moderate venues.
           </p>
-
-          <div className="mt-4">
-            <WalletConnection
-              showFullAddress={false}
-              showNetworkStatus={true}
-              showPermissions={true}
-            />
-          </div>
         </div>
 
         {/* Success/Error Messages */}

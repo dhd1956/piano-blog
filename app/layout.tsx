@@ -12,7 +12,6 @@ import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
 import { AuthProvider } from '@/context/AuthContext'
 import { ReownProvider } from '@/context/ReownProvider'
-import { WorkingWeb3Provider } from '@/components/web3/WorkingWeb3Provider'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthEmailCapture from '@/components/OAuthEmailCapture'
 import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
@@ -107,18 +106,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ReownProvider>
               <WalletAutoDisconnect />
               <OAuthEmailCapture />
-              <WorkingWeb3Provider>
-                <ThemeProviders>
-                  <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-                  <SectionContainer>
-                    <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                      <Header />
-                      <main className="mb-auto">{children}</main>
-                    </SearchProvider>
-                    <Footer />
-                  </SectionContainer>
-                </ThemeProviders>
-              </WorkingWeb3Provider>
+              <ThemeProviders>
+                <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+                <SectionContainer>
+                  <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                    <Header />
+                    <main className="mb-auto">{children}</main>
+                  </SearchProvider>
+                  <Footer />
+                </SectionContainer>
+              </ThemeProviders>
             </ReownProvider>
           </AuthProvider>
         </ErrorBoundary>

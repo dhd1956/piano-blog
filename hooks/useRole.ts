@@ -1,4 +1,3 @@
-import { usePermissions } from '@/components/web3/WorkingWeb3Provider'
 import { useAuth } from '@/context/AuthContext'
 import { UserRole } from '@prisma/client'
 
@@ -6,32 +5,15 @@ import { UserRole } from '@prisma/client'
  * Role-based permission hook
  * Provides user role and permission helper functions
  *
- * Checks both wallet-based permissions (WorkingWeb3Provider) and
- * session-based auth (AuthContext) to support both login methods.
+ * Uses session-based auth (AuthContext) as the source of truth for roles.
  */
 export function useRole() {
-  const {
-    role: walletRole,
-    isBlogOwner: walletIsBlogOwner,
-    isCurator: walletIsCurator,
-    isValidator: walletIsValidator,
-    canAccessCurator: walletCanAccessCurator,
-    canAccessValidator: walletCanAccessValidator,
-    canAccessAdmin: walletCanAccessAdmin,
-  } = usePermissions()
-
-  // Also check session-based auth for username/password users
   const { user } = useAuth()
-  const sessionRole = user?.role
+  const effectiveRole = user?.role || UserRole.SCOUT
 
-  // Use session role if available, otherwise fall back to wallet role
-  // Session role takes precedence because it's more reliable for username/password auth
-  const effectiveRole = sessionRole || walletRole || UserRole.SCOUT
-
-  // Compute permission flags based on effective role
-  const isBlogOwner = effectiveRole === UserRole.BLOG_OWNER || walletIsBlogOwner
-  const isCurator = effectiveRole === UserRole.CURATOR || walletIsCurator
-  const isValidator = effectiveRole === UserRole.VALIDATOR || walletIsValidator
+  const isBlogOwner = effectiveRole === UserRole.BLOG_OWNER
+  const isCurator = effectiveRole === UserRole.CURATOR
+  const isValidator = effectiveRole === UserRole.VALIDATOR
 
   return {
     // Core role information
@@ -39,9 +21,9 @@ export function useRole() {
     isBlogOwner,
     isCurator,
     isValidator,
-    canAccessCurator: isCurator || isBlogOwner || walletCanAccessCurator,
-    canAccessValidator: isValidator || isBlogOwner || walletCanAccessValidator,
-    canAccessAdmin: isBlogOwner || walletCanAccessAdmin,
+    canAccessCurator: isCurator || isBlogOwner,
+    canAccessValidator: isValidator || isBlogOwner,
+    canAccessAdmin: isBlogOwner,
 
     // Permission helpers
     canCreateEvent: () => {

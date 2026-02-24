@@ -158,7 +158,7 @@ export default function MigrationBanner() {
               </p>
               <p className="text-xs opacity-90">
                 {isDismissible
-                  ? 'Add an email to recover your account if you lose access to your wallet'
+                  ? 'Add an email to recover your account if you lose access'
                   : 'Email is required for account recovery. Please add your email to continue using all features.'}
               </p>
             </div>

@@ -21,7 +21,7 @@ export default function AccountSettingsPage() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'email' | 'wallet'>('email')
+  const [activeTab, setActiveTab] = useState<'email' | 'account'>('email')
 
   // Modal states
   const [showChangeEmailModal, setShowChangeEmailModal] = useState(false)
@@ -139,14 +139,14 @@ export default function AccountSettingsPage() {
             Email
           </button>
           <button
-            onClick={() => setActiveTab('wallet')}
+            onClick={() => setActiveTab('account')}
             className={`border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-              activeTab === 'wallet'
+              activeTab === 'account'
                 ? 'border-purple-600 text-purple-600 dark:text-purple-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
           >
-            Wallet
+            Account
           </button>
         </nav>
       </div>
@@ -240,14 +240,14 @@ export default function AccountSettingsPage() {
           </div>
         )}
 
-        {activeTab === 'wallet' && (
+        {activeTab === 'account' && (
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Your Wallet
+                Your Account Address
               </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Your wallet is automatically managed and secured by Reown
+                Your account address is automatically managed
               </p>
             </div>
 
@@ -273,21 +273,22 @@ export default function AccountSettingsPage() {
                     <p className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
                       {profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}
                     </p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Secured by Reown</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      Automatically managed
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
                   <p className="text-xs text-blue-700 dark:text-blue-300">
-                    Your wallet was automatically created when you signed in. It's securely managed
-                    by Reown and linked to your Google/email account. You can receive PXP tokens and
-                    payments at this address.
+                    Your account address was created when you signed in. PXP tokens and tips are
+                    sent to this address.
                   </p>
                 </div>
               </div>
             ) : (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Sign in with Google or email to get your wallet
+                  Sign in with Google or email to get started
                 </p>
               </div>
             )}
