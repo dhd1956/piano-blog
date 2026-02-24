@@ -59,12 +59,33 @@ export const metadata = {
 // Get paymaster configuration from environment
 const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_URL || ''
 
-// Create Wagmi adapter with cookie storage for SSR support
+// Auth-aware storage wrapper for wagmi.
+// Delegates to cookieStorage but returns null for reads when no auth_token
+// cookie is present. This prevents wagmi from auto-reconnecting a persisted
+// wallet session for unauthenticated users, which would trigger a SIWE
+// "sign this message" popup before React can intervene.
+// See: https://github.com/reown-com/appkit/issues/2218
+const authAwareCookieStorage = {
+  getItem(key: string): string | null {
+    if (typeof document !== 'undefined' && !document.cookie.includes('auth_token=')) {
+      return null
+    }
+    return cookieStorage.getItem(key)
+  },
+  setItem(key: string, value: string): void {
+    cookieStorage.setItem(key, value)
+  },
+  removeItem(key: string): void {
+    cookieStorage.removeItem(key)
+  },
+}
+
+// Create Wagmi adapter with auth-aware cookie storage for SSR support
 // Configure transports with retry logic for Celo Sepolia
 // Using Ankr as primary (fastest according to chainlist)
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
-    storage: cookieStorage,
+    storage: authAwareCookieStorage,
   }),
   ssr: true,
   projectId,

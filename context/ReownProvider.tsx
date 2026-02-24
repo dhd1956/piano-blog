@@ -32,48 +32,8 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Prevent SIWE popup for unauthenticated users.
-// wagmi persists wallet state in cookies (cookieStorage). On page load it
-// auto-reconnects before any React component can call disconnect(), which
-// triggers the "Sign this message" SIWE prompt. Clearing the persisted state
-// synchronously here — before createAppKit reads it — prevents that.
-if (typeof window !== 'undefined') {
-  const hasAuthToken = document.cookie.includes('auth_token=')
-  if (!hasAuthToken) {
-    // Clear wagmi/Reown cookies
-    document.cookie.split(';').forEach((c) => {
-      const key = c.trim().split('=')[0]
-      if (
-        key.startsWith('wagmi') ||
-        key.startsWith('wc@') ||
-        key.startsWith('@w3m') ||
-        key.startsWith('W3M') ||
-        key.startsWith('@appkit')
-      ) {
-        document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
-      }
-    })
-    // Clear wagmi/Reown localStorage
-    const keysToRemove: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (
-        key &&
-        (key.startsWith('wagmi') ||
-          key.startsWith('wc@') ||
-          key.startsWith('@w3m') ||
-          key.startsWith('W3M') ||
-          key.startsWith('-walletlink') ||
-          key.startsWith('@appkit'))
-      ) {
-        keysToRemove.push(key)
-      }
-    }
-    keysToRemove.forEach((key) => localStorage.removeItem(key))
-  }
-}
-
 // Create the AppKit modal instance
+// SIWE prevention is handled by authAwareCookieStorage in config/reown.tsx
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
