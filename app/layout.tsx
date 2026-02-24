@@ -13,9 +13,7 @@ import { ThemeProviders } from './theme-providers'
 import { AuthProvider } from '@/context/AuthContext'
 import { ReownProvider } from '@/context/ReownProvider'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import OAuthEmailCapture from '@/components/OAuthEmailCapture'
 import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
-import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -104,8 +102,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ErrorBoundary>
           <AuthProvider>
             <ReownProvider>
-              <WalletAutoDisconnect />
-              <OAuthEmailCapture />
               <ThemeProviders>
                 <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
                 <SectionContainer>

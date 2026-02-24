@@ -1,11 +1,14 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { celo } from '@reown/appkit/networks'
 import { projectId, metadata, wagmiAdapter, celoSepolia } from '@/config/reown'
+import { usePathname } from 'next/navigation'
+import OAuthEmailCapture from '@/components/OAuthEmailCapture'
+import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
 
 // Set up queryClient for React Query
 const queryClient = new QueryClient()
@@ -13,76 +16,78 @@ const queryClient = new QueryClient()
 // Get paymaster URL from environment
 const paymasterUrl = process.env.NEXT_PUBLIC_PAYMASTER_URL || ''
 
-// Log gas sponsorship status for development
-if (typeof window !== 'undefined') {
-  if (paymasterUrl) {
-    console.log(
-      '%c⚡ Gas Sponsorship: ENABLED',
-      'color: #10b981; font-weight: bold; font-size: 14px;',
-      '\n💰 Transactions will be sponsored by the platform',
-      '\n📊 Monitor costs at: https://dashboard.pimlico.io'
-    )
-  } else {
-    console.log(
-      '%c⚠️  Gas Sponsorship: DISABLED',
-      'color: #f59e0b; font-weight: bold; font-size: 14px;',
-      '\n💳 Users will pay their own gas fees',
-      '\n📖 To enable: See docs/GAS_SPONSORSHIP_ACTIVATION.md'
-    )
-  }
-}
+// Lazy AppKit initialization — only called when Reown is actually needed.
+// wagmi (WagmiProvider) is always rendered because it's just a state layer with
+// no UI. The SIWE "sign this message" popup comes from Reown's createAppKit, so
+// deferring that call until the user needs auth prevents the popup on public pages.
+let appKitInitialized = false
+function ensureAppKit() {
+  if (appKitInitialized) return
+  appKitInitialized = true
 
-// SIWE prevention: wagmi's cookie persistence is handled by authAwareCookieStorage
-// in config/reown.tsx. But Reown AppKit also stores its own session state in
-// localStorage (with @w3m, W3M, @appkit prefixes) which bypasses wagmi's storage
-// adapter. Clear those for unauthenticated users before createAppKit reads them.
-if (typeof window !== 'undefined' && !document.cookie.includes('auth_active=')) {
-  const keysToRemove: string[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (
-      key &&
-      (key.startsWith('@w3m') ||
-        key.startsWith('W3M') ||
-        key.startsWith('@appkit') ||
-        key.startsWith('wc@'))
-    ) {
-      keysToRemove.push(key)
+  // Clear stale Reown localStorage before init for unauthenticated users
+  if (typeof window !== 'undefined' && !document.cookie.includes('auth_active=')) {
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (
+        key &&
+        (key.startsWith('@w3m') ||
+          key.startsWith('W3M') ||
+          key.startsWith('@appkit') ||
+          key.startsWith('wc@'))
+      ) {
+        keysToRemove.push(key)
+      }
     }
+    keysToRemove.forEach((key) => localStorage.removeItem(key))
   }
-  keysToRemove.forEach((key) => localStorage.removeItem(key))
-}
 
-// Create the AppKit modal instance
-createAppKit({
-  adapters: [wagmiAdapter],
-  projectId,
-  networks: [celoSepolia as any, celo], // Cast custom network for AppKit compatibility
-  metadata,
-  features: {
-    analytics: true, // Enable analytics (optional)
-    email: true, // Enable email login
-    socials: ['google'], // OAuth providers for embedded wallet
-    emailShowWallets: false, // Hide wallet options in email flow
-    onramp: !paymasterUrl, // Disable onramp when gas is sponsored
-  },
-  // Disable external wallet connections - embedded wallets only
-  enableWallets: false, // Disable injected wallets (MetaMask, etc.)
-  enableWalletConnect: false, // Disable WalletConnect QR
-  allWallets: 'HIDE', // Hide "All Wallets" section
-  themeMode: 'light', // or 'dark' - can be made dynamic later
-  themeVariables: {
-    '--w3m-accent': '#3b82f6', // Primary blue color (matches your theme)
-  },
-  // Add paymaster service URL for gas sponsorship
-  // When set, transactions will be sponsored by the platform
-  ...(paymasterUrl && { paymasterServiceUrl: paymasterUrl }),
-})
+  createAppKit({
+    adapters: [wagmiAdapter],
+    projectId,
+    networks: [celoSepolia as any, celo],
+    metadata,
+    features: {
+      analytics: true,
+      email: true,
+      socials: ['google'],
+      emailShowWallets: false,
+      onramp: !paymasterUrl,
+    },
+    enableWallets: false,
+    enableWalletConnect: false,
+    allWallets: 'HIDE',
+    themeMode: 'light',
+    themeVariables: {
+      '--w3m-accent': '#3b82f6',
+    },
+    ...(paymasterUrl && { paymasterServiceUrl: paymasterUrl }),
+  })
+}
 
 export function ReownProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+
+  // Initialize AppKit only when actually needed:
+  // - On auth pages (user is logging in)
+  // - When user is authenticated (has active session)
+  useEffect(() => {
+    const isAuthenticated = document.cookie.includes('auth_active=')
+    const isAuthPage = pathname?.startsWith('/auth/') ?? false
+
+    if (isAuthenticated || isAuthPage) {
+      ensureAppKit()
+    }
+  }, [pathname])
+
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <WalletAutoDisconnect />
+        <OAuthEmailCapture />
+        {children}
+      </QueryClientProvider>
     </WagmiProvider>
   )
 }
