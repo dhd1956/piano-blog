@@ -1,6 +1,6 @@
 import { cookieStorage, createStorage } from '@wagmi/core'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { celo } from '@reown/appkit/networks'
+import { celo } from 'viem/chains'
 import { http } from 'wagmi'
 import type { Chain } from 'wagmi/chains'
 

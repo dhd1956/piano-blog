@@ -23,8 +23,12 @@ async function ensureAppKit() {
   if (appKitInitialized) return
   appKitInitialized = true
 
-  // Clear stale Reown localStorage before init for unauthenticated users
-  if (typeof window !== 'undefined' && !document.cookie.includes('auth_active=')) {
+  // Always clear stale Reown localStorage before init.
+  // The JWT session (auth_token) is our source of truth for authentication,
+  // NOT the Reown wallet session. If Reown finds stale session state, it
+  // tries to re-verify via SIWE ("sign this message"), causing an unwanted popup.
+  // Clearing before init forces Reown to start fresh every time.
+  if (typeof window !== 'undefined') {
     const keysToRemove: string[] = []
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
@@ -46,6 +50,9 @@ async function ensureAppKit() {
     import('@reown/appkit/react'),
     import('@reown/appkit/networks'),
   ])
+
+  // Enable the CSS-hidden w3m-modal now that we're intentionally initializing
+  document.body.classList.add('appkit-modal-active')
 
   createAppKit({
     adapters: [wagmiAdapter],
