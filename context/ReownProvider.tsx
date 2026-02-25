@@ -51,9 +51,6 @@ async function ensureAppKit() {
     import('@reown/appkit/networks'),
   ])
 
-  // Enable the CSS-hidden w3m-modal now that we're intentionally initializing
-  document.body.classList.add('appkit-modal-active')
-
   createAppKit({
     adapters: [wagmiAdapter],
     projectId,

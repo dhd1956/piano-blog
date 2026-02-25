@@ -76,9 +76,6 @@ export default function AuthButton() {
       console.warn('Failed to clear wallet storage on logout:', e)
     }
 
-    // Hide Reown modal before reload to prevent flash on next visit
-    document.body.classList.remove('appkit-modal-active')
-
     // Force full page reload to ensure middleware runs and cookie state is fresh
     window.location.href = '/'
   }

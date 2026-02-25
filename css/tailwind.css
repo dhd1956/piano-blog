@@ -174,19 +174,3 @@ input:-webkit-autofill:focus {
   display: inline-block;
   vertical-align: middle;
 }
-
-/* Hide Reown's AppKit modal by default. Without this, stale wallet sessions
-   can cause a SIWE "sign this message" popup before our JS can intervene.
-   The .appkit-modal-active class is added by ensureAppKit() in ReownProvider
-   when the modal should be visible (auth pages / authenticated users). */
-w3m-modal {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-body.appkit-modal-active w3m-modal {
-  display: block !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-}
