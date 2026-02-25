@@ -70,7 +70,7 @@ async function ensureAppKit() {
     import('@reown/appkit/networks'),
   ])
 
-  createAppKit({
+  const modal = createAppKit({
     adapters: [wagmiAdapter],
     projectId,
     networks: [celoSepolia as any, celo],
@@ -90,6 +90,23 @@ async function ensureAppKit() {
       '--w3m-accent': '#3b82f6',
     },
     ...(paymasterUrl && { paymasterServiceUrl: paymasterUrl }),
+  })
+
+  // Wait for AppKit to fully initialize — this includes fetching remote features
+  // and dynamically importing all view components (email OTP, socials, etc.).
+  // Without this, the email OTP input won't render because the web components
+  // haven't been registered yet when the modal opens.
+  await new Promise<void>((resolve) => {
+    if (modal.getState().initialized) {
+      resolve()
+      return
+    }
+    const unsubscribe = modal.subscribeState((newState: { initialized?: boolean }) => {
+      if (newState.initialized) {
+        unsubscribe()
+        resolve()
+      }
+    })
   })
 }
 
