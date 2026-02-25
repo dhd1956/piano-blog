@@ -1,11 +1,19 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { projectId, metadata, wagmiAdapter, celoSepolia } from '@/config/reown'
 import { usePathname } from 'next/navigation'
 import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
+
+// Context to let child components know when AppKit is initialized.
+// Components that use Reown hooks (like useAppKit) must wait for this
+// to be true before rendering, since createAppKit is loaded asynchronously.
+const AppKitReadyContext = createContext(false)
+export function useAppKitReady() {
+  return useContext(AppKitReadyContext)
+}
 
 // Set up queryClient for React Query
 const queryClient = new QueryClient()
@@ -104,9 +112,11 @@ export function ReownProvider({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
-        <WalletAutoDisconnect />
-        {appKitReady && OAuthEmailCapture && <OAuthEmailCapture />}
-        {children}
+        <AppKitReadyContext.Provider value={appKitReady}>
+          <WalletAutoDisconnect />
+          {appKitReady && OAuthEmailCapture && <OAuthEmailCapture />}
+          {children}
+        </AppKitReadyContext.Provider>
       </QueryClientProvider>
     </WagmiProvider>
   )

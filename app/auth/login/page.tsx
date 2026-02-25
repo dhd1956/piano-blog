@@ -4,8 +4,10 @@ import { useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAppKit } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
+import { useAppKitReady } from '@/context/ReownProvider'
 
-function LoginContent() {
+// Inner component that uses useAppKit() — only rendered after createAppKit is called
+function LoginReady() {
   const searchParams = useSearchParams()
   const { open } = useAppKit()
   const { isAuthenticated, isLoading } = useAuth()
@@ -77,6 +79,23 @@ function LoginContent() {
       </div>
     </div>
   )
+}
+
+// Outer component that waits for AppKit to be initialized before rendering
+// the inner component. createAppKit is loaded asynchronously (dynamic import),
+// so useAppKit() would throw if called before it's ready.
+function LoginContent() {
+  const appKitReady = useAppKitReady()
+
+  if (!appKitReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return <LoginReady />
 }
 
 export default function LoginPage() {
