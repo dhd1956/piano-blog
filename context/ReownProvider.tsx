@@ -31,21 +31,32 @@ async function ensureAppKit() {
   if (appKitInitialized) return
   appKitInitialized = true
 
-  // Always clear stale Reown localStorage before init.
-  // The JWT session (auth_token) is our source of truth for authentication,
-  // NOT the Reown wallet session. If Reown finds stale session state, it
-  // tries to re-verify via SIWE ("sign this message"), causing an unwanted popup.
-  // Clearing before init forces Reown to start fresh every time.
+  // Clear stale wallet SESSION keys that cause SIWE reconnection.
+  // Only remove session/connection keys — NOT all @appkit keys, because
+  // Reown uses some keys for the email OTP flow and other UI state.
   if (typeof window !== 'undefined') {
-    const keysToRemove: string[] = []
+    // Specific @appkit keys that trigger SIWE reconnection
+    const sessionKeys = [
+      '@appkit/wallet_id',
+      '@appkit/wallet_name',
+      '@appkit/connected_social',
+      '@appkit/active_namespace',
+      '@appkit/connected_namespaces',
+      '@appkit/connection_status',
+      '@appkit/siwx-auth-token',
+      '@appkit/siwx-nonce-token',
+      '@appkit/connections',
+    ]
+    // Also remove namespaced connector IDs (e.g. @appkit/eip155:connected_connector_id)
+    const keysToRemove: string[] = [...sessionKeys]
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (
         key &&
         (key.startsWith('@w3m') ||
           key.startsWith('W3M') ||
-          key.startsWith('@appkit') ||
-          key.startsWith('wc@'))
+          key.startsWith('wc@') ||
+          (key.startsWith('@appkit/') && key.includes(':connected_connector_id')))
       ) {
         keysToRemove.push(key)
       }
