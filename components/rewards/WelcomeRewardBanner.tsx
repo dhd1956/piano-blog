@@ -1,20 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount, useWriteContract } from 'wagmi'
+import { useAccount, useWriteContract, useReconnect } from 'wagmi'
 import { PXP_REWARDS_ADDRESS, PXP_REWARDS_ABI, REWARD_AMOUNTS } from '@/utils/rewards-contract'
 import { useAuth } from '@/context/AuthContext'
+
+const isDevelopment = PXP_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
 
 interface WelcomeRewardBannerProps {
   userAddress?: string
 }
 
 export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBannerProps) {
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const { user, refreshUser } = useAuth()
   const walletAddress = userAddress || address || user?.walletAddress || undefined
 
   const { writeContractAsync } = useWriteContract()
+  const { reconnect, connectors } = useReconnect()
 
   const [eligible, setEligible] = useState(false)
   const [claiming, setClaiming] = useState(false)
@@ -44,7 +47,27 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
     setMessage('')
 
     try {
-      // Use wagmi writeContract which routes through the Reown embedded wallet
+      // Development mode: simulate the claim when contract isn't deployed
+      if (isDevelopment) {
+        setMessage(
+          `🎉 Success! You earned ${REWARD_AMOUNTS.NEW_USER} PXP! (Development mode — no real tokens transferred)`
+        )
+        setEligible(false)
+        await fetch('/api/rewards/mark-claimed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: walletAddress }),
+        })
+        return
+      }
+
+      // Ensure wagmi connector is active (reconnectOnMount is disabled)
+      if (!isConnected) {
+        reconnect({ connectors })
+        // Give reconnection a moment to establish
+        await new Promise((r) => setTimeout(r, 1000))
+      }
+
       const hash = await writeContractAsync({
         address: PXP_REWARDS_ADDRESS as `0x${string}`,
         abi: PXP_REWARDS_ABI,
@@ -54,7 +77,6 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
       setMessage(`🎉 Success! You earned ${REWARD_AMOUNTS.NEW_USER} PXP! Transaction: ${hash}`)
       setEligible(false)
 
-      // Update database
       await fetch('/api/rewards/mark-claimed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
