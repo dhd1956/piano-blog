@@ -84,10 +84,13 @@ async function ensureAppKit() {
     },
     enableWallets: false,
     enableWalletConnect: false,
+    enableWalletGuide: false,
     allWallets: 'HIDE',
     themeMode: 'light',
     themeVariables: {
       '--w3m-accent': '#3b82f6',
+      '--w3m-font-family': 'var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif',
+      '--w3m-border-radius-master': '8px',
     },
     ...(paymasterUrl && { paymasterServiceUrl: paymasterUrl }),
   })
@@ -108,6 +111,11 @@ async function ensureAppKit() {
       }
     })
   })
+
+  // Hide "Powered by Reown" branding footer (controlled by remote features)
+  const { OptionsController } = await import('@reown/appkit-controllers')
+  const currentFeatures = OptionsController.state.remoteFeatures || {}
+  OptionsController.setRemoteFeatures({ ...currentFeatures, reownBranding: false })
 }
 
 // OAuthEmailCapture uses useAppKitAccount (Reown-specific, no wagmi equivalent).
