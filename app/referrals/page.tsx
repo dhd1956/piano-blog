@@ -1,7 +1,7 @@
 import ReferralDashboard from '@/components/referral/ReferralDashboard'
 
 export const metadata = {
-  title: 'Referral Program - Developing My Piano Style',
+  title: 'Referral Program - Global Piano Network',
   description: 'Invite musicians and earn PXP rewards through our referral program',
 }
 

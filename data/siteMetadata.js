@@ -2,7 +2,7 @@
 const siteMetadata = {
   title: 'Global Piano Network',
   networkTitle: 'Global Piano Network',
-  blogTitle: 'Developing My Piano Style',
+  blogTitle: 'Global Piano Network',
   author: 'David Davies',
   headerTitle: 'Global Piano Network',
   description:
