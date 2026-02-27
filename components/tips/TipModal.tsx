@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseEther } from 'viem'
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { parseEther, formatEther } from 'viem'
 import { PXP_TOKEN_ADDRESS, ERC20_ABI } from '@/utils/rewards-contract'
 
 interface TipModalProps {
@@ -29,6 +29,15 @@ export default function TipModal({
   const [message, setMessage] = useState('')
   const [modalState, setModalState] = useState<ModalState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  // Read sender's on-chain PXP balance
+  const { data: pxpBalance } = useReadContract({
+    address: PXP_TOKEN_ADDRESS as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: [walletAddress as `0x${string}`],
+    query: { enabled: !!walletAddress },
+  })
 
   // Use wagmi's writeContract hook - this integrates with Reown/AppKit and gas sponsorship
   const {
@@ -90,7 +99,15 @@ export default function TipModal({
     const error = writeError || confirmError
     if (error) {
       console.error('[TipModal] Transaction error:', error)
-      setErrorMessage(error.message || 'Transaction failed')
+      // Show a human-readable message instead of the raw viem/contract error
+      const msg = error.message || ''
+      if (msg.includes('InsufficientBalance') || msg.includes('insufficient')) {
+        setErrorMessage("You don't have enough PXP to send that amount.")
+      } else if (msg.includes('rejected') || msg.includes('denied')) {
+        setErrorMessage('Transaction was cancelled.')
+      } else {
+        setErrorMessage('Transaction failed. Please try again.')
+      }
       setModalState('error')
     }
   }, [writeError, confirmError])
@@ -102,9 +119,23 @@ export default function TipModal({
     return selectedAmount || 0
   }
 
+  const balanceInPXP =
+    pxpBalance !== undefined ? parseFloat(formatEther(pxpBalance as bigint)) : null
+
   const isValidAmount = (): boolean => {
     const amount = getAmount()
-    return amount > 0 && !isNaN(amount)
+    if (amount <= 0 || isNaN(amount)) return false
+    if (balanceInPXP !== null && amount > balanceInPXP) return false
+    return true
+  }
+
+  const getAmountError = (): string | null => {
+    const amount = getAmount()
+    if (amount <= 0 || isNaN(amount)) return null
+    if (balanceInPXP !== null && amount > balanceInPXP) {
+      return `You only have ${balanceInPXP.toFixed(2)} PXP`
+    }
+    return null
   }
 
   const handlePresetClick = (amount: number) => {
@@ -123,8 +154,14 @@ export default function TipModal({
       return
     }
 
-    if (!isValidAmount()) {
+    if (getAmount() <= 0 || isNaN(getAmount())) {
       setErrorMessage('Please select or enter a valid amount')
+      setModalState('error')
+      return
+    }
+
+    if (balanceInPXP !== null && getAmount() > balanceInPXP) {
+      setErrorMessage(`You only have ${balanceInPXP.toFixed(2)} PXP`)
       setModalState('error')
       return
     }
@@ -243,23 +280,36 @@ export default function TipModal({
 
               {/* Amount selection */}
               <div className="mb-4">
-                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Amount (PXP)
-                </label>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Amount (PXP)
+                  </label>
+                  {balanceInPXP !== null && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Balance: {balanceInPXP.toFixed(2)} PXP
+                    </span>
+                  )}
+                </div>
                 <div className="mb-3 flex gap-2">
-                  {PRESET_AMOUNTS.map((amount) => (
-                    <button
-                      key={amount}
-                      onClick={() => handlePresetClick(amount)}
-                      className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
-                        selectedAmount === amount && !customAmount
-                          ? 'border-amber-500 bg-amber-50 text-amber-700 dark:border-amber-400 dark:bg-amber-900/30 dark:text-amber-300'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:border-gray-500'
-                      }`}
-                    >
-                      {amount} PXP
-                    </button>
-                  ))}
+                  {PRESET_AMOUNTS.map((amount) => {
+                    const canAfford = balanceInPXP === null || amount <= balanceInPXP
+                    return (
+                      <button
+                        key={amount}
+                        onClick={() => canAfford && handlePresetClick(amount)}
+                        disabled={!canAfford}
+                        className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
+                          !canAfford
+                            ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-600'
+                            : selectedAmount === amount && !customAmount
+                              ? 'border-amber-500 bg-amber-50 text-amber-700 dark:border-amber-400 dark:bg-amber-900/30 dark:text-amber-300'
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:border-gray-500'
+                        }`}
+                      >
+                        {amount} PXP
+                      </button>
+                    )
+                  })}
                 </div>
                 <input
                   type="number"
@@ -270,6 +320,9 @@ export default function TipModal({
                   placeholder="Or enter custom amount..."
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 />
+                {getAmountError() && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">{getAmountError()}</p>
+                )}
               </div>
 
               {/* Optional message */}
