@@ -123,7 +123,23 @@ export default function OAuthEmailCapture() {
           // Mark this address as processed to avoid duplicate calls
           hasProcessedRef.current.add(address)
 
-          // Sync AuthContext — session was already created by SIWX addSession()
+          // Ensure the backend session cookie exists before refreshing AuthContext.
+          // SIWX addSession() creates it during authConnectorAuthenticate, but only
+          // when the Reown iframe returns a signature in APP_GET_USER (social OAuth).
+          // For email OTP, the iframe returns no signature so addSession() is never
+          // called automatically — we call embedded-login here as a reliable fallback.
+          await fetch('/api/auth/embedded-login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              walletAddress: address,
+              ...(email && { email }),
+              ...(authProvider && { authProvider }),
+            }),
+          })
+
+          // Sync AuthContext — session cookie is now guaranteed to exist
           await refreshUser()
           console.log('[OAuthEmailCapture] AuthContext refreshed')
 
