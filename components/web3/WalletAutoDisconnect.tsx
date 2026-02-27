@@ -37,19 +37,20 @@ export default function WalletAutoDisconnect() {
     }
   }, [connector, disconnect])
 
-  // Disconnect wallet for unauthenticated users to prevent SIWE popup.
-  // Runs every time auth state changes — not just once per session —
-  // so it catches post-logout state and fresh page loads.
+  // Disconnect injected wallets for unauthenticated users to prevent SIWE popup.
+  // Only targets injected wallets (MetaMask etc.) — Reown embedded wallets are
+  // intentionally excluded because OAuthEmailCapture needs the connection to
+  // complete OTP verification and create a backend session before auth resolves.
   useEffect(() => {
     if (isLoading) return
 
-    if (!isAuthenticated && isConnected) {
+    if (!isAuthenticated && isConnected && connector?.type === 'injected') {
       console.log(
-        '[WalletAutoDisconnect] User not authenticated but wallet connected, disconnecting to prevent SIWE'
+        '[WalletAutoDisconnect] Unauthenticated injected wallet connected, disconnecting to prevent SIWE'
       )
       disconnect()
     }
-  }, [isAuthenticated, isLoading, isConnected, disconnect])
+  }, [isAuthenticated, isLoading, isConnected, connector, disconnect])
 
   return null
 }
