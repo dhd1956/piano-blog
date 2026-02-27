@@ -29,9 +29,17 @@ class SIWXMessageImpl implements SIWXMessage {
   }
 
   toString() {
+    // Reown calls toString() with '<<AccountAddress>>' as a placeholder before
+    // the real address is known. viem rejects it, crashing authConnectorAuthenticate.
+    // Use zero address as a stand-in; this serializedMessage is replaced by the
+    // embedded wallet's signed result (SIWXUtil.js line 267).
+    const address = this.accountAddress.startsWith('0x')
+      ? (this.accountAddress as `0x${string}`)
+      : '0x0000000000000000000000000000000000000000'
+
     return createSiweMessage({
       domain: this.domain,
-      address: this.accountAddress as `0x${string}`,
+      address,
       statement: this.statement,
       uri: this.uri,
       version: '1',
