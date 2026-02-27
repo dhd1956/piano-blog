@@ -149,6 +149,11 @@ export default function OAuthEmailCapture() {
               await refreshUser()
               console.log('[OAuthEmailCapture] AuthContext refreshed')
 
+              // Disconnect the Reown embedded wallet — our session is now managed
+              // via cookie, so we don't need the wallet connection to persist.
+              // This prevents the SIWE/SIWX "connect to wallet" popup from appearing.
+              disconnect()
+
               if (loginData.showWelcomeReward) {
                 console.log(
                   `[OAuthEmailCapture] User earned ${loginData.welcomePXP} PXP welcome reward`
