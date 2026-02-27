@@ -4,7 +4,6 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { projectId, metadata, wagmiAdapter, celoSepolia } from '@/config/reown'
-import { buildSIWXConfig } from '@/lib/siwx-config'
 import { usePathname } from 'next/navigation'
 import WalletAutoDisconnect from '@/components/web3/WalletAutoDisconnect'
 
@@ -50,7 +49,6 @@ async function ensureAppKit() {
       emailShowWallets: false,
       onramp: !paymasterUrl,
     },
-    siwx: buildSIWXConfig(),
     enableWallets: false,
     enableWalletConnect: false,
     enableWalletGuide: false,
