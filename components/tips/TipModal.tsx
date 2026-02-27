@@ -9,8 +9,6 @@ interface TipModalProps {
   recipientAddress: string
   recipientName?: string
   walletAddress?: string
-  isWalletConnected: boolean
-  openWalletModal: () => void
   onClose: () => void
   onTipSent: (transactionHash: string, amount: number) => void
 }
@@ -23,8 +21,6 @@ export default function TipModal({
   recipientAddress,
   recipientName,
   walletAddress,
-  isWalletConnected,
-  openWalletModal,
   onClose,
   onTipSent,
 }: TipModalProps) {
@@ -99,12 +95,6 @@ export default function TipModal({
     }
   }, [writeError, confirmError])
 
-  const isConnected = isWalletConnected && !!walletAddress
-
-  const connectWallet = () => {
-    openWalletModal()
-  }
-
   const getAmount = (): number => {
     if (customAmount) {
       return parseFloat(customAmount)
@@ -130,11 +120,6 @@ export default function TipModal({
   const handleSendTip = () => {
     // Guard against multiple submissions
     if (modalState === 'processing' || modalState === 'confirming') {
-      return
-    }
-
-    if (!isConnected) {
-      connectWallet()
       return
     }
 
@@ -256,21 +241,6 @@ export default function TipModal({
                 </p>
               </div>
 
-              {/* Wallet connection prompt */}
-              {!isConnected && (
-                <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Connect your wallet to send a tip
-                  </p>
-                  <button
-                    onClick={connectWallet}
-                    className="mt-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
-                  >
-                    Connect Wallet
-                  </button>
-                </div>
-              )}
-
               {/* Amount selection */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -344,7 +314,7 @@ export default function TipModal({
             </button>
             <button
               onClick={handleSendTip}
-              disabled={modalState === 'processing' || (!isConnected && !isValidAmount())}
+              disabled={modalState === 'processing' || !isValidAmount()}
               className="flex-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {modalState === 'processing' ? (
@@ -367,10 +337,8 @@ export default function TipModal({
                   </svg>
                   Confirm in Wallet...
                 </span>
-              ) : isConnected ? (
-                `Send ${isValidAmount() ? getAmount() : ''} PXP`
               ) : (
-                'Connect & Send'
+                `Send ${isValidAmount() ? getAmount() : ''} PXP`
               )}
             </button>
           </div>

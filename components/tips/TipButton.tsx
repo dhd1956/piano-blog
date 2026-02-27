@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
+import { useAppKitAccount } from '@reown/appkit/react'
 import TipModal from './TipModal'
 
 interface TipButtonProps {
@@ -18,9 +18,7 @@ export default function TipButton({
   className = '',
 }: TipButtonProps) {
   const [showModal, setShowModal] = useState(false)
-  // Get wallet state at parent level to ensure it's stable when modal opens
-  const { address: walletAddress, isConnected } = useAppKitAccount()
-  const { open: openAppKit } = useAppKit()
+  const { address: walletAddress } = useAppKitAccount()
 
   return (
     <>
@@ -36,8 +34,6 @@ export default function TipButton({
           recipientAddress={recipientAddress}
           recipientName={recipientName}
           walletAddress={walletAddress}
-          isWalletConnected={isConnected}
-          openWalletModal={openAppKit}
           onClose={() => setShowModal(false)}
           onTipSent={(txHash, amount) => {
             onTipSent?.(txHash, amount)

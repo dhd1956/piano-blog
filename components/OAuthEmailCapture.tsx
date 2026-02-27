@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppKitAccount, useDisconnect } from '@reown/appkit/react'
+import { useAppKitAccount } from '@reown/appkit/react'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -19,7 +19,6 @@ import { useAuth } from '@/context/AuthContext'
 export default function OAuthEmailCapture() {
   const { address, isConnected, embeddedWalletInfo } = useAppKitAccount()
   const { refreshUser, isAuthenticated } = useAuth()
-  const { disconnect } = useDisconnect()
   const hasProcessedRef = useRef<Set<string>>(new Set())
   const wasAuthenticatedRef = useRef(false)
   const router = useRouter()
@@ -93,9 +92,7 @@ export default function OAuthEmailCapture() {
         } catch (error) {
           console.error('[OAuthEmailCapture] Error linking wallet:', error)
         } finally {
-          // Clean up: clear intent flag and disconnect the Reown wallet session
           sessionStorage.removeItem('wallet_linking_intent')
-          disconnect()
         }
 
         return
@@ -126,48 +123,9 @@ export default function OAuthEmailCapture() {
           // Mark this address as processed to avoid duplicate calls
           hasProcessedRef.current.add(address)
 
-          // Create session via embedded-login endpoint
-          try {
-            const loginResponse = await fetch('/api/auth/embedded-login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({
-                walletAddress: address,
-                email: email,
-                authProvider: authProvider,
-              }),
-            })
-
-            if (loginResponse.ok) {
-              const loginData = await loginResponse.json()
-              console.log(
-                `[OAuthEmailCapture] Session created for embedded wallet user (isNew: ${loginData.isNewUser})`
-              )
-
-              // Sync AuthContext with the new session
-              await refreshUser()
-              console.log('[OAuthEmailCapture] AuthContext refreshed')
-
-              // Disconnect the Reown embedded wallet — our session is now managed
-              // via cookie, so we don't need the wallet connection to persist.
-              // This prevents the SIWE/SIWX "connect to wallet" popup from appearing.
-              disconnect()
-
-              if (loginData.showWelcomeReward) {
-                console.log(
-                  `[OAuthEmailCapture] User earned ${loginData.welcomePXP} PXP welcome reward`
-                )
-              }
-            } else {
-              console.warn(
-                '[OAuthEmailCapture] Failed to create session:',
-                loginResponse.statusText
-              )
-            }
-          } catch (loginError) {
-            console.error('[OAuthEmailCapture] Error creating session:', loginError)
-          }
+          // Sync AuthContext — session was already created by SIWX addSession()
+          await refreshUser()
+          console.log('[OAuthEmailCapture] AuthContext refreshed')
 
           // Smart completion logic: Check if user has essential fields
           const profile = data.profile
@@ -209,7 +167,7 @@ export default function OAuthEmailCapture() {
     }
 
     captureEmail()
-  }, [isConnected, address, embeddedWalletInfo, router, refreshUser, isAuthenticated, disconnect])
+  }, [isConnected, address, embeddedWalletInfo, router, refreshUser, isAuthenticated])
 
   // This component doesn't render anything
   return null

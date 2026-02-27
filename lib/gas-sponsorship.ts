@@ -17,6 +17,8 @@ export const sponsorshipPolicies = {
     'rsvpToEvent', // Event RSVP
     'updateProfile', // Profile updates
     'createEvent', // Event creation
+    'claimNewUserReward', // Welcome PXP claim
+    'transfer', // PXP tips (testnet only — use permit on mainnet)
   ],
 
   // Rate limits (transactions per user per day)
@@ -27,12 +29,12 @@ export const sponsorshipPolicies = {
     rsvpToEvent: 10, // Max 10 RSVPs per day
     updateProfile: 5, // Max 5 profile updates per day
     createEvent: 2, // Max 2 events per day
+    claimNewUserReward: 1, // One-time welcome reward
+    transfer: 50, // Max 50 tips per day
   },
 
   // Methods that will NEVER be sponsored
-  // These are typically financial operations that users should pay for
   blockedMethods: [
-    'transfer', // Token transfers
     'approve', // Token approvals
     'deploy', // Contract deployments
   ],

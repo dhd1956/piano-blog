@@ -157,6 +157,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Always clear client-side state
       setUser(null)
       setError(null)
+      // Clear SIWX session so getSessions() doesn't return a stale session on re-login
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('siwx_session')
+        sessionStorage.setItem('user_logged_out', 'true')
+      }
     }
   }, [])
 

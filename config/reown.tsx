@@ -126,6 +126,8 @@ export const wagmiAdapter = new WagmiAdapter({
           'rsvpToEvent',
           'updateProfile',
           'createEvent',
+          'claimNewUserReward',
+          'transfer',
         ],
       },
     },

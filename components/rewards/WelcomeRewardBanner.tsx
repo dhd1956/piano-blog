@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount, useWriteContract, useReconnect } from 'wagmi'
+import { useAccount, useWriteContract } from 'wagmi'
 import { PXP_REWARDS_ADDRESS, PXP_REWARDS_ABI, REWARD_AMOUNTS } from '@/utils/rewards-contract'
 import { useAuth } from '@/context/AuthContext'
 
@@ -12,12 +12,11 @@ interface WelcomeRewardBannerProps {
 }
 
 export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBannerProps) {
-  const { address, isConnected } = useAccount()
+  const { address } = useAccount()
   const { user, refreshUser } = useAuth()
   const walletAddress = userAddress || address || user?.walletAddress || undefined
 
   const { writeContractAsync } = useWriteContract()
-  const { reconnect, connectors } = useReconnect()
 
   const [eligible, setEligible] = useState(false)
   const [claiming, setClaiming] = useState(false)
@@ -59,13 +58,6 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
           body: JSON.stringify({ address: walletAddress }),
         })
         return
-      }
-
-      // Ensure wagmi connector is active (reconnectOnMount is disabled)
-      if (!isConnected) {
-        reconnect({ connectors })
-        // Give reconnection a moment to establish
-        await new Promise((r) => setTimeout(r, 1000))
       }
 
       const hash = await writeContractAsync({
