@@ -37,7 +37,10 @@ export default function TipModal({
     abi: ERC20_ABI,
     functionName: 'balanceOf',
     args: [walletAddress as `0x${string}`],
-    query: { enabled: !!walletAddress },
+    query: {
+      enabled: !!walletAddress,
+      staleTime: 0, // Always fetch fresh — user may have just claimed PXP
+    },
   })
 
   // Use wagmi's writeContract hook - this integrates with Reown/AppKit and gas sponsorship

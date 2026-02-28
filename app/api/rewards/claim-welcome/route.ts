@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createWalletClient, http, parseEther, type Hex } from 'viem'
+import { createWalletClient, createPublicClient, http, parseEther, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { getDb } from '@/lib/get-db'
 import { requireAuth } from '@/lib/auth-middleware'
@@ -66,11 +66,16 @@ export async function POST(request: NextRequest) {
 
     if (!isDevelopment && PRIVATE_KEY) {
       // 3. Transfer PXP from platform hot wallet → user's embedded wallet
+      const rpcTransport = http('https://rpc.ankr.com/celo_sepolia', { retryCount: 3 })
       const account = privateKeyToAccount(PRIVATE_KEY)
       const walletClient = createWalletClient({
         account,
         chain: celoSepoliaChain as any,
-        transport: http('https://rpc.ankr.com/celo_sepolia', { retryCount: 3 }),
+        transport: rpcTransport,
+      })
+      const publicClient = createPublicClient({
+        chain: celoSepoliaChain as any,
+        transport: rpcTransport,
       })
 
       txHash = await walletClient.writeContract({
@@ -79,6 +84,13 @@ export async function POST(request: NextRequest) {
         functionName: 'transfer',
         args: [user.walletAddress as `0x${string}`, parseEther(REWARD_AMOUNTS.NEW_USER.toString())],
         chain: celoSepoliaChain as any,
+      })
+
+      // Wait for on-chain confirmation so the balance is readable by the time
+      // the client navigates back to TipModal (Celo Sepolia ~5s block time).
+      await publicClient.waitForTransactionReceipt({
+        hash: txHash as `0x${string}`,
+        timeout: 60_000,
       })
     } else {
       // Development / no PRIVATE_KEY: DB-only (no on-chain transfer)
