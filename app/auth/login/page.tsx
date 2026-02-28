@@ -11,6 +11,11 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { useAppKitReady } from '@/context/ReownProvider'
 
+// How long we wait for the embedded wallet to come online after OTP verification.
+// APP_GET_USER (called inside connectExternal) has no built-in timeout, so we
+// add one ourselves. 45 s is generous — typical response is < 5 s.
+const CONNECT_TIMEOUT_MS = 45_000
+
 type Step = 'email' | 'otp'
 
 function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
@@ -85,22 +90,66 @@ function LoginForm() {
       const authConnector = ConnectorController.getAuthConnector()
       if (!authConnector) throw new Error('Auth service not available')
 
+      // Step 1 — verify OTP with Reown's embedded wallet iframe
       await (authConnector.provider as any).connectOtp({ otp: otpValue })
 
       const namespace = ChainController.state.activeChain
       if (!namespace) throw new Error('Chain not initialized — please refresh')
 
-      await ConnectionController.connectExternal(authConnector as any, namespace)
-      // OAuthEmailCapture fires next: profile API → embedded-login → refreshUser → redirect
+      // Step 2 — trigger connectExternal in the background.
+      // We do NOT await it because APP_GET_USER (called inside connectExternal)
+      // has no timeout and can hang indefinitely. Instead we race two signals:
+      //   A) connectExternal resolves → wagmi is fully connected → OAuthEmailCapture handles the rest
+      //   B) ChainController.activeCaipAddress is set (AppKit's internal onConnect callback
+      //      fires on FRAME_GET_USER_SUCCESS) → we call the backend directly
+      // Whichever comes first wins and the other is ignored.
+      await new Promise<void>((resolve, reject) => {
+        let settled = false
+        const settle = (fn: () => void) => {
+          if (settled) return
+          settled = true
+          unsubscribe()
+          clearTimeout(timer)
+          fn()
+        }
+
+        // Watch for address — AppKit's onConnect fires even without our connectExternal
+        const unsubscribe = ChainController.subscribeKey(
+          'activeCaipAddress',
+          (caipAddress: string | undefined) => {
+            if (caipAddress) settle(resolve)
+          }
+        )
+
+        const timer = setTimeout(() => {
+          settle(() => reject(new Error('timeout')))
+        }, CONNECT_TIMEOUT_MS)
+
+        // Fire connectExternal — if it resolves first, good; if it hangs, the
+        // ChainController subscription or the timer will settle the promise.
+        ConnectionController.connectExternal(authConnector as any, namespace)
+          .then(() => settle(resolve))
+          .catch((e: unknown) => settle(() => reject(e)))
+      })
+
+      // OAuthEmailCapture handles profile API → embedded-login → refreshUser → redirect
+      // (it watches useAppKitAccount which reflects ChainController.activeCaipAddress)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Verification failed'
-      setError(
-        msg.includes('invalid') || msg.includes('incorrect') || msg.includes('expired')
-          ? 'Incorrect or expired code — please try again'
-          : 'Verification failed — please try again'
-      )
-      setOtp(['', '', '', '', '', ''])
-      setTimeout(() => otpRefs.current[0]?.focus(), 50)
+      if (msg === 'timeout') {
+        // The embedded wallet iframe didn't respond within the timeout.
+        // Auth may still succeed in the background via OAuthEmailCapture — if
+        // so, the page will redirect automatically. Otherwise show a retry prompt.
+        setError('Taking longer than expected — you may be redirected shortly, or try again.')
+      } else if (msg.includes('invalid') || msg.includes('incorrect') || msg.includes('expired')) {
+        setError('Incorrect or expired code — please try again')
+        setOtp(['', '', '', '', '', ''])
+        setTimeout(() => otpRefs.current[0]?.focus(), 50)
+      } else {
+        setError('Verification failed — please try again')
+        setOtp(['', '', '', '', '', ''])
+        setTimeout(() => otpRefs.current[0]?.focus(), 50)
+      }
     } finally {
       setIsVerifying(false)
     }
