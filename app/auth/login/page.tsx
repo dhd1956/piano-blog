@@ -10,6 +10,7 @@ import {
 } from '@reown/appkit-controllers'
 import { useAuth } from '@/context/AuthContext'
 import { useAppKitReady } from '@/context/ReownProvider'
+import { celoSepolia } from '@/config/reown'
 
 // How long we wait for the embedded wallet to respond to APP_GET_USER.
 // APP_GET_USER has no built-in timeout in Reown's code.  15 s is generous —
@@ -107,9 +108,9 @@ function LoginForm() {
       //
       // Calling provider.getUser() directly:
       //   - creates a fresh APP_GET_USER request each time (new id, no caching)
-      //   - chainId=1 (Ethereum mainnet) is preloaded in Reown's iframe; Celo
-      //     requires fetching chain data which can cause multi-second delays
-      //   - the wallet address is the same regardless of chainId
+      //   - uses the actual Celo Sepolia chain ID so AppKit's internal state
+      //     matches our configured networks (avoids a "Wrong Network" modal overlay
+      //     that would block subsequent UI interactions like TipModal)
       //
       // We also race against ChainController.activeCaipAddress in case AppKit's
       // own onConnect callback fires concurrently.
@@ -139,9 +140,11 @@ function LoginForm() {
           CONNECT_TIMEOUT_MS
         )
 
-        // Direct provider call — no connectSocialPromise, fresh request each retry
+        // Direct provider call — no connectSocialPromise, fresh request each retry.
+        // Use the actual Celo Sepolia chain ID so AppKit's internal state matches
+        // our configured networks and doesn't open a "Wrong Network" modal overlay.
         ;(authConnector.provider as any)
-          .getUser({ chainId: 1 })
+          .getUser({ chainId: celoSepolia.id })
           .then((user: any) => {
             const addr = user?.address
             if (addr) settle(() => resolve(addr))
