@@ -11,10 +11,10 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { useAppKitReady } from '@/context/ReownProvider'
 
-// How long we wait for the embedded wallet to come online after OTP verification.
-// APP_GET_USER (called inside connectExternal) has no built-in timeout, so we
-// add one ourselves. 45 s is generous — typical response is < 5 s.
-const CONNECT_TIMEOUT_MS = 45_000
+// How long we wait for the embedded wallet to respond to APP_GET_USER.
+// APP_GET_USER has no built-in timeout in Reown's code.  15 s is generous —
+// typical response is < 2 s when the iframe is warmed up.
+const CONNECT_TIMEOUT_MS = 15_000
 
 type Step = 'email' | 'otp'
 
@@ -31,7 +31,7 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
 function LoginForm() {
   const searchParams = useSearchParams()
   const { open } = useAppKit()
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const redirectTo = searchParams.get('redirect') || '/'
 
   const [step, setStep] = useState<Step>('email')
@@ -42,6 +42,8 @@ function LoginForm() {
   const [error, setError] = useState('')
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  // Track whether OTP has already been verified so retries skip connectOtp
+  const otpVerifiedRef = useRef(false)
 
   // Redirect after authentication
   useEffect(() => {
@@ -90,20 +92,28 @@ function LoginForm() {
       const authConnector = ConnectorController.getAuthConnector()
       if (!authConnector) throw new Error('Auth service not available')
 
-      // Step 1 — verify OTP with Reown's embedded wallet iframe
-      await (authConnector.provider as any).connectOtp({ otp: otpValue })
+      // Step 1 — verify OTP (only on first attempt; skip on retry after timeout)
+      if (!otpVerifiedRef.current) {
+        await (authConnector.provider as any).connectOtp({ otp: otpValue })
+        otpVerifiedRef.current = true
+      }
 
-      const namespace = ChainController.state.activeChain
-      if (!namespace) throw new Error('Chain not initialized — please refresh')
-
-      // Step 2 — trigger connectExternal in the background.
-      // We do NOT await it because APP_GET_USER (called inside connectExternal)
-      // has no timeout and can hang indefinitely. Instead we race two signals:
-      //   A) connectExternal resolves → wagmi is fully connected → OAuthEmailCapture handles the rest
-      //   B) ChainController.activeCaipAddress is set (AppKit's internal onConnect callback
-      //      fires on FRAME_GET_USER_SUCCESS) → we call the backend directly
-      // Whichever comes first wins and the other is ignored.
-      await new Promise<void>((resolve, reject) => {
+      // Step 2 — get wallet address directly from provider.getUser().
+      //
+      // We bypass ConnectionController.connectExternal() entirely because:
+      //   - connectExternal → AuthConnector.connect() caches a "connectSocialPromise"
+      //   - if APP_GET_USER hangs, that promise never settles, and every retry
+      //     awaits the same hung promise → permanent deadlock
+      //
+      // Calling provider.getUser() directly:
+      //   - creates a fresh APP_GET_USER request each time (new id, no caching)
+      //   - chainId=1 (Ethereum mainnet) is preloaded in Reown's iframe; Celo
+      //     requires fetching chain data which can cause multi-second delays
+      //   - the wallet address is the same regardless of chainId
+      //
+      // We also race against ChainController.activeCaipAddress in case AppKit's
+      // own onConnect callback fires concurrently.
+      const address = await new Promise<string>((resolve, reject) => {
         let settled = false
         const settle = (fn: () => void) => {
           if (settled) return
@@ -113,39 +123,67 @@ function LoginForm() {
           fn()
         }
 
-        // Watch for address — AppKit's onConnect fires even without our connectExternal
         const unsubscribe = ChainController.subscribeKey(
           'activeCaipAddress',
           (caipAddress: string | undefined) => {
-            if (caipAddress) settle(resolve)
+            if (caipAddress) {
+              // CAIP address format: "eip155:1:0x1234..."
+              const parts = caipAddress.split(':')
+              settle(() => resolve(parts[parts.length - 1]))
+            }
           }
         )
 
-        const timer = setTimeout(() => {
-          settle(() => reject(new Error('timeout')))
-        }, CONNECT_TIMEOUT_MS)
+        const timer = setTimeout(
+          () => settle(() => reject(new Error('timeout'))),
+          CONNECT_TIMEOUT_MS
+        )
 
-        // Fire connectExternal — if it resolves first, good; if it hangs, the
-        // ChainController subscription or the timer will settle the promise.
-        ConnectionController.connectExternal(authConnector as any, namespace)
-          .then(() => settle(resolve))
+        // Direct provider call — no connectSocialPromise, fresh request each retry
+        ;(authConnector.provider as any)
+          .getUser({ chainId: 1 })
+          .then((user: any) => {
+            const addr = user?.address
+            if (addr) settle(() => resolve(addr))
+            else settle(() => reject(new Error('Could not retrieve wallet address')))
+          })
           .catch((e: unknown) => settle(() => reject(e)))
       })
 
-      // OAuthEmailCapture handles profile API → embedded-login → refreshUser → redirect
-      // (it watches useAppKitAccount which reflects ChainController.activeCaipAddress)
+      // Step 3 — create backend session
+      await fetch('/api/auth/embedded-login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: address, email, authProvider: 'email' }),
+      })
+
+      // Step 4 — ensure profile exists (creates user record if new)
+      const profileRes = await fetch(
+        `/api/profile/${address}?email=${encodeURIComponent(email)}&emailVerified=true&authProvider=email`
+      )
+      const profileData = profileRes.ok ? await profileRes.json() : null
+
+      // Step 5 — sync auth context → triggers redirect via isAuthenticated useEffect
+      await refreshUser()
+
+      // New users without a username need to complete profile setup
+      if (profileData?.profile && !profileData.profile.username) {
+        window.location.href = '/profile/setup'
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Verification failed'
       if (msg === 'timeout') {
-        // The embedded wallet iframe didn't respond within the timeout.
-        // Auth may still succeed in the background via OAuthEmailCapture — if
-        // so, the page will redirect automatically. Otherwise show a retry prompt.
-        setError('Taking longer than expected — you may be redirected shortly, or try again.')
+        // OTP is already verified — preserve the digits so the user can retry
+        // the getUser step without re-entering the code.
+        setError('Connection is taking longer than expected — please try again.')
       } else if (msg.includes('invalid') || msg.includes('incorrect') || msg.includes('expired')) {
+        otpVerifiedRef.current = false
         setError('Incorrect or expired code — please try again')
         setOtp(['', '', '', '', '', ''])
         setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else {
+        otpVerifiedRef.current = false
         setError('Verification failed — please try again')
         setOtp(['', '', '', '', '', ''])
         setTimeout(() => otpRefs.current[0]?.focus(), 50)
@@ -188,11 +226,14 @@ function LoginForm() {
 
   const handleResend = async () => {
     setError('')
+    otpVerifiedRef.current = false
+    setOtp(['', '', '', '', '', ''])
     try {
       const authConnector = ConnectorController.getAuthConnector()
       if (!authConnector) throw new Error('Auth service not available')
 
       await (authConnector.provider as any).connectEmail({ email })
+      setTimeout(() => otpRefs.current[0]?.focus(), 50)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resend code')
     }
@@ -202,6 +243,7 @@ function LoginForm() {
     setStep('email')
     setOtp(['', '', '', '', '', ''])
     setError('')
+    otpVerifiedRef.current = false
   }
 
   if (isLoading) {
