@@ -44,7 +44,7 @@ async function ensureAppKit() {
     metadata,
     features: {
       analytics: true,
-      email: true,
+      email: false,
       socials: ['google'],
       emailShowWallets: false,
       onramp: !paymasterUrl,

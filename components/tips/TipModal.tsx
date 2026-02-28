@@ -93,7 +93,7 @@ export default function TipModal({
         onTipSent(txHash, amount)
       }, 2000)
     }
-  }, [isConfirmed, txHash])
+  }, [isConfirmed, txHash]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const error = writeError || confirmError
