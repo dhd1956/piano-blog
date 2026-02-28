@@ -294,12 +294,20 @@ function LoginForm() {
               ))}
             </div>
 
-            {isVerifying && (
-              <div className="mb-3 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <Spinner className="h-4 w-4" />
-                Verifying...
-              </div>
-            )}
+            <button
+              onClick={() => submitOtp(otp.join(''))}
+              disabled={otp.some((d) => !d) || isVerifying}
+              className="mb-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isVerifying ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="h-4 w-4" />
+                  Verifying...
+                </span>
+              ) : (
+                'Verify code'
+              )}
+            </button>
 
             {error && (
               <p className="mb-3 text-sm text-red-600 dark:text-red-400" role="alert">
