@@ -1,22 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount, useWriteContract } from 'wagmi'
-import { PXP_REWARDS_ADDRESS, PXP_REWARDS_ABI, REWARD_AMOUNTS } from '@/utils/rewards-contract'
+import { PXP_REWARDS_ADDRESS, REWARD_AMOUNTS } from '@/utils/rewards-contract'
 import { useAuth } from '@/context/AuthContext'
-
-const isDevelopment = PXP_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
 
 interface WelcomeRewardBannerProps {
   userAddress?: string
 }
 
 export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBannerProps) {
-  const { address } = useAccount()
   const { user, refreshUser } = useAuth()
-  const walletAddress = userAddress || address || user?.walletAddress || undefined
-
-  const { writeContractAsync } = useWriteContract()
+  const walletAddress = userAddress || user?.walletAddress || undefined
 
   const [eligible, setEligible] = useState(false)
   const [claiming, setClaiming] = useState(false)
@@ -26,17 +20,12 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
   useEffect(() => {
     if (!walletAddress) return
 
-    // Check eligibility
     fetch(`/api/rewards/check-welcome?address=${walletAddress}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.eligible) {
-          setEligible(true)
-        }
+        if (data.eligible) setEligible(true)
       })
-      .catch((error) => {
-        console.error('Error checking reward eligibility:', error)
-      })
+      .catch((err) => console.error('Error checking reward eligibility:', err))
   }, [walletAddress])
 
   const handleClaim = async () => {
@@ -46,39 +35,29 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
     setMessage('')
 
     try {
-      // Development mode: simulate the claim when contract isn't deployed
-      if (isDevelopment) {
-        setMessage(
-          `🎉 Success! You earned ${REWARD_AMOUNTS.NEW_USER} PXP! (Development mode — no real tokens transferred)`
-        )
-        setEligible(false)
-        await fetch('/api/rewards/mark-claimed', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: walletAddress }),
-        })
-        return
+      const res = await fetch('/api/rewards/claim-welcome', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to claim reward')
       }
 
-      const hash = await writeContractAsync({
-        address: PXP_REWARDS_ADDRESS as `0x${string}`,
-        abi: PXP_REWARDS_ABI,
-        functionName: 'claimNewUserReward',
-      })
+      const txSuffix = data.hash
+        ? ` Tx: ${(data.hash as string).slice(0, 10)}…`
+        : PXP_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
+          ? ' (dev mode)'
+          : ''
 
-      setMessage(`🎉 Success! You earned ${REWARD_AMOUNTS.NEW_USER} PXP! Transaction: ${hash}`)
+      setMessage(`🎉 You earned ${REWARD_AMOUNTS.NEW_USER} PXP!${txSuffix}`)
       setEligible(false)
-
-      await fetch('/api/rewards/mark-claimed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: walletAddress }),
-      })
+      await refreshUser()
     } catch (error: any) {
-      console.error('Error claiming reward:', error)
-      setMessage(
-        `❌ ${error.shortMessage || error.message || 'Failed to claim reward. Please try again.'}`
-      )
+      console.error('[WelcomeRewardBanner] Error claiming reward:', error)
+      setMessage(`❌ ${error.message || 'Failed to claim reward. Please try again.'}`)
     } finally {
       setClaiming(false)
     }
