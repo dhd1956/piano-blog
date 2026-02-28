@@ -167,8 +167,9 @@ function LoginForm() {
       // Step 5 — sync auth context → triggers redirect via isAuthenticated useEffect
       await refreshUser()
 
-      // New users without a username need to complete profile setup
-      if (profileData?.profile && !profileData.profile.username) {
+      // Only redirect new users (no username) to profile setup when there is no
+      // specific destination — if they came from /venues or similar, take them there.
+      if (profileData?.profile && !profileData.profile.username && redirectTo === '/') {
         window.location.href = '/profile/setup'
       }
     } catch (err) {
