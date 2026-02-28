@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { PXP_TOKEN_ADDRESS, ERC20_ABI } from '@/utils/rewards-contract'
@@ -32,7 +31,7 @@ export default function TipModal({
   const [errorMessage, setErrorMessage] = useState('')
 
   // Read sender's on-chain PXP balance
-  const { data: pxpBalance } = useReadContract({
+  const { data: pxpBalance, refetch: refetchBalance } = useReadContract({
     address: PXP_TOKEN_ADDRESS as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'balanceOf',
@@ -42,6 +41,11 @@ export default function TipModal({
       staleTime: 0, // Always fetch fresh — user may have just claimed PXP
     },
   })
+
+  // Welcome reward claim (inline, so user never has to leave the modal)
+  const [welcomeEligible, setWelcomeEligible] = useState<boolean | null>(null)
+  const [isClaiming, setIsClaiming] = useState(false)
+  const [claimError, setClaimError] = useState('')
 
   // Use wagmi's writeContract hook - this integrates with Reown/AppKit and gas sponsorship
   const {
@@ -115,6 +119,37 @@ export default function TipModal({
       setModalState('error')
     }
   }, [writeError, confirmError])
+
+  // Check welcome reward eligibility when the balance is below the minimum preset
+  const balanceIsLow =
+    pxpBalance !== undefined && parseFloat(formatEther(pxpBalance as bigint)) < PRESET_AMOUNTS[0]
+
+  useEffect(() => {
+    if (!balanceIsLow || !walletAddress) return
+    fetch(`/api/rewards/check-welcome?address=${walletAddress}`)
+      .then((r) => r.json())
+      .then((d) => setWelcomeEligible(!!d.eligible))
+      .catch(() => setWelcomeEligible(false))
+  }, [balanceIsLow, walletAddress])
+
+  const handleClaimWelcomeReward = async () => {
+    setIsClaiming(true)
+    setClaimError('')
+    try {
+      const res = await fetch('/api/rewards/claim-welcome', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to claim')
+      setWelcomeEligible(false)
+      await refetchBalance()
+    } catch (err: any) {
+      setClaimError(err.message || 'Claim failed — please try again')
+    } finally {
+      setIsClaiming(false)
+    }
+  }
 
   const getAmount = (): number => {
     if (customAmount) {
@@ -294,14 +329,23 @@ export default function TipModal({
                     </span>
                   )}
                 </div>
-                {/* No balance warning */}
+                {/* No balance warning + inline welcome reward claim */}
                 {balanceInPXP !== null && balanceInPXP < PRESET_AMOUNTS[0] && (
-                  <p className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                    You have {balanceInPXP.toFixed(2)} PXP — not enough to send a tip.{' '}
-                    <Link href="/profile" className="underline">
-                      Earn PXP →
-                    </Link>
-                  </p>
+                  <div className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                    <p>You have {balanceInPXP.toFixed(2)} PXP — not enough to send a tip.</p>
+                    {welcomeEligible === true && (
+                      <button
+                        onClick={handleClaimWelcomeReward}
+                        disabled={isClaiming}
+                        className="mt-2 rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                      >
+                        {isClaiming ? 'Claiming… (~5s)' : '🎁 Claim 25 PXP welcome reward'}
+                      </button>
+                    )}
+                    {claimError && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{claimError}</p>
+                    )}
+                  </div>
                 )}
                 <div className="mb-3 flex gap-2">
                   {PRESET_AMOUNTS.map((amount) => {
