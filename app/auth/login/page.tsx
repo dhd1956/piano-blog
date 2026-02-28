@@ -153,6 +153,15 @@ function LoginForm() {
           .catch((e: unknown) => settle(() => reject(e)))
       })
 
+      // Fire connectExternal in background so wagmi's connector is ready for writeContract.
+      // The iframe already has a valid session so this resolves quickly.
+      ConnectionController.connectExternal(
+        { id: authConnector.id, type: authConnector.type, provider: authConnector.provider } as any,
+        'eip155'
+      ).catch(() => {
+        // Best-effort — embedded login session is already established above
+      })
+
       // Step 3 — create backend session
       await fetch('/api/auth/embedded-login', {
         method: 'POST',

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { PXP_TOKEN_ADDRESS, ERC20_ABI } from '@/utils/rewards-contract'
@@ -290,6 +291,15 @@ export default function TipModal({
                     </span>
                   )}
                 </div>
+                {/* No balance warning */}
+                {balanceInPXP !== null && balanceInPXP < PRESET_AMOUNTS[0] && (
+                  <p className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                    You have {balanceInPXP.toFixed(2)} PXP — not enough to send a tip.{' '}
+                    <Link href="/profile" className="underline">
+                      Earn PXP →
+                    </Link>
+                  </p>
+                )}
                 <div className="mb-3 flex gap-2">
                   {PRESET_AMOUNTS.map((amount) => {
                     const canAfford = balanceInPXP === null || amount <= balanceInPXP

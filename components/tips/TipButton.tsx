@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
+import { useAuth } from '@/context/AuthContext'
 import TipModal from './TipModal'
 
 interface TipButtonProps {
@@ -18,7 +19,9 @@ export default function TipButton({
   className = '',
 }: TipButtonProps) {
   const [showModal, setShowModal] = useState(false)
-  const { address: walletAddress } = useAppKitAccount()
+  const { address: appKitAddress } = useAppKitAccount()
+  const { user } = useAuth()
+  const walletAddress = appKitAddress || user?.walletAddress || undefined
 
   return (
     <>

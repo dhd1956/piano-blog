@@ -59,6 +59,7 @@ async function ensureAppKit() {
       '--w3m-font-family': 'var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif',
       '--w3m-border-radius-master': '8px',
     },
+    allowUnsupportedChain: true,
     ...(paymasterUrl && { paymasterServiceUrl: paymasterUrl }),
   })
 
