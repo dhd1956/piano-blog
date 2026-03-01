@@ -3,7 +3,7 @@ import { createWalletClient, createPublicClient, http, parseEther, type Hex } fr
 import { privateKeyToAccount } from 'viem/accounts'
 import { getDb } from '@/lib/get-db'
 import { requireAuth } from '@/lib/auth-middleware'
-import { PXP_TOKEN_ADDRESS, PXP_REWARDS_ADDRESS, REWARD_AMOUNTS } from '@/utils/rewards-contract'
+import { PXP_TOKEN_ADDRESS, REWARD_AMOUNTS } from '@/utils/rewards-contract'
 
 // Minimal Celo Sepolia chain for viem (no wagmi dependency in server code)
 const celoSepoliaChain = {
@@ -13,7 +13,6 @@ const celoSepoliaChain = {
   rpcUrls: { default: { http: ['https://rpc.ankr.com/celo_sepolia'] } },
 } as const
 
-// Minimal ERC-20 transfer ABI for viem
 const TRANSFER_ABI = [
   {
     name: 'transfer',
@@ -27,8 +26,17 @@ const TRANSFER_ABI = [
   },
 ] as const
 
+const BALANCE_OF_ABI = [
+  {
+    name: 'balanceOf',
+    type: 'function' as const,
+    stateMutability: 'view' as const,
+    inputs: [{ name: '_owner', type: 'address' }],
+    outputs: [{ name: 'balance', type: 'uint256' }],
+  },
+] as const
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY as Hex | undefined
-const isDevelopment = PXP_REWARDS_ADDRESS === '0x0000000000000000000000000000000000000000'
 
 /**
  * POST /api/rewards/claim-welcome
@@ -50,8 +58,13 @@ export async function POST(request: NextRequest) {
     }
 
     const address = user.walletAddress.toLowerCase()
+    const rpcTransport = http('https://rpc.ankr.com/celo_sepolia', { retryCount: 3 })
+    const publicClient = createPublicClient({
+      chain: celoSepoliaChain as any,
+      transport: rpcTransport,
+    })
 
-    // 2. Check DB eligibility (fast path — avoids RPC call)
+    // 2. Check DB eligibility
     const db = await getDb()
     const dbUser = await db.user.findUnique({
       where: { walletAddress: address },
@@ -59,21 +72,41 @@ export async function POST(request: NextRequest) {
     })
 
     if (dbUser?.hasClaimedNewUserReward) {
-      return NextResponse.json({ error: 'Welcome reward already claimed' }, { status: 409 })
+      // DB says claimed — verify on-chain balance.
+      // If balance > 0 the user genuinely has their PXP; block re-claim.
+      // If balance = 0 the previous claim failed silently; reset and proceed.
+      const onChainBalance = await publicClient.readContract({
+        address: PXP_TOKEN_ADDRESS as `0x${string}`,
+        abi: BALANCE_OF_ABI,
+        functionName: 'balanceOf',
+        args: [user.walletAddress as `0x${string}`],
+      })
+
+      if ((onChainBalance as bigint) > BigInt(0)) {
+        return NextResponse.json({ error: 'Welcome reward already claimed' }, { status: 409 })
+      }
+
+      // Reset the false claim so the transfer below can proceed
+      console.log('[claim-welcome] resetting false DB claim for', address)
+      await db.user.update({
+        where: { walletAddress: address },
+        data: {
+          hasClaimedNewUserReward: false,
+          totalCAVEarned: { decrement: REWARD_AMOUNTS.NEW_USER },
+        },
+      })
     }
 
     let txHash: string | undefined
 
-    if (!isDevelopment && PRIVATE_KEY) {
-      // 3. Transfer PXP from platform hot wallet → user's embedded wallet
-      const rpcTransport = http('https://rpc.ankr.com/celo_sepolia', { retryCount: 3 })
+    if (PRIVATE_KEY) {
+      // 3. Transfer PXP from platform hot wallet → user's embedded wallet.
+      // Gate on PRIVATE_KEY only — not on whether the *rewards* contract is
+      // deployed (PXP_REWARDS_ADDRESS). A direct ERC-20 transfer works even
+      // when the rewards contract isn't deployed on this network.
       const account = privateKeyToAccount(PRIVATE_KEY)
       const walletClient = createWalletClient({
         account,
-        chain: celoSepoliaChain as any,
-        transport: rpcTransport,
-      })
-      const publicClient = createPublicClient({
         chain: celoSepoliaChain as any,
         transport: rpcTransport,
       })
@@ -93,8 +126,9 @@ export async function POST(request: NextRequest) {
         timeout: 60_000,
       })
     } else {
-      // Development / no PRIVATE_KEY: DB-only (no on-chain transfer)
-      console.log('[claim-welcome] dev mode — skipping on-chain transfer')
+      console.warn(
+        '[claim-welcome] PRIVATE_KEY not configured — DB-only claim (no on-chain transfer)'
+      )
     }
 
     // 4. Mark as claimed in DB
@@ -106,11 +140,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({
-      success: true,
-      hash: txHash,
-      amount: REWARD_AMOUNTS.NEW_USER,
-    })
+    return NextResponse.json({ success: true, hash: txHash, amount: REWARD_AMOUNTS.NEW_USER })
   } catch (error: any) {
     console.error('[claim-welcome] Error:', error)
     return NextResponse.json(
