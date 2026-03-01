@@ -3,11 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAppKit } from '@reown/appkit/react'
-import {
-  ConnectorController,
-  ConnectionController,
-  ChainController,
-} from '@reown/appkit-controllers'
+import { ConnectorController, ChainController } from '@reown/appkit-controllers'
 import { useAuth } from '@/context/AuthContext'
 import { useAppKitReady } from '@/context/ReownProvider'
 import { celoSepolia } from '@/config/reown'
@@ -31,7 +27,7 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
 // Inner component — only rendered after createAppKit is initialized
 function LoginForm() {
   const searchParams = useSearchParams()
-  const { open } = useAppKit()
+  const { open, close } = useAppKit()
   const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const redirectTo = searchParams.get('redirect') || '/'
 
@@ -71,10 +67,30 @@ function LoginForm() {
         // Focus first OTP box after render
         setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else if (action === 'CONNECT') {
-        // Device already verified — connect directly
-        const namespace = ChainController.state.activeChain
-        if (namespace) {
-          await ConnectionController.connectExternal(authConnector as any, namespace)
+        // Device already verified — bypass connectExternal (which opens the AppKit modal)
+        // and use the same direct getUser approach as submitOtp.
+        const userInfo = await (authConnector.provider as any).getUser({ chainId: celoSepolia.id })
+        const address = userInfo?.address
+        if (!address) throw new Error('Could not retrieve wallet address')
+
+        close() // Dismiss any AppKit UI triggered by getUser
+
+        await fetch('/api/auth/embedded-login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress: address, email, authProvider: 'email' }),
+        })
+
+        const profileRes = await fetch(
+          `/api/profile/${address}?email=${encodeURIComponent(email)}&emailVerified=true&authProvider=email`
+        )
+        const profileData = profileRes.ok ? await profileRes.json() : null
+
+        await refreshUser()
+
+        if (profileData?.profile && !profileData.profile.username && redirectTo === '/') {
+          window.location.href = '/profile/setup'
         }
       }
     } catch (err) {
@@ -152,6 +168,8 @@ function LoginForm() {
           })
           .catch((e: unknown) => settle(() => reject(e)))
       })
+
+      close() // Dismiss any AppKit UI triggered by the auth flow
 
       // Step 3 — create backend session
       await fetch('/api/auth/embedded-login', {
