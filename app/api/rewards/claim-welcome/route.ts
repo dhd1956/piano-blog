@@ -57,7 +57,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No wallet address on account' }, { status: 400 })
     }
 
+    // EOA address from JWT — used for DB deduplication
     const address = user.walletAddress.toLowerCase()
+
+    // Transfer target: use the smart account address (SCA) when account abstraction
+    // is active. The client passes it as `targetAddress`; otherwise fall back to EOA.
+    const body = await request.json().catch(() => ({}))
+    const transferTo: string = (body.targetAddress as string) || user.walletAddress
     const rpcTransport = http('https://rpc.ankr.com/celo_sepolia', { retryCount: 3 })
     const publicClient = createPublicClient({
       chain: celoSepoliaChain as any,
@@ -72,14 +78,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (dbUser?.hasClaimedNewUserReward) {
-      // DB says claimed — verify on-chain balance.
+      // DB says claimed — verify on-chain balance at the transfer target.
       // If balance > 0 the user genuinely has their PXP; block re-claim.
       // If balance = 0 the previous claim failed silently; reset and proceed.
       const onChainBalance = await publicClient.readContract({
         address: PXP_TOKEN_ADDRESS as `0x${string}`,
         abi: BALANCE_OF_ABI,
         functionName: 'balanceOf',
-        args: [user.walletAddress as `0x${string}`],
+        args: [transferTo as `0x${string}`],
       })
 
       if ((onChainBalance as bigint) > BigInt(0)) {
@@ -97,39 +103,38 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    let txHash: string | undefined
-
-    if (PRIVATE_KEY) {
-      // 3. Transfer PXP from platform hot wallet → user's embedded wallet.
-      // Gate on PRIVATE_KEY only — not on whether the *rewards* contract is
-      // deployed (PXP_REWARDS_ADDRESS). A direct ERC-20 transfer works even
-      // when the rewards contract isn't deployed on this network.
-      const account = privateKeyToAccount(PRIVATE_KEY)
-      const walletClient = createWalletClient({
-        account,
-        chain: celoSepoliaChain as any,
-        transport: rpcTransport,
-      })
-
-      txHash = await walletClient.writeContract({
-        address: PXP_TOKEN_ADDRESS as `0x${string}`,
-        abi: TRANSFER_ABI,
-        functionName: 'transfer',
-        args: [user.walletAddress as `0x${string}`, parseEther(REWARD_AMOUNTS.NEW_USER.toString())],
-        chain: celoSepoliaChain as any,
-      })
-
-      // Wait for on-chain confirmation so the balance is readable by the time
-      // the client navigates back to TipModal (Celo Sepolia ~5s block time).
-      await publicClient.waitForTransactionReceipt({
-        hash: txHash as `0x${string}`,
-        timeout: 60_000,
-      })
-    } else {
-      console.warn(
-        '[claim-welcome] PRIVATE_KEY not configured — DB-only claim (no on-chain transfer)'
+    if (!PRIVATE_KEY) {
+      return NextResponse.json(
+        { error: 'Reward distribution is not configured on this server' },
+        { status: 503 }
       )
     }
+
+    // 3. Transfer PXP from platform hot wallet → user's embedded wallet.
+    // Gate on PRIVATE_KEY only — not on whether the *rewards* contract is
+    // deployed (PXP_REWARDS_ADDRESS). A direct ERC-20 transfer works even
+    // when the rewards contract isn't deployed on this network.
+    const account = privateKeyToAccount(PRIVATE_KEY)
+    const walletClient = createWalletClient({
+      account,
+      chain: celoSepoliaChain as any,
+      transport: rpcTransport,
+    })
+
+    const txHash = await walletClient.writeContract({
+      address: PXP_TOKEN_ADDRESS as `0x${string}`,
+      abi: TRANSFER_ABI,
+      functionName: 'transfer',
+      args: [transferTo as `0x${string}`, parseEther(REWARD_AMOUNTS.NEW_USER.toString())],
+      chain: celoSepoliaChain as any,
+    })
+
+    // Wait for on-chain confirmation so the balance is readable by the time
+    // the client navigates back to TipModal (Celo Sepolia ~5s block time).
+    await publicClient.waitForTransactionReceipt({
+      hash: txHash as `0x${string}`,
+      timeout: 60_000,
+    })
 
     // 4. Mark as claimed in DB
     await db.user.update({

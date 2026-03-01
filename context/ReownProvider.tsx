@@ -93,6 +93,10 @@ async function ensureAppKit() {
   // calls SIWXUtil.initializeIfEnabled() which opens SIWXSignMessage if no
   // existing SIWX session is found — even though the user is already logged in
   // via our backend (embedded-login API). Clearing SIWX prevents this popup.
+  //
+  // Note: SIWX signing does not work for email OTP (the Reown iframe returns no
+  // signature for OTP auth, so clicking "Sign" does nothing). Backend sessions
+  // are created directly via /api/auth/embedded-login for both OTP and OAuth paths.
   OptionsController.setSIWX(null as any)
 }
 

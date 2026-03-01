@@ -46,6 +46,7 @@ export default function TipModal({
   const [welcomeEligible, setWelcomeEligible] = useState<boolean | null>(null)
   const [isClaiming, setIsClaiming] = useState(false)
   const [claimError, setClaimError] = useState('')
+  const [claimSuccess, setClaimSuccess] = useState(false)
 
   // Use wagmi's writeContract hook - this integrates with Reown/AppKit and gas sponsorship
   const {
@@ -139,11 +140,23 @@ export default function TipModal({
       const res = await fetch('/api/rewards/claim-welcome', {
         method: 'POST',
         credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        // walletAddress is the smart account address (SCA) when account abstraction
+        // is active. Tips are sent FROM the SCA, so PXP must be claimed TO the SCA.
+        body: JSON.stringify({ targetAddress: walletAddress }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to claim')
       setWelcomeEligible(false)
-      await refetchBalance()
+      setClaimSuccess(true)
+      // Retry refetch up to 4 times (2s apart) — RPC nodes can lag behind
+      // even after the server has confirmed the transaction on-chain.
+      for (let i = 0; i < 4; i++) {
+        const result = await refetchBalance()
+        const balance = result.data ? parseFloat(formatEther(result.data as bigint)) : 0
+        if (balance >= PRESET_AMOUNTS[0]) break
+        await new Promise((r) => setTimeout(r, 2000))
+      }
     } catch (err: any) {
       setClaimError(err.message || 'Claim failed — please try again')
     } finally {
@@ -330,7 +343,17 @@ export default function TipModal({
                   )}
                 </div>
                 {/* No balance warning + inline welcome reward claim */}
-                {balanceInPXP !== null && balanceInPXP < PRESET_AMOUNTS[0] && (
+                {claimSuccess && (
+                  <div className="mb-3 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                    <p>
+                      🎉 25 PXP claimed!{' '}
+                      {balanceInPXP !== null && balanceInPXP >= PRESET_AMOUNTS[0]
+                        ? 'You can now send a tip.'
+                        : 'Balance is updating…'}
+                    </p>
+                  </div>
+                )}
+                {!claimSuccess && balanceInPXP !== null && balanceInPXP < PRESET_AMOUNTS[0] && (
                   <div className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
                     <p>You have {balanceInPXP.toFixed(2)} PXP — not enough to send a tip.</p>
                     {welcomeEligible === true && (
