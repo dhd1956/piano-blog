@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAppKit } from '@reown/appkit/react'
-import { ConnectorController, ChainController } from '@reown/appkit-controllers'
+import { ConnectorController, ChainController, StorageUtil } from '@reown/appkit-controllers'
 import { useAuth } from '@/context/AuthContext'
 import { useAppKitReady } from '@/context/ReownProvider'
 import { celoSepolia } from '@/config/reown'
@@ -74,6 +74,13 @@ function LoginForm() {
         if (!address) throw new Error('Could not retrieve wallet address')
 
         close() // Dismiss any AppKit UI triggered by getUser
+
+        try {
+          StorageUtil.setConnections([{ connectorId: 'AUTH', accounts: [{ address }] }], 'eip155')
+          StorageUtil.removeDisconnectedConnectorId('AUTH', 'eip155')
+        } catch (storageErr) {
+          console.warn('[login] StorageUtil write failed:', storageErr)
+        }
 
         await fetch('/api/auth/embedded-login', {
           method: 'POST',
@@ -170,6 +177,18 @@ function LoginForm() {
       })
 
       close() // Dismiss any AppKit UI triggered by the auth flow
+
+      // Prime AppKit's connections localStorage so syncConnections() can silently
+      // reconnect the auth connector on the destination page. Without this, AppKit
+      // doesn't know the user connected (we bypassed connectExternal to avoid the
+      // connectSocialPromise deadlock), so isConnected stays false, ConnectButton
+      // shows "Sign In", and writeContract has no wagmi account.
+      try {
+        StorageUtil.setConnections([{ connectorId: 'AUTH', accounts: [{ address }] }], 'eip155')
+        StorageUtil.removeDisconnectedConnectorId('AUTH', 'eip155')
+      } catch (storageErr) {
+        console.warn('[login] StorageUtil write failed:', storageErr)
+      }
 
       // Step 3 — create backend session
       await fetch('/api/auth/embedded-login', {
