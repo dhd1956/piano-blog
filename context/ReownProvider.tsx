@@ -84,6 +84,16 @@ async function ensureAppKit() {
   const { OptionsController } = await import('@reown/appkit-controllers')
   const currentFeatures = OptionsController.state.remoteFeatures || {}
   OptionsController.setRemoteFeatures({ ...currentFeatures, reownBranding: false })
+
+  // Prevent the SIWX "Sign In" modal from auto-opening after wallet reconnect.
+  //
+  // Reown's remote features can enable `reownAuthentication` which sets SIWX
+  // (Sign-In With Ethereum) in OptionsController. Whenever the wallet address
+  // changes (e.g. during reconnect after OTP login), the modal web component
+  // calls SIWXUtil.initializeIfEnabled() which opens SIWXSignMessage if no
+  // existing SIWX session is found — even though the user is already logged in
+  // via our backend (embedded-login API). Clearing SIWX prevents this popup.
+  OptionsController.setSIWX(null as any)
 }
 
 // OAuthEmailCapture uses useAppKitAccount (Reown-specific, no wagmi equivalent).

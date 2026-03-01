@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function ProfileSetupPage() {
   const router = useRouter()
   const { address, isConnected } = useAppKitAccount()
+  const { isAuthenticated, isLoading } = useAuth()
 
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -20,12 +22,15 @@ export default function ProfileSetupPage() {
     location: '',
   })
 
-  // Check if user is authenticated
+  // Redirect to login only when auth is resolved and user is definitively not authenticated.
+  // Using isAuthenticated (backend session) rather than isConnected (AppKit wallet state)
+  // because AppKit takes 1-3 seconds to reconnect after login, and checking isConnected
+  // would cause a false redirect to /auth/login for users who just logged in via OTP.
   useEffect(() => {
-    if (!isConnected && !address) {
+    if (!isLoading && !isAuthenticated) {
       router.push('/auth/login')
     }
-  }, [isConnected, address, router])
+  }, [isAuthenticated, isLoading, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
