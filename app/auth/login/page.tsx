@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAppKit } from '@reown/appkit/react'
-import { ConnectorController, ChainController, StorageUtil } from '@reown/appkit-controllers'
+import { ConnectorController, ChainController } from '@reown/appkit-controllers'
 import { useAuth } from '@/context/AuthContext'
 import { useAppKitReady } from '@/context/ReownProvider'
 import { celoSepolia } from '@/config/reown'
@@ -67,20 +67,19 @@ function LoginForm() {
         // Focus first OTP box after render
         setTimeout(() => otpRefs.current[0]?.focus(), 50)
       } else if (action === 'CONNECT') {
-        // Device already verified — bypass connectExternal (which opens the AppKit modal)
-        // and use the same direct getUser approach as submitOtp.
-        const userInfo = await (authConnector.provider as any).getUser({ chainId: celoSepolia.id })
+        // Device already verified — use provider.connect() so that AppKit's
+        // EMAIL_LOGIN_USED_KEY flag is set in localStorage. Without this flag,
+        // syncAuthConnector() on the destination page returns isConnected=false
+        // immediately (without asking the iframe) and never reconnects.
+        const userInfo = await (authConnector.provider as any).connect({ chainId: celoSepolia.id })
         const address = userInfo?.address
         if (!address) throw new Error('Could not retrieve wallet address')
 
-        close() // Dismiss any AppKit UI triggered by getUser
+        close() // Dismiss any AppKit UI triggered by the auth flow
 
-        try {
-          StorageUtil.setConnections([{ connectorId: 'AUTH', accounts: [{ address }] }], 'eip155')
-          StorageUtil.removeDisconnectedConnectorId('AUTH', 'eip155')
-        } catch (storageErr) {
-          console.warn('[login] StorageUtil write failed:', storageErr)
-        }
+        // Persist the active connector ID so ConnectorController.initialize()
+        // on the destination page knows to route to the AUTH reconnect path.
+        ConnectorController.setConnectorId('AUTH' as any, 'eip155' as any)
 
         await fetch('/api/auth/embedded-login', {
           method: 'POST',
@@ -163,11 +162,14 @@ function LoginForm() {
           CONNECT_TIMEOUT_MS
         )
 
-        // Direct provider call — no connectSocialPromise, fresh request each retry.
-        // Use the actual Celo Sepolia chain ID so AppKit's internal state matches
-        // our configured networks and doesn't open a "Wrong Network" modal overlay.
+        // Use provider.connect() (not getUser()) so that AppKit's EMAIL_LOGIN_USED_KEY
+        // flag is set in localStorage. syncAuthConnector() on the destination page
+        // checks this flag — without it, isConnected() short-circuits to false
+        // and the auth connector is never reconnected, leaving isConnected=false
+        // in AppKit (ConnectButton shows "Sign In", writeContract has no account).
+        // provider.connect() calls getUser() internally and sets the flag as a side effect.
         ;(authConnector.provider as any)
-          .getUser({ chainId: celoSepolia.id })
+          .connect({ chainId: celoSepolia.id })
           .then((user: any) => {
             const addr = user?.address
             if (addr) settle(() => resolve(addr))
@@ -178,17 +180,9 @@ function LoginForm() {
 
       close() // Dismiss any AppKit UI triggered by the auth flow
 
-      // Prime AppKit's connections localStorage so syncConnections() can silently
-      // reconnect the auth connector on the destination page. Without this, AppKit
-      // doesn't know the user connected (we bypassed connectExternal to avoid the
-      // connectSocialPromise deadlock), so isConnected stays false, ConnectButton
-      // shows "Sign In", and writeContract has no wagmi account.
-      try {
-        StorageUtil.setConnections([{ connectorId: 'AUTH', accounts: [{ address }] }], 'eip155')
-        StorageUtil.removeDisconnectedConnectorId('AUTH', 'eip155')
-      } catch (storageErr) {
-        console.warn('[login] StorageUtil write failed:', storageErr)
-      }
+      // Persist the active connector ID so ConnectorController.initialize() on
+      // the destination page routes to the AUTH reconnect path in syncNamespaceConnection.
+      ConnectorController.setConnectorId('AUTH' as any, 'eip155' as any)
 
       // Step 3 — create backend session
       await fetch('/api/auth/embedded-login', {
