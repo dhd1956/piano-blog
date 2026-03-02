@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDisconnect } from 'wagmi'
 import { useAuth } from '@/context/AuthContext'
 import Link from './Link'
 
 export default function AuthButton() {
   const { user, isAuthenticated, isLoading, logout } = useAuth()
-  const { disconnect } = useDisconnect()
   const router = useRouter()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -35,48 +33,7 @@ export default function AuthButton() {
   }, [isOpen])
 
   const handleLogout = async () => {
-    // Set flag BEFORE logout so OAuthEmailCapture doesn't re-authenticate
-    sessionStorage.setItem('user_logged_out', 'true')
-    sessionStorage.removeItem('wallet_auto_disconnect_checked')
     await logout()
-    disconnect() // Clear Reown wallet session to prevent wallet modal on next visit
-
-    // Clear Reown/wagmi persisted storage to prevent SIWE reconnection on next visit
-    try {
-      const keysToRemove: string[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (
-          key &&
-          (key.startsWith('wagmi') ||
-            key.startsWith('wc@') ||
-            key.startsWith('@w3m') ||
-            key.startsWith('W3M') ||
-            key.startsWith('-walletlink') ||
-            key.startsWith('@appkit'))
-        ) {
-          keysToRemove.push(key)
-        }
-      }
-      keysToRemove.forEach((key) => localStorage.removeItem(key))
-
-      // Also clear relevant cookies by expiring them
-      const cookiesToClear = [
-        'auth_active',
-        'wagmi.store',
-        'wagmi.connected',
-        'wagmi.wallet',
-        'wagmi.recentConnectorId',
-      ]
-      cookiesToClear.forEach((name) => {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
-      })
-    } catch (e) {
-      // Storage cleanup is best-effort
-      console.warn('Failed to clear wallet storage on logout:', e)
-    }
-
-    // Force full page reload to ensure middleware runs and cookie state is fresh
     window.location.href = '/'
   }
 
