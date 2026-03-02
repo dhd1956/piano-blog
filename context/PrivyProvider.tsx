@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http } from 'viem'
 import { celo } from 'viem/chains'
 import type { Chain } from 'viem'
-import type { ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 
 // Celo Sepolia testnet chain definition
 export const celoSepolia: Chain = {
@@ -35,6 +35,13 @@ export const wagmiConfig = createConfig({
 const queryClient = new QueryClient()
 
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  // During SSR / static generation, render children without the Privy/Wagmi
+  // wrappers. They access browser globals and will break Next.js static builds.
+  if (!mounted) return <>{children}</>
+
   return (
     <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
