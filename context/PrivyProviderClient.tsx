@@ -1,19 +1,41 @@
 'use client'
 
 import { PrivyProvider } from '@privy-io/react-auth'
-import { WagmiProvider } from '@privy-io/wagmi'
+import { WagmiProvider, createConfig } from '@privy-io/wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { http } from 'viem'
 import { celo } from 'viem/chains'
+import type { Chain } from 'viem'
 import type { ReactNode } from 'react'
-import { celoSepolia, wagmiConfig } from './PrivyProvider'
 
-// This module is intentionally excluded from the server bundle (ssr: false in
-// the dynamic import in PrivyProvider.tsx). All browser-only Privy/Solana deps
-// live here so they never execute in Node.js during static generation.
-//
-// The WagmiProvider from @privy-io/wagmi wraps wagmi's WagmiProvider with
-// PrivyWagmiConnector, which syncs the Privy embedded wallet into wagmi's
-// connection state. It uses the shared wagmiConfig so both WagmiProvider
-// instances reference the same Zustand store — no state duplication.
+// This module is intentionally excluded from the server bundle via ssr:false
+// in the dynamic import in PrivyProvider.tsx. All browser-only Privy, Wagmi,
+// WalletConnect, and Solana WASM code lives here and never runs in Node.js.
+
+const celoSepolia: Chain = {
+  id: 11142220,
+  name: 'Celo Sepolia Testnet',
+  nativeCurrency: { name: 'CELO', symbol: 'CELO', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.ankr.com/celo_sepolia'] },
+  },
+  blockExplorers: {
+    default: { name: 'CeloScan', url: 'https://celo-sepolia.blockscout.com' },
+  },
+  testnet: true,
+}
+
+// @privy-io/wagmi's createConfig wraps wagmi's createConfig with ssr:true
+// and adds PrivyWagmiConnector support (syncs embedded wallet into wagmi).
+const wagmiConfig = createConfig({
+  chains: [celoSepolia, celo],
+  transports: {
+    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia'),
+    [celo.id]: http(),
+  },
+})
+
+const queryClient = new QueryClient()
 
 export function PrivyProviderClient({ children }: { children: ReactNode }) {
   return (
@@ -33,7 +55,9 @@ export function PrivyProviderClient({ children }: { children: ReactNode }) {
         },
       }}
     >
-      <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
+      </QueryClientProvider>
     </PrivyProvider>
   )
 }

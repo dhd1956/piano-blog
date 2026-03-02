@@ -1,9 +1,10 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 
-export default function AuthStatusDebugPage() {
+function AuthStatusDebugPage() {
   const { address, isConnected } = useAccount()
   const [authStatus, setAuthStatus] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -181,3 +182,5 @@ export default function AuthStatusDebugPage() {
     </div>
   )
 }
+
+export default dynamic(() => Promise.resolve(AuthStatusDebugPage), { ssr: false })
