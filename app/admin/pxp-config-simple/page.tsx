@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { useAccount, useSendTransaction } from 'wagmi'
 
@@ -19,7 +18,7 @@ interface PXPConfig {
   timestamp: string
 }
 
-function PXPConfigSimplePage() {
+export default function PXPConfigSimplePage() {
   const { address, isConnected } = useAccount()
   const { sendTransaction } = useSendTransaction()
 
@@ -336,5 +335,3 @@ function PXPConfigSimplePage() {
     </div>
   )
 }
-
-export default dynamic(() => Promise.resolve(PXPConfigSimplePage), { ssr: false })
