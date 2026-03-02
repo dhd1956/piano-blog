@@ -36,7 +36,7 @@ const BALANCE_OF_ABI = [
   },
 ] as const
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY as Hex | undefined
+const PRIVATE_KEY = process.env.PRIVATE_KEY?.trim() as Hex | undefined
 
 /**
  * POST /api/rewards/claim-welcome
@@ -57,13 +57,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No wallet address on account' }, { status: 400 })
     }
 
-    // EOA address from JWT — used for DB deduplication
+    // EOA address from JWT — used for DB deduplication and transfer target
     const address = user.walletAddress.toLowerCase()
-
-    // Transfer target: use the smart account address (SCA) when account abstraction
-    // is active. The client passes it as `targetAddress`; otherwise fall back to EOA.
-    const body = await request.json().catch(() => ({}))
-    const transferTo: string = (body.targetAddress as string) || user.walletAddress
+    const transferTo: string = user.walletAddress.trim()
     const rpcTransport = http('https://rpc.ankr.com/celo_sepolia', { retryCount: 3 })
     const publicClient = createPublicClient({
       chain: celoSepoliaChain as any,
@@ -106,6 +102,20 @@ export async function POST(request: NextRequest) {
     if (!PRIVATE_KEY) {
       return NextResponse.json(
         { error: 'Reward distribution is not configured on this server' },
+        { status: 503 }
+      )
+    }
+
+    // Validate key format before calling viem (gives a clearer error than viem's generic throw)
+    if (!/^0x[0-9a-fA-F]{64}$/.test(PRIVATE_KEY)) {
+      console.error(
+        '[claim-welcome] PRIVATE_KEY format invalid: length=',
+        PRIVATE_KEY.length,
+        'starts=',
+        PRIVATE_KEY.slice(0, 4)
+      )
+      return NextResponse.json(
+        { error: 'Server key configuration error (invalid format)' },
         { status: 503 }
       )
     }

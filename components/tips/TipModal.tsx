@@ -48,7 +48,7 @@ export default function TipModal({
   const [claimError, setClaimError] = useState('')
   const [claimSuccess, setClaimSuccess] = useState(false)
 
-  // Use wagmi's writeContract hook - this integrates with Reown/AppKit and gas sponsorship
+  // Use wagmi's writeContract hook - this integrates with Privy embedded wallet
   const {
     data: txHash,
     writeContract,
@@ -141,9 +141,7 @@ export default function TipModal({
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        // walletAddress is the smart account address (SCA) when account abstraction
-        // is active. Tips are sent FROM the SCA, so PXP must be claimed TO the SCA.
-        body: JSON.stringify({ targetAddress: walletAddress }),
+        body: JSON.stringify({}),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to claim')

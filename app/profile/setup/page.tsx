@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAppKitAccount } from '@reown/appkit/react'
+import { useWallets } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 
 export default function ProfileSetupPage() {
   const router = useRouter()
-  const { address, isConnected } = useAppKitAccount()
+  const { wallets } = useWallets()
+  const address = wallets[0]?.address
   const { isAuthenticated, isLoading } = useAuth()
 
   const [step, setStep] = useState(1)
@@ -108,7 +109,7 @@ export default function ProfileSetupPage() {
     }
   }
 
-  if (!isConnected) {
+  if (!isAuthenticated && !isLoading) {
     return null // Will redirect
   }
 

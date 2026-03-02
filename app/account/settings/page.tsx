@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAppKitAccount } from '@reown/appkit/react'
 import { useAuth } from '@/context/AuthContext'
 import ChangeEmailModal from '@/components/account/ChangeEmailModal'
 
@@ -17,7 +16,6 @@ interface UserProfile {
 
 export default function AccountSettingsPage() {
   const router = useRouter()
-  const { address, isConnected } = useAppKitAccount()
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -31,7 +29,7 @@ export default function AccountSettingsPage() {
 
   useEffect(() => {
     fetchProfile()
-  }, [address, isConnected, currentUser, isAuthenticated])
+  }, [currentUser, isAuthenticated, authLoading])
 
   const fetchProfile = async () => {
     // Check session authentication first

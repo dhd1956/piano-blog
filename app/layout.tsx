@@ -11,7 +11,7 @@ import Footer from '@/components/Footer'
 import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
 import { AuthProvider } from '@/context/AuthContext'
-import { ReownProvider } from '@/context/ReownProvider'
+import { PrivyAppProvider } from '@/context/PrivyProvider'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import EnvironmentBadge from '@/components/admin/EnvironmentBadge'
 import { Metadata } from 'next'
@@ -101,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ErrorBoundary>
           <AuthProvider>
-            <ReownProvider>
+            <PrivyAppProvider>
               <ThemeProviders>
                 <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
                 <SectionContainer>
@@ -112,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Footer />
                 </SectionContainer>
               </ThemeProviders>
-            </ReownProvider>
+            </PrivyAppProvider>
           </AuthProvider>
         </ErrorBoundary>
         <EnvironmentBadge />

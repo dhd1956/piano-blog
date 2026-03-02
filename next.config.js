@@ -12,8 +12,8 @@ const ContentSecurityPolicy = `
   img-src * blob: data:;
   media-src 'self' *.s3.amazonaws.com;
   connect-src *;
-  font-src 'self' fonts.gstatic.com fonts.googleapis.com fonts.reown.com;
-  frame-src giscus.app secure.walletconnect.org verify.walletconnect.com;
+  font-src 'self' fonts.gstatic.com fonts.googleapis.com;
+  frame-src giscus.app;
 `
 
 const securityHeaders = [

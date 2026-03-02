@@ -1,22 +1,24 @@
 'use client'
 
-import { useAppKit, useAppKitAccount, useDisconnect } from '@reown/appkit/react'
+import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { useState, useEffect, useRef } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import Link from './Link'
 
 export default function ConnectButton() {
-  const { open } = useAppKit()
-  const { address, isConnected } = useAppKitAccount()
-  const { disconnect } = useDisconnect()
+  const { login, logout, authenticated } = usePrivy()
+  const { wallets } = useWallets()
+  const { user, isAuthenticated, logout: authLogout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [displayName, setDisplayName] = useState<string>('')
   const [profileUrl, setProfileUrl] = useState<string>('/profile')
   const menuRef = useRef<HTMLDivElement>(null)
 
+  const address = wallets[0]?.address || user?.walletAddress
+  const isConnected = isAuthenticated
+
   useEffect(() => {
-    // Set display name and profile URL based on wallet address
     if (isConnected && address) {
-      // Format wallet address (0x1234...5678)
       const formatted = `${address.slice(0, 6)}...${address.slice(-4)}`
       setDisplayName(formatted)
       setProfileUrl(`/profile/${address}`)
@@ -24,7 +26,6 @@ export default function ConnectButton() {
   }, [isConnected, address])
 
   useEffect(() => {
-    // Close menu when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false)
@@ -40,16 +41,16 @@ export default function ConnectButton() {
     }
   }, [isOpen])
 
-  const handleDisconnect = () => {
-    disconnect()
+  const handleDisconnect = async () => {
     setIsOpen(false)
+    await authLogout()
+    if (authenticated) await logout()
   }
 
-  // Show "Sign In" button if not connected
   if (!isConnected) {
     return (
       <button
-        onClick={() => open()}
+        onClick={() => login()}
         className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
       >
         Sign In
@@ -57,7 +58,6 @@ export default function ConnectButton() {
     )
   }
 
-  // Show user menu if connected
   return (
     <div ref={menuRef} className="relative">
       <button
@@ -109,7 +109,7 @@ export default function ConnectButton() {
             onClick={handleDisconnect}
             className="hover:bg-primary-50 dark:hover:bg-primary-900/20 block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300"
           >
-            Disconnect
+            Sign Out
           </button>
         </div>
       )}

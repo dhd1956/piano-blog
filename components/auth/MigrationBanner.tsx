@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAppKitAccount } from '@reown/appkit/react'
+import { usePrivy, useWallets } from '@privy-io/react-auth'
 import AddEmailModal from './AddEmailModal'
 
 // 7-day grace period for dismissal (in milliseconds)
@@ -23,7 +23,9 @@ interface UserData {
  * - Only shows for wallet users without email
  */
 export default function MigrationBanner() {
-  const { address, isConnected } = useAppKitAccount()
+  const { authenticated: isConnected } = usePrivy()
+  const { wallets } = useWallets()
+  const address = wallets[0]?.address
   const [showBanner, setShowBanner] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)

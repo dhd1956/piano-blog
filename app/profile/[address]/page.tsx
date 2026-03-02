@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { useAppKitAccount } from '@reown/appkit/react'
+import { useWallets } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import UserProfileQRCard from '@/components/qr/UserProfileQRCard'
 import ProfileSetupBanner from '@/components/profile/ProfileSetupBanner'
@@ -54,7 +54,8 @@ interface MusicianProfile {
 export default function ProfilePage() {
   const params = useParams()
   const address = params.address as string
-  const { address: connectedAddress, isConnected } = useAppKitAccount()
+  const { wallets } = useWallets()
+  const connectedAddress = wallets[0]?.address
   const { user: currentUser, isAuthenticated } = useAuth()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -70,7 +71,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile()
-  }, [address, connectedAddress, isConnected, currentUser, isAuthenticated])
+  }, [address, connectedAddress, currentUser, isAuthenticated])
 
   const checkForPotentialMerge = async (email: string, walletAddress: string) => {
     try {
@@ -143,7 +144,7 @@ export default function ProfilePage() {
 
         const isBlogOwner =
           currentUser.walletAddress?.toLowerCase() === blogOwner ||
-          (isConnected && connectedAddress?.toLowerCase() === blogOwner)
+          connectedAddress?.toLowerCase() === blogOwner
 
         // Allow editing if it's own profile OR if user is blog owner
         setIsOwnProfile(isProfileOwner || isBlogOwner)

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useAppKitAccount } from '@reown/appkit/react'
+import { useWallets } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import TipModal from './TipModal'
 
@@ -19,9 +19,9 @@ export default function TipButton({
   className = '',
 }: TipButtonProps) {
   const [showModal, setShowModal] = useState(false)
-  const { address: appKitAddress } = useAppKitAccount()
+  const { wallets } = useWallets()
   const { user } = useAuth()
-  const walletAddress = appKitAddress || user?.walletAddress || undefined
+  const walletAddress = wallets[0]?.address || user?.walletAddress || undefined
 
   return (
     <>
