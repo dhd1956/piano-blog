@@ -161,6 +161,21 @@ export async function POST(request: NextRequest) {
       timeout: 60_000,
     })
 
+    // 3b. Send a small CELO gas stipend so the user can pay gas for future
+    // transactions (e.g. PXP tips) from their embedded wallet. Non-fatal —
+    // the PXP claim succeeds even if this transfer fails.
+    // Remove this once Privy smart wallets + Pimlico paymaster are configured.
+    try {
+      const stipendHash = await walletClient.sendTransaction({
+        to: transferTo as `0x${string}`,
+        value: parseEther('0.001'),
+        chain: celoSepoliaChain as any,
+      })
+      console.log('[claim-welcome] CELO stipend sent:', stipendHash)
+    } catch (stipendErr) {
+      console.error('[claim-welcome] CELO stipend failed (non-fatal):', stipendErr)
+    }
+
     // 4. Mark as claimed in DB
     await db.user.update({
       where: { walletAddress: address },
