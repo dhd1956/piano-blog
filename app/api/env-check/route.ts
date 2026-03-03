@@ -44,6 +44,23 @@ export async function GET(request: NextRequest) {
       hasPaymasterUrl: !!process.env.NEXT_PUBLIC_PAYMASTER_URL,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasJwtSecret: !!process.env.JWT_SECRET,
+      privateKey: (() => {
+        const raw = process.env.PRIVATE_KEY
+        if (!raw) return { set: false, rawLength: 0 }
+        const cleaned = raw
+          .trim()
+          .replace(/^["']|["']$/g, '')
+          .replace(/\s+/g, '')
+          .replace(/^0x/i, '')
+        const normalised = '0x' + cleaned
+        return {
+          set: true,
+          rawLength: raw.length,
+          normalisedLength: normalised.length,
+          starts: normalised.slice(0, 6),
+          valid: /^0x[0-9a-fA-F]{64}$/.test(normalised),
+        }
+      })(),
     },
   })
 }
