@@ -125,10 +125,12 @@ export async function POST(request: NextRequest) {
         '[claim-welcome] PRIVATE_KEY format invalid: length=',
         PRIVATE_KEY.length,
         'starts=',
-        PRIVATE_KEY.slice(0, 4)
+        PRIVATE_KEY.slice(0, 6)
       )
       return NextResponse.json(
-        { error: 'Server key configuration error (invalid format)' },
+        {
+          error: `Server key configuration error (invalid format) — sanitised length: ${PRIVATE_KEY.length}, starts: ${PRIVATE_KEY.slice(0, 6)}`,
+        },
         { status: 503 }
       )
     }
