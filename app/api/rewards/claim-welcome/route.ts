@@ -36,7 +36,11 @@ const BALANCE_OF_ABI = [
   },
 ] as const
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY?.trim() as Hex | undefined
+// Normalise: add 0x prefix if the key was stored without it
+const _rawKey = process.env.PRIVATE_KEY?.trim()
+const PRIVATE_KEY: Hex | undefined = _rawKey
+  ? ((_rawKey.startsWith('0x') ? _rawKey : '0x' + _rawKey) as Hex)
+  : undefined
 
 /**
  * POST /api/rewards/claim-welcome

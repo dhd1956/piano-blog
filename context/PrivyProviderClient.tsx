@@ -40,6 +40,10 @@ const queryClient = new QueryClient()
 export function PrivyProviderClient({ children }: { children: ReactNode }) {
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID
 
+  // Debug: log the exact value/length so we can verify Vercel compiled it in correctly.
+  // Remove this once auth is working.
+  console.log('[PrivyProviderClient] appId value:', JSON.stringify(appId), 'length:', appId?.length)
+
   // If the env var is missing or empty, skip Privy entirely rather than
   // passing an invalid appId that causes Privy to throw asynchronously
   // (bypassing React error boundaries) and crash the page.
