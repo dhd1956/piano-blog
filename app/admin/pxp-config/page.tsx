@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useReadContract } from 'wagmi'
 import { useAuth } from '@/context/AuthContext'
@@ -29,7 +30,7 @@ interface DatabaseReward {
   enabled: boolean
 }
 
-export default function PXPConfigPage() {
+function PXPConfigPage() {
   const { address, isConnected } = useAccount()
   const { user, isAuthenticated, hasWallet } = useAuth()
   const { writeContract, isPending: isWritePending } = useWriteContract()
@@ -603,3 +604,5 @@ export default function PXPConfigPage() {
     </div>
   )
 }
+
+export default dynamic(() => Promise.resolve(PXPConfigPage), { ssr: false })
