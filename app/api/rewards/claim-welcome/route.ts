@@ -36,11 +36,20 @@ const BALANCE_OF_ABI = [
   },
 ] as const
 
-// Normalise: add 0x prefix if the key was stored without it
-const _rawKey = process.env.PRIVATE_KEY?.trim()
-const PRIVATE_KEY: Hex | undefined = _rawKey
-  ? ((_rawKey.startsWith('0x') ? _rawKey : '0x' + _rawKey) as Hex)
-  : undefined
+// Normalise the private key regardless of how it was stored in Vercel:
+// strip surrounding quotes, remove all whitespace, strip any 0x prefix,
+// then re-attach 0x. Logs the sanitised length so format errors are debuggable.
+function normalisePrivateKey(raw: string | undefined): Hex | undefined {
+  if (!raw) return undefined
+  const cleaned = raw
+    .trim()
+    .replace(/^["']|["']$/g, '') // strip surrounding quotes
+    .replace(/\s+/g, '') // remove any embedded whitespace/newlines
+    .replace(/^0x/i, '') // strip 0x prefix (we'll re-add it)
+  console.log('[claim-welcome] PRIVATE_KEY sanitised length:', cleaned.length)
+  return ('0x' + cleaned) as Hex
+}
+const PRIVATE_KEY = normalisePrivateKey(process.env.PRIVATE_KEY)
 
 /**
  * POST /api/rewards/claim-welcome
