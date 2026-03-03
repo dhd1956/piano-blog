@@ -38,9 +38,23 @@ const wagmiConfig = createConfig({
 const queryClient = new QueryClient()
 
 export function PrivyProviderClient({ children }: { children: ReactNode }) {
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID
+
+  // If the env var is missing or empty, skip Privy entirely rather than
+  // passing an invalid appId that causes Privy to throw asynchronously
+  // (bypassing React error boundaries) and crash the page.
+  if (!appId) {
+    console.error(
+      '[PrivyProviderClient] NEXT_PUBLIC_PRIVY_APP_ID is not set — ' +
+        'auth will be unavailable. Set the variable in Vercel and redeploy ' +
+        'to rebuild the bundle (NEXT_PUBLIC_* vars are compiled at build time).'
+    )
+    return <>{children}</>
+  }
+
   return (
     <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+      appId={appId}
       config={{
         loginMethods: ['email', 'google'],
         embeddedWallets: {
