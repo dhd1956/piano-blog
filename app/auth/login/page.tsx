@@ -72,12 +72,13 @@ function LoginContent() {
     )
   }
 
-  if (isAuthenticated || (authenticated && hasCreatedSessionRef.current)) {
+  // Privy session exists but no backend session yet — useEffect is handling it
+  if (isAuthenticated || (authenticated && hasCreatedSessionRef.current) || authenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner className="mx-auto h-10 w-10" />
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Redirecting...</p>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Signing you in...</p>
         </div>
       </div>
     )
