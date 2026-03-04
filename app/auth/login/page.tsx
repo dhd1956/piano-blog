@@ -1,9 +1,9 @@
 'use client'
 
-import { usePrivy, useWallets } from '@privy-io/react-auth'
+import { usePrivy, useWallets, useCreateWallet } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 
 function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
   return (
@@ -15,13 +15,24 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
 }
 
 function LoginContent() {
-  const { login, authenticated, user, ready } = usePrivy()
+  const { login, authenticated, user, ready, logout } = usePrivy()
   const { wallets } = useWallets()
+  const { createWallet } = useCreateWallet()
   const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
   const redirect = params.get('redirect') || '/'
   const hasCreatedSessionRef = useRef(false)
+  const hasTriedCreateWalletRef = useRef(false)
+  const [walletError, setWalletError] = useState(false)
+
+  // If authenticated but no wallet, force-create one
+  useEffect(() => {
+    if (!ready || !authenticated || !user || hasTriedCreateWalletRef.current) return
+    if (wallets[0]) return // wallet already exists
+    hasTriedCreateWalletRef.current = true
+    createWallet().catch(() => setWalletError(true))
+  }, [ready, authenticated, user, wallets, createWallet])
 
   // When Privy login completes and wallet is ready, create backend session then redirect
   useEffect(() => {
@@ -68,6 +79,29 @@ function LoginContent() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner />
+      </div>
+    )
+  }
+
+  // Privy session exists but wallet creation failed — let user retry
+  if (authenticated && walletError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-sm text-center">
+          <p className="mb-4 text-sm text-red-500">
+            Something went wrong setting up your wallet. Please try again.
+          </p>
+          <button
+            onClick={async () => {
+              await logout()
+              setWalletError(false)
+              hasTriedCreateWalletRef.current = false
+            }}
+            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Try again
+          </button>
+        </div>
       </div>
     )
   }
