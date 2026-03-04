@@ -13,7 +13,7 @@ const ContentSecurityPolicy = `
   media-src 'self' *.s3.amazonaws.com;
   connect-src *;
   font-src 'self' fonts.gstatic.com fonts.googleapis.com;
-  frame-src giscus.app;
+  frame-src giscus.app https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org;
 `
 
 const securityHeaders = [
