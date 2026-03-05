@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
     try {
       const stipendHash = await walletClient.sendTransaction({
         to: transferTo as `0x${string}`,
-        value: parseEther('0.001'),
+        value: parseEther('0.01'),
         chain: celoSepoliaChain as any,
         gas: BigInt(25_000),
       })
