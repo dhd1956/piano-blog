@@ -37,6 +37,7 @@ export default function ProfileEditPage() {
   const [success, setSuccess] = useState(false)
   const [isBlogOwner, setIsBlogOwner] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
+  const [alreadyEarnedPXP, setAlreadyEarnedPXP] = useState(false)
 
   // Auto-scroll to top when error or success message appears
   useEffect(() => {
@@ -102,6 +103,7 @@ export default function ProfileEditPage() {
       setBio(data.profile.bio || '')
       setLocation(data.profile.location || '')
       setTitle(data.profile.title || '')
+      setAlreadyEarnedPXP(data.profile.profileCompleted || false)
 
       // Load musician profile fields if they exist
       if (data.musicianProfile) {
@@ -232,6 +234,7 @@ export default function ProfileEditPage() {
       }
 
       setSuccess(true)
+      if (isProfileComplete) setAlreadyEarnedPXP(true)
 
       // Redirect back to profile after 1 second
       setTimeout(() => {
@@ -407,7 +410,7 @@ export default function ProfileEditPage() {
           </h3>
           {isProfileComplete && (
             <span className="rounded-full bg-green-600 px-3 py-1 text-sm font-semibold text-white">
-              Complete! Earn 30 PXP on save
+              {alreadyEarnedPXP ? 'Profile complete ✓' : 'Complete! Earn 30 PXP on save'}
             </span>
           )}
         </div>
