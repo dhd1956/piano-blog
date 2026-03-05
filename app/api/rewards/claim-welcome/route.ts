@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       functionName: 'transfer',
       args: [transferTo as `0x${string}`, parseEther(REWARD_AMOUNTS.NEW_USER.toString())],
       chain: celoSepoliaChain as any,
-      gas: 100_000n,
+      gas: BigInt(100_000),
     })
 
     // Wait for on-chain confirmation so the balance is readable by the time
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
         to: transferTo as `0x${string}`,
         value: parseEther('0.001'),
         chain: celoSepoliaChain as any,
-        gas: 25_000n,
+        gas: BigInt(25_000),
       })
       console.log('[claim-welcome] CELO stipend sent:', stipendHash)
     } catch (stipendErr) {
