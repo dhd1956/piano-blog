@@ -62,15 +62,17 @@ const flag = (name) => {
 }
 const hasFlag = (name) => args.includes(name)
 
-const byEmail    = flag('--email')
-const byWallet   = flag('--wallet')
+const byEmail = flag('--email')
+const byWallet = flag('--wallet')
 const byUsername = flag('--username')
-const dryRun     = hasFlag('--dry-run')
-const confirmed  = hasFlag('--confirm')
-const resetMode  = hasFlag('--reset')
+const dryRun = hasFlag('--dry-run')
+const confirmed = hasFlag('--confirm')
+const resetMode = hasFlag('--reset')
 
 if (!byEmail && !byWallet && !byUsername) {
-  console.error('Usage: node scripts/delete-user.mjs --email <email> | --wallet <address> | --username <username> [--reset] [--dry-run] [--confirm]')
+  console.error(
+    'Usage: node scripts/delete-user.mjs --email <email> | --wallet <address> | --username <username> [--reset] [--dry-run] [--confirm]'
+  )
   process.exit(1)
 }
 
@@ -82,7 +84,10 @@ const prisma = new PrismaClient()
 function prompt(question) {
   return new Promise((resolve) => {
     const rl = createInterface({ input: process.stdin, output: process.stdout })
-    rl.question(question, (answer) => { rl.close(); resolve(answer) })
+    rl.question(question, (answer) => {
+      rl.close()
+      resolve(answer)
+    })
   })
 }
 
@@ -172,12 +177,16 @@ async function run() {
     console.log(`    Sessions              : ${user._count.sessions}`)
     console.log(`    Venue reviews         : ${user._count.reviews}`)
     console.log(`    Venue validations     : ${user._count.validations}`)
-    console.log(`    Organised events      : ${user._count.organizedEvents}  (+ their RSVPs & YouTube videos)`)
+    console.log(
+      `    Organised events      : ${user._count.organizedEvents}  (+ their RSVPs & YouTube videos)`
+    )
     console.log(`    Organised event series: ${user._count.organizedSeries}`)
     console.log(`    RSVPs (as attendee)   : ${user._count.rsvps}`)
     console.log(`    YouTube videos        : ${user._count.youtubeVideos}`)
     console.log(`    Gas sponsored txs     : ${gasCount}  (manual delete)`)
-    console.log(`    Referred users        : ${referralCount}  (referredBy will be nulled, NOT deleted)`)
+    console.log(
+      `    Referred users        : ${referralCount}  (referredBy will be nulled, NOT deleted)`
+    )
   }
   console.log('='.repeat(60) + '\n')
 
@@ -189,7 +198,9 @@ async function run() {
 
   // 3. Confirm
   if (!confirmed) {
-    const action = resetMode ? `reset reward state for user ${user.id}` : `permanently delete user ${user.id}`
+    const action = resetMode
+      ? `reset reward state for user ${user.id}`
+      : `permanently delete user ${user.id}`
     const answer = await prompt(`Type "yes" to ${action}: `)
     if (answer.trim().toLowerCase() !== 'yes') {
       console.log('Aborted.')
