@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     })
 
     let showWelcomeReward = false
-    let welcomePXP = 0
+    const welcomePXP = 0
 
     // Check if email matches a more complete existing account
     // This handles two cases:
@@ -182,30 +182,8 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Award welcome PXP to new users
-      try {
-        const welcomeConfig = await db.pXPConfig.findUnique({
-          where: { key: 'wallet_connection' },
-          select: { value: true, enabled: true },
-        })
-
-        welcomePXP = welcomeConfig && welcomeConfig.enabled ? welcomeConfig.value : 100
-
-        await db.user.update({
-          where: { id: user.id },
-          data: {
-            totalCAVEarned: { increment: welcomePXP },
-            firstPXPEarnedAt: new Date(),
-          },
-        })
-
-        showWelcomeReward = true
-        console.log(
-          `[embedded-login] Awarded ${welcomePXP} PXP welcome reward to new embedded wallet user ${normalizedAddress}`
-        )
-      } catch (pxpError) {
-        console.error('[embedded-login] Error awarding welcome PXP:', pxpError)
-      }
+      // Welcome PXP is distributed on-chain via /api/rewards/claim-welcome
+      showWelcomeReward = true
     } else if (!isNewUser) {
       // Existing user - update if needed
       const updates: Record<string, any> = {
@@ -246,31 +224,9 @@ export async function POST(request: NextRequest) {
         data: updates,
       })
 
-      // Check if user should get welcome reward (existing wallet user who never earned PXP)
-      if (user.totalCAVEarned === 0 && !user.firstPXPEarnedAt) {
-        try {
-          const welcomeConfig = await db.pXPConfig.findUnique({
-            where: { key: 'wallet_connection' },
-            select: { value: true, enabled: true },
-          })
-
-          welcomePXP = welcomeConfig && welcomeConfig.enabled ? welcomeConfig.value : 100
-
-          await db.user.update({
-            where: { id: user.id },
-            data: {
-              totalCAVEarned: { increment: welcomePXP },
-              firstPXPEarnedAt: new Date(),
-            },
-          })
-
-          showWelcomeReward = true
-          console.log(
-            `[embedded-login] Awarded ${welcomePXP} PXP welcome reward to existing user ${normalizedAddress}`
-          )
-        } catch (pxpError) {
-          console.error('[embedded-login] Error awarding welcome PXP:', pxpError)
-        }
+      // Show welcome reward banner if user hasn't claimed their on-chain PXP yet
+      if (!user.hasClaimedNewUserReward) {
+        showWelcomeReward = true
       }
     }
 
