@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
           authProvider: true,
           totalCAVEarned: true,
           firstPXPEarnedAt: true,
+          hasClaimedNewUserReward: true,
         },
       })
 
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
             authProvider: true,
             totalCAVEarned: true,
             firstPXPEarnedAt: true,
+            hasClaimedNewUserReward: true,
           },
         })
       } else if (!user && existingUserByEmail) {
@@ -147,6 +149,7 @@ export async function POST(request: NextRequest) {
             authProvider: true,
             totalCAVEarned: true,
             firstPXPEarnedAt: true,
+            hasClaimedNewUserReward: true,
           },
         })
       }
@@ -180,6 +183,7 @@ export async function POST(request: NextRequest) {
           authProvider: true,
           totalCAVEarned: true,
           firstPXPEarnedAt: true,
+          hasClaimedNewUserReward: true,
         },
       })
 
