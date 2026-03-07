@@ -383,7 +383,7 @@ export async function PATCH(
         )
 
         // Award PXP to user for completing their profile
-        await awardProfileCompletion(user.id)
+        await awardProfileCompletion(user.id, user.walletAddress ?? '')
 
         // Award referral PXP to referrer if applicable
         await awardReferralProfileCompleted(user.id)

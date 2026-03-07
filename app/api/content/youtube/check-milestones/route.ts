@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/get-db'
+import { sendPXPReward } from '@/lib/send-pxp-reward'
 
 /**
  * Fetch current view count from YouTube Data API v3
@@ -36,19 +37,34 @@ async function fetchViewCount(videoId: string): Promise<number | null> {
 }
 
 /**
- * Award milestone PXP to user
+ * Award milestone PXP to user via on-chain transfer, then update DB.
  */
 async function awardMilestonePXP(
   videoId: number,
   userId: number,
+  walletAddress: string,
   milestone: '1k' | '10k'
 ): Promise<number> {
   const pxpAmount = milestone === '1k' ? 150 : 200
   const milestoneField = milestone === '1k' ? 'milestone1kAwarded' : 'milestone10kAwarded'
 
   try {
+    // Send on-chain transfer first
+    const transfer = await sendPXPReward(
+      walletAddress,
+      pxpAmount,
+      `YouTube ${milestone} views milestone (video ${videoId})`
+    )
+
+    if (!transfer.success) {
+      console.error(
+        `[awardMilestonePXP] On-chain transfer failed for user ${userId}: ${transfer.error}`
+      )
+      return 0
+    }
+
     const db = await getDb()
-    // Award PXP to user
+    // Award PXP to user in DB (after on-chain confirmation)
     await db.user.update({
       where: { id: userId },
       data: {
@@ -145,6 +161,9 @@ export async function POST(request: NextRequest) {
         milestone1kAwarded: true,
         milestone10kAwarded: true,
         title: true,
+        user: {
+          select: { walletAddress: true },
+        },
       },
       orderBy: {
         lastChecked: 'asc', // Check oldest first
@@ -178,9 +197,16 @@ export async function POST(request: NextRequest) {
           },
         })
 
+        const userWalletAddress = video.user?.walletAddress ?? ''
+
         // Check for 1k milestone
         if (!video.milestone1kAwarded && currentViewCount >= 1000) {
-          const pxpAwarded = await awardMilestonePXP(video.id, video.userId, '1k')
+          const pxpAwarded = await awardMilestonePXP(
+            video.id,
+            video.userId,
+            userWalletAddress,
+            '1k'
+          )
           if (pxpAwarded > 0) {
             milestonesAwarded++
             totalPXPAwarded += pxpAwarded
@@ -190,7 +216,12 @@ export async function POST(request: NextRequest) {
 
         // Check for 10k milestone
         if (!video.milestone10kAwarded && currentViewCount >= 10000) {
-          const pxpAwarded = await awardMilestonePXP(video.id, video.userId, '10k')
+          const pxpAwarded = await awardMilestonePXP(
+            video.id,
+            video.userId,
+            userWalletAddress,
+            '10k'
+          )
           if (pxpAwarded > 0) {
             milestonesAwarded++
             totalPXPAwarded += pxpAwarded

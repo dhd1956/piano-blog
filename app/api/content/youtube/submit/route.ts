@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth-middleware'
 import { getDb } from '@/lib/get-db'
+import { sendPXPReward } from '@/lib/send-pxp-reward'
 
 /**
  * Extract YouTube video ID from various URL formats
@@ -111,6 +112,7 @@ export async function POST(request: NextRequest) {
             id: true,
             displayName: true,
             username: true,
+            walletAddress: true,
           },
         },
         venue: {
@@ -240,6 +242,7 @@ export async function POST(request: NextRequest) {
         where: { id: sessionUser.id },
         select: {
           id: true,
+          walletAddress: true,
           totalCAVEarned: true,
           firstPXPEarnedAt: true,
         },
@@ -252,47 +255,74 @@ export async function POST(request: NextRequest) {
         // Award PXP to performer for video submission (from config or default to 100)
         performerPXP = performerConfig && performerConfig.enabled ? performerConfig.value : 100
 
-        await db.user.update({
-          where: { id: user.id },
-          data: {
-            totalCAVEarned: { increment: performerPXP },
-            firstPXPEarnedAt: isFirstPXP ? new Date() : undefined,
-          },
-        })
-
-        // Update video record with PXP awarded
-        await db.youTubeVideo.update({
-          where: { id: video.id },
-          data: {
-            pxpAwarded: performerPXP,
-            initialPXPAwarded: true,
-          },
-        })
-
-        // Set flag to show celebration toast
-        showFirstPXPToast = isFirstPXP
-
-        console.log(
-          `✅ Awarded ${performerPXP} PXP to performer ${user.id} for YouTube video submission${isFirstPXP ? ' (FIRST PXP!)' : ''}`
+        // Send on-chain transfer to performer, then update DB on confirmation
+        const performerTransfer = await sendPXPReward(
+          user.walletAddress ?? '',
+          performerPXP,
+          `YouTube video submission`
         )
+
+        if (performerTransfer.success) {
+          await db.user.update({
+            where: { id: user.id },
+            data: {
+              totalCAVEarned: { increment: performerPXP },
+              firstPXPEarnedAt: isFirstPXP ? new Date() : undefined,
+            },
+          })
+
+          // Update video record with PXP awarded
+          await db.youTubeVideo.update({
+            where: { id: video.id },
+            data: {
+              pxpAwarded: performerPXP,
+              initialPXPAwarded: true,
+            },
+          })
+
+          // Set flag to show celebration toast
+          showFirstPXPToast = isFirstPXP
+
+          console.log(
+            `✅ Awarded ${performerPXP} PXP to performer ${user.id} for YouTube video submission${isFirstPXP ? ' (FIRST PXP!)' : ''}`
+          )
+        } else {
+          console.error(
+            `[youtube/submit] Performer PXP transfer failed: ${performerTransfer.error}`
+          )
+          performerPXP = 0
+        }
 
         // Award PXP to event organizer (if different from performer)
         if (event.organizerId !== sessionUser.id) {
           organizerPXP = organizerConfig && organizerConfig.enabled ? organizerConfig.value : 50
 
-          await db.user.update({
-            where: { id: event.organizerId },
-            data: {
-              totalCAVEarned: { increment: organizerPXP },
-            },
-          })
-
-          const organizerName =
-            event.organizer.displayName || event.organizer.username || `User ${event.organizerId}`
-
-          console.log(
-            `✅ Awarded ${organizerPXP} PXP to event organizer ${organizerName} (${event.organizerId})`
+          const organizerTransfer = await sendPXPReward(
+            event.organizer.walletAddress ?? '',
+            organizerPXP,
+            `Event organizer bonus for video submission`
           )
+
+          if (organizerTransfer.success) {
+            await db.user.update({
+              where: { id: event.organizerId },
+              data: {
+                totalCAVEarned: { increment: organizerPXP },
+              },
+            })
+
+            const organizerName =
+              event.organizer.displayName || event.organizer.username || `User ${event.organizerId}`
+
+            console.log(
+              `✅ Awarded ${organizerPXP} PXP to event organizer ${organizerName} (${event.organizerId})`
+            )
+          } else {
+            console.error(
+              `[youtube/submit] Organizer PXP transfer failed: ${organizerTransfer.error}`
+            )
+            organizerPXP = 0
+          }
         }
       }
     } catch (pxpError) {

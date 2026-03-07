@@ -1,9 +1,12 @@
 /**
  * PXP Reward Distribution System
- * Helper functions to award PXP for various user actions
+ * Helper functions to award PXP for various user actions.
+ * All rewards trigger a real on-chain ERC-20 transfer from the hot wallet;
+ * DB totalCAVEarned is only incremented after on-chain confirmation.
  */
 
 import { getDb } from '@/lib/get-db'
+import { sendPXPReward } from '@/lib/send-pxp-reward'
 
 /**
  * Get PXP configuration value by key
@@ -23,7 +26,8 @@ async function getPXPConfig(key: string): Promise<number> {
 }
 
 /**
- * Award PXP to a user and update their total
+ * Award PXP to a user and update their total in DB.
+ * Only called after on-chain transfer has been confirmed.
  */
 async function awardPXP(
   userId: number,
@@ -74,6 +78,7 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
             id: true,
             username: true,
             displayName: true,
+            walletAddress: true,
             referralPXPEarned: true,
           },
         },
@@ -100,7 +105,29 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
       return { success: false, pxpAwarded: 0 }
     }
 
-    // Award PXP to referrer
+    // Send on-chain transfer to referrer
+    const referrerAddress = user.referredByUser.walletAddress
+    if (!referrerAddress) {
+      console.warn(
+        `[awardReferralProfileCompleted] Referrer ${user.referredByUser.username} has no wallet address, skipping`
+      )
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(
+      referrerAddress,
+      pxpAmount,
+      `Referral bonus: ${user.username} completed profile`
+    )
+
+    if (!transfer.success) {
+      console.error(
+        `[awardReferralProfileCompleted] On-chain transfer failed for referrer ${user.referredByUser.username}: ${transfer.error}`
+      )
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    // Award PXP to referrer in DB (after on-chain confirmation)
     await db.user.update({
       where: { id: user.referredByUser.id },
       data: {
@@ -146,6 +173,7 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
             id: true,
             username: true,
             displayName: true,
+            walletAddress: true,
             referralPXPEarned: true,
           },
         },
@@ -176,7 +204,29 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
       return { success: false, pxpAwarded: 0 }
     }
 
-    // Award PXP to referrer
+    // Send on-chain transfer to referrer
+    const referrerAddress = user.referredByUser.walletAddress
+    if (!referrerAddress) {
+      console.warn(
+        `[awardReferralFirstEvent] Referrer ${user.referredByUser.username} has no wallet address, skipping`
+      )
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(
+      referrerAddress,
+      pxpAmount,
+      `Referral bonus: ${user.username} attended first event`
+    )
+
+    if (!transfer.success) {
+      console.error(
+        `[awardReferralFirstEvent] On-chain transfer failed for referrer ${user.referredByUser.username}: ${transfer.error}`
+      )
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    // Award PXP to referrer in DB (after on-chain confirmation)
     await db.user.update({
       where: { id: user.referredByUser.id },
       data: {
@@ -203,13 +253,22 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
 /**
  * Award PXP for completing profile
  */
-export async function awardProfileCompletion(userId: number): Promise<{
+export async function awardProfileCompletion(
+  userId: number,
+  walletAddress: string
+): Promise<{
   success: boolean
   pxpAwarded: number
 }> {
   try {
     const pxpAmount = await getPXPConfig('profile_complete')
     if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(walletAddress, pxpAmount, 'Profile completion')
+    if (!transfer.success) {
+      console.error(`[awardProfileCompletion] On-chain transfer failed: ${transfer.error}`)
       return { success: false, pxpAwarded: 0 }
     }
 
@@ -230,7 +289,8 @@ export async function awardProfileCompletion(userId: number): Promise<{
  */
 export async function awardEventHost(
   userId: number,
-  eventId: number
+  eventId: number,
+  walletAddress: string
 ): Promise<{
   success: boolean
   pxpAwarded: number
@@ -238,6 +298,12 @@ export async function awardEventHost(
   try {
     const pxpAmount = await getPXPConfig('event_host')
     if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(walletAddress, pxpAmount, `Hosting event ${eventId}`)
+    if (!transfer.success) {
+      console.error(`[awardEventHost] On-chain transfer failed: ${transfer.error}`)
       return { success: false, pxpAwarded: 0 }
     }
 
@@ -258,7 +324,8 @@ export async function awardEventHost(
  */
 export async function awardEventAttendance(
   userId: number,
-  eventId: number
+  eventId: number,
+  walletAddress: string
 ): Promise<{
   success: boolean
   pxpAwarded: number
@@ -266,6 +333,12 @@ export async function awardEventAttendance(
   try {
     const pxpAmount = await getPXPConfig('event_attend')
     if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(walletAddress, pxpAmount, `Attending event ${eventId}`)
+    if (!transfer.success) {
+      console.error(`[awardEventAttendance] On-chain transfer failed: ${transfer.error}`)
       return { success: false, pxpAwarded: 0 }
     }
 
@@ -286,7 +359,8 @@ export async function awardEventAttendance(
  */
 export async function awardVenueReview(
   userId: number,
-  venueId: number
+  venueId: number,
+  walletAddress: string
 ): Promise<{
   success: boolean
   pxpAwarded: number
@@ -294,6 +368,16 @@ export async function awardVenueReview(
   try {
     const pxpAmount = await getPXPConfig('venue_review')
     if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(
+      walletAddress,
+      pxpAmount,
+      `Venue review for venue ${venueId}`
+    )
+    if (!transfer.success) {
+      console.error(`[awardVenueReview] On-chain transfer failed: ${transfer.error}`)
       return { success: false, pxpAwarded: 0 }
     }
 

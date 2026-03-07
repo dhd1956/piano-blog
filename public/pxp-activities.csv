@@ -1,0 +1,20 @@
+Category,Activity,PXP Amount,Who Earns It,Status,Notes
+Onboarding,Welcome reward (new user),25,New user,✅ Implemented,On-chain PXP token transfer + 0.01 CELO gas stipend. Hardcoded in REWARD_AMOUNTS.NEW_USER. User clicks Claim on banner after signup.
+Onboarding,Complete profile,30,User,✅ Implemented,On-chain PXP token transfer. Amount read from DB config (profile_complete). Awarded on first profile save with display name + bio (20+ chars) + location + title filled in. DB updated after on-chain confirmation.
+Referral,Referred user completes profile,50,Referrer,✅ Implemented,On-chain PXP token transfer to referrer. Amount read from DB config (referral_profile_created). Awarded when referred user first completes their profile. DB updated after on-chain confirmation.
+Referral,Referred user attends first event,100,Referrer,✅ Implemented,On-chain PXP token transfer to referrer. Amount read from DB config (referral_first_event). Awarded when referred user RSVPs to their first event. DB updated after on-chain confirmation.
+Referral,Referral cap,250 max,Referrer,✅ Implemented,Maximum PXP a single user can earn from referrals. Read from DB config (referral_max_per_user).
+Events,Attend event (RSVP),25,Attendee,✅ Implemented,On-chain PXP token transfer. Amount read from DB config (event_attend). Awarded on RSVP confirmed. DB updated after on-chain confirmation.
+Events,Host / organize event,75,Host,⚠️ Partial,On-chain transfer logic implemented in awardEventHost(). Amount read from DB config (event_host). Not yet called from any route — needs wiring to event creation API.
+Events,Perform at event,50,Performer,❌ Not implemented,In DB config (event_perform) only. No code awards this yet.
+YouTube,Upload performance video,100,Uploader,✅ Implemented,On-chain PXP token transfer. Amount read from DB config (youtube_upload). Awarded when video submitted to an event. DB updated after on-chain confirmation.
+YouTube,Organizer bonus (someone uploads video of your event),50,Event organizer,✅ Implemented,On-chain PXP token transfer. Amount read from DB config (youtube_upload_organizer). Awarded to organizer when another user uploads a video of their event. DB updated after on-chain confirmation.
+YouTube,Video reaches 1000 views,150,Uploader,✅ Implemented,On-chain PXP token transfer. Amount hardcoded in check-milestones cron (not from DB config). Note: DB config key youtube_1000_views has value 50 — discrepancy with cron. DB updated after on-chain confirmation.
+YouTube,Video reaches 10000 views,200,Uploader,✅ Implemented,On-chain PXP token transfer. Amount hardcoded in check-milestones cron (not from DB config). Note: DB config key youtube_10000_views has value 100 — discrepancy with cron. DB updated after on-chain confirmation.
+YouTube,Video reaches 100 views,10,Uploader,⚠️ In config only,DB config key youtube_100_views exists (10 PXP) but check-milestones cron only checks 1k and 10k thresholds.
+YouTube,Video reaches 100000 views,250,Uploader,⚠️ In config only,DB config key youtube_100000_views exists (250 PXP) but check-milestones cron only checks 1k and 10k thresholds.
+Community,Write venue review,15,Reviewer,⚠️ Partial,On-chain transfer logic implemented in awardVenueReview(). Amount read from DB config (venue_review). Not yet called from any route — needs wiring to venue review submission.
+Community,Submit venue (verified by curator),50,Submitter,⚠️ Partial,In DB config (venue_verified). Rewards-contract references it but no server-side route triggers the reward on curator approval.
+Community,Curate / verify a venue,20,Curator,⚠️ Partial,In DB config (curator_verification). Rewards-contract references it but no server-side route triggers the reward.
+Community,Upload venue photo,10,Uploader,❌ Not implemented,In DB config (venue_photo) only. No photo upload feature or reward code exists yet.
+Tipping,Send PXP tip to musician,varies,Recipient,✅ Implemented,On-chain ERC-20 transfer via Privy embedded wallet. User pays gas from their CELO stipend.

@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
         authProvider: true,
         totalCAVEarned: true,
         firstPXPEarnedAt: true,
+        hasClaimedNewUserReward: true,
       },
     })
 

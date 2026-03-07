@@ -135,7 +135,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const { awardEventAttendance, awardReferralFirstEvent } = await import('@/lib/pxp-rewards')
 
         // Award PXP to user for attending event
-        await awardEventAttendance(user.id, eventId)
+        await awardEventAttendance(user.id, eventId, user.walletAddress ?? '')
 
         // Award referral PXP to referrer if this is user's first event
         await awardReferralFirstEvent(user.id)
