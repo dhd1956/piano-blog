@@ -680,9 +680,13 @@ export default function SubmitVenue() {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
+              maxLength={500}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
               placeholder="Tell us about this venue, the piano quality, atmosphere, special events, etc..."
             />
+            <div className="mt-1 text-right text-xs text-gray-500">
+              {formData.description.length}/500 characters
+            </div>
           </div>
 
           {/* Submit Button */}
