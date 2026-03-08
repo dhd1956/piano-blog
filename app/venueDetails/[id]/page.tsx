@@ -389,35 +389,19 @@ export default function VenueDetailsPage() {
               ← Back to Venues
             </button>
 
-            {/* Wallet Connection & Edit Controls */}
-            <div className="flex items-center gap-4">
-              {!isConnected ? (
-                <button
-                  onClick={connectWallet}
-                  className="bg-primary-600 hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-500 rounded-lg px-3 py-1 text-sm text-white"
-                >
-                  Connect Wallet
-                </button>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {formatAddress(walletAddress)}
-                  </span>
-                  {permissions.canEdit && (
-                    <button
-                      onClick={() => setIsEditing(!isEditing)}
-                      className={`rounded-lg px-3 py-1 text-sm ${
-                        isEditing
-                          ? 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-400'
-                          : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500'
-                      }`}
-                    >
-                      {isEditing ? 'Cancel Edit' : 'Edit Venue'}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Edit Controls */}
+            {permissions.canEdit && (
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`rounded-lg px-3 py-1 text-sm ${
+                  isEditing
+                    ? 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-400'
+                    : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500'
+                }`}
+              >
+                {isEditing ? 'Cancel Edit' : 'Edit Venue'}
+              </button>
+            )}
           </div>
         </div>
 

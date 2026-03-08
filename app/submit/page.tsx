@@ -701,10 +701,6 @@ export default function SubmitVenue() {
                 'Submit Venue for Verification'
               )}
             </button>
-
-            <p className="mt-2 text-center text-sm text-gray-500">
-              No wallet required - submissions welcome from everyone!
-            </p>
           </div>
         </form>
 
