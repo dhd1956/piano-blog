@@ -197,7 +197,7 @@ model User {
 
   // Privacy settings
   publicProfile  Boolean  @default(true)  // Profile visibility
-  showPXPBalance Boolean  @default(false) // Show token balance publicly
+  showPXPBalance Boolean  @default(true)  // Show token balance publicly
 
   // QR Code settings
   qrCardStyle    Json?    // Saved QR card theme preferences
