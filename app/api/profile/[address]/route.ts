@@ -278,6 +278,13 @@ export async function PATCH(
           { username: { equals: address, mode: 'insensitive' } },
         ],
       },
+      select: {
+        id: true,
+        walletAddress: true,
+        profileCompleted: true,
+        musicianProfileCompleted: true,
+        role: true,
+      },
     })
 
     if (!user) {
@@ -351,6 +358,7 @@ export async function PATCH(
 
     // Update user profile using the user's primary key (id)
     const wasProfileCompleted = user.profileCompleted
+    const wasMusicianProfileCompleted = user.musicianProfileCompleted
     const updatedUser = await db.user.update({
       where: {
         id: user.id,
@@ -427,6 +435,21 @@ export async function PATCH(
           repertoire: body.musicianProfile.repertoire || [],
         },
       })
+
+      // Award musician profile completion bonus (once only)
+      // Criteria: at least one instrument + experience level set
+      if (
+        !wasMusicianProfileCompleted &&
+        body.musicianProfile.instruments?.length > 0 &&
+        body.musicianProfile.experienceLevel
+      ) {
+        try {
+          const { awardMusicianProfileCompletion } = await import('@/lib/pxp-rewards')
+          await awardMusicianProfileCompletion(user.id, user.walletAddress ?? '')
+        } catch (error) {
+          console.error('Error awarding musician profile completion PXP:', error)
+        }
+      }
     }
 
     console.log('[Profile Update] Successfully updated profile for user:', updatedUser.id)

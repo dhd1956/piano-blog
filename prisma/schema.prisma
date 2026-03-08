@@ -156,8 +156,10 @@ model User {
   passwordResetExpiry     DateTime? // Password reset token expiration time
 
   // Profile completion tracking
-  profileCompleted        Boolean   @default(false)  // Profile setup completed
-  profileCompletedAt      DateTime? // When profile was completed
+  profileCompleted              Boolean   @default(false)  // Profile setup completed
+  profileCompletedAt            DateTime? // When profile was completed
+  musicianProfileCompleted      Boolean   @default(false)  // Musician profile bonus PXP awarded
+  musicianProfileCompletedAt    DateTime? // When musician profile bonus was awarded
 
   // Onboarding tracking (new users)
   onboardingCompleted     Boolean   @default(false)  // Onboarding wizard completed

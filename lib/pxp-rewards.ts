@@ -355,6 +355,59 @@ export async function awardEventAttendance(
 }
 
 /**
+ * Award PXP bonus for completing a musician profile (instruments + experience level set).
+ * Separate from the base profile completion reward — musicians earn both.
+ */
+export async function awardMusicianProfileCompletion(
+  userId: number,
+  walletAddress: string
+): Promise<{
+  success: boolean
+  pxpAwarded: number
+}> {
+  try {
+    const db = await getDb()
+
+    // Check not already awarded
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { musicianProfileCompleted: true },
+    })
+
+    if (user?.musicianProfileCompleted) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const pxpAmount = await getPXPConfig('musician_profile_complete')
+    if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(walletAddress, pxpAmount, 'Musician profile completion')
+    if (!transfer.success) {
+      console.error(`[awardMusicianProfileCompletion] On-chain transfer failed: ${transfer.error}`)
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        totalCAVEarned: { increment: pxpAmount },
+        musicianProfileCompleted: true,
+        musicianProfileCompletedAt: new Date(),
+      },
+    })
+
+    console.log(`✓ Awarded ${pxpAmount} PXP to user ${userId} for: Musician profile completion`)
+
+    return { success: true, pxpAwarded: pxpAmount }
+  } catch (error) {
+    console.error('Error awarding musician profile completion PXP:', error)
+    return { success: false, pxpAwarded: 0 }
+  }
+}
+
+/**
  * Award PXP for writing a venue review
  */
 export async function awardVenueReview(

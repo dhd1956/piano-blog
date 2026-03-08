@@ -161,6 +161,15 @@ const initialPXPConfig = [
     category: 'community',
     enabled: true,
   },
+  {
+    key: 'musician_profile_complete',
+    value: 25,
+    label: 'Profile: Complete Musician Profile',
+    description:
+      'Additional PXP for musicians who complete their musician profile (instruments + experience level)',
+    category: 'community',
+    enabled: true,
+  },
 ]
 
 async function main() {

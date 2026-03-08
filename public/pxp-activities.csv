@@ -1,6 +1,7 @@
 Category,Activity,PXP Amount,Who Earns It,Status,Notes
 Onboarding,Welcome reward (new user),25,New user,✅ Implemented,On-chain PXP token transfer + 0.01 CELO gas stipend. Hardcoded in REWARD_AMOUNTS.NEW_USER. User clicks Claim on banner after signup.
 Onboarding,Complete profile,30,User,✅ Implemented,On-chain PXP token transfer. Amount read from DB config (profile_complete). Awarded on first profile save with display name + bio (20+ chars) + location + title filled in. DB updated after on-chain confirmation.
+Onboarding,Complete musician profile (bonus),25,Musician,✅ Implemented,On-chain PXP token transfer. Amount read from DB config (musician_profile_complete). Awarded once when musician profile has at least one instrument + experience level set. Additive to the base profile reward. DB updated after on-chain confirmation.
 Referral,Referred user completes profile,50,Referrer,✅ Implemented,On-chain PXP token transfer to referrer. Amount read from DB config (referral_profile_created). Awarded when referred user first completes their profile. DB updated after on-chain confirmation.
 Referral,Referred user attends first event,100,Referrer,✅ Implemented,On-chain PXP token transfer to referrer. Amount read from DB config (referral_first_event). Awarded when referred user RSVPs to their first event. DB updated after on-chain confirmation.
 Referral,Referral cap,250 max,Referrer,✅ Implemented,Maximum PXP a single user can earn from referrals. Read from DB config (referral_max_per_user).
