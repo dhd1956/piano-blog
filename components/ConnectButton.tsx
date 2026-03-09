@@ -45,6 +45,12 @@ export default function ConnectButton() {
     setIsOpen(false)
     await authLogout()
     if (authenticated) await logout()
+    // Wipe Privy's localStorage so it cannot silently restore the session
+    if (typeof window !== 'undefined') {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.toLowerCase().includes('privy')) localStorage.removeItem(key)
+      })
+    }
     window.location.href = '/auth/login?logout=1'
   }
 
