@@ -69,8 +69,8 @@ export default function VenueQRCard({
     const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const baseUrl =
       typeof window !== 'undefined'
-        ? `${window.location.origin}/venueDetails/${venueData.id}`
-        : `${APP_URL}/venueDetails/${venueData.id}`
+        ? `${window.location.origin}/preview/venue/${venueData.id}`
+        : `${APP_URL}/preview/venue/${venueData.id}`
 
     const qrData: VenueQRData = {
       type: 'venue',

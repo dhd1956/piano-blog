@@ -142,8 +142,8 @@ export default function UserProfileQRCard({
     const profileIdentifier = userData.profileSlug || userData.walletAddress
     const baseUrl =
       typeof window !== 'undefined'
-        ? `${window.location.origin}/profile/${profileIdentifier}`
-        : `${APP_URL}/profile/${profileIdentifier}`
+        ? `${window.location.origin}/preview/musician/${profileIdentifier}`
+        : `${APP_URL}/preview/musician/${profileIdentifier}`
 
     const qrData: UserProfileQRData = {
       type: 'user',
