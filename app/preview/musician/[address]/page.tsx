@@ -178,7 +178,7 @@ export default function MusicianPreviewPage() {
                   Instruments
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {musicianProfile.instruments.map((i) => (
+                  {musicianProfile?.instruments.map((i) => (
                     <span
                       key={i}
                       className="rounded-full bg-indigo-100 px-3 py-1 text-sm text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
@@ -197,7 +197,7 @@ export default function MusicianPreviewPage() {
                   Styles
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {musicianProfile.musicalStyles.map((s) => (
+                  {musicianProfile?.musicalStyles.map((s) => (
                     <span
                       key={s}
                       className="rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-800 dark:bg-purple-900 dark:text-purple-200"
