@@ -1,6 +1,6 @@
 'use client'
 
-import { usePrivy, useWallets, useCreateWallet } from '@privy-io/react-auth'
+import { usePrivy, useWallets, useCreateWallet, useLoginWithEmail } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
@@ -28,6 +28,13 @@ function LoginContent() {
   const [walletError, setWalletError] = useState(false)
   // True while we are actively clearing a lingering Google/Privy session
   const [clearingSession, setClearingSession] = useState(isLogoutRedirect)
+  // Email OTP state
+  const [emailInput, setEmailInput] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailLoading, setEmailLoading] = useState(false)
+  const { sendCode, loginWithCode } = useLoginWithEmail()
 
   // If user just logged out and Google silently re-authed Privy, force-clear it
   // so they can choose a different account (e.g. Yahoo email OTP)
@@ -138,16 +145,112 @@ function LoginContent() {
     )
   }
 
+  const handleSendCode = async () => {
+    setEmailError('')
+    if (!emailInput.trim()) {
+      setEmailError('Please enter your email address')
+      return
+    }
+    setEmailLoading(true)
+    try {
+      await sendCode({ email: emailInput.trim() })
+      setOtpSent(true)
+    } catch {
+      setEmailError('Failed to send code. Check the email address and try again.')
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  const handleLoginWithCode = async () => {
+    setEmailError('')
+    if (!otpCode.trim()) {
+      setEmailError('Please enter the code from your email')
+      return
+    }
+    setEmailLoading(true)
+    try {
+      await loginWithCode({ code: otpCode.trim() })
+    } catch {
+      setEmailError('Invalid or expired code. Please try again.')
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">Sign in</h1>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">No password needed</p>
+
+        {/* Email OTP */}
+        {!otpSent ? (
+          <div className="space-y-2">
+            <input
+              type="email"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendCode()}
+              placeholder="your@email.com"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            />
+            <button
+              onClick={handleSendCode}
+              disabled={emailLoading}
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {emailLoading ? 'Sending…' : 'Send sign-in code'}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Code sent to <strong>{emailInput}</strong>.{' '}
+              <button
+                onClick={() => {
+                  setOtpSent(false)
+                  setOtpCode('')
+                }}
+                className="text-blue-600 hover:underline"
+              >
+                Change email
+              </button>
+            </p>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleLoginWithCode()}
+              placeholder="Enter code"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            />
+            <button
+              onClick={handleLoginWithCode}
+              disabled={emailLoading}
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {emailLoading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </div>
+        )}
+
+        {emailError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{emailError}</p>}
+
+        {/* Divider */}
+        <div className="my-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+          <span className="text-xs text-gray-400">or</span>
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+        </div>
+
+        {/* Google */}
         <button
           onClick={() => login()}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
         >
-          Continue with email or Google
+          Continue with Google
         </button>
       </div>
     </div>
