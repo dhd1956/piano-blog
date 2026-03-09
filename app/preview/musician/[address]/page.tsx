@@ -172,7 +172,7 @@ export default function MusicianPreviewPage() {
             )}
 
             {/* Instruments */}
-            {musicianProfile?.instruments?.length > 0 && (
+            {(musicianProfile?.instruments?.length ?? 0) > 0 && (
               <div>
                 <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
                   Instruments
@@ -191,7 +191,7 @@ export default function MusicianPreviewPage() {
             )}
 
             {/* Styles */}
-            {musicianProfile?.musicalStyles?.length > 0 && (
+            {(musicianProfile?.musicalStyles?.length ?? 0) > 0 && (
               <div>
                 <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
                   Styles
