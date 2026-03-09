@@ -22,20 +22,36 @@ function LoginContent() {
   const router = useRouter()
   const params = useSearchParams()
   const redirect = params.get('redirect') || '/'
+  const isLogoutRedirect = params.get('logout') === '1'
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
   const [walletError, setWalletError] = useState(false)
+  // True while we are actively clearing a lingering Google/Privy session
+  const [clearingSession, setClearingSession] = useState(isLogoutRedirect)
+
+  // If user just logged out and Google silently re-authed Privy, force-clear it
+  // so they can choose a different account (e.g. Yahoo email OTP)
+  useEffect(() => {
+    if (!ready || !isLogoutRedirect) return
+    if (authenticated) {
+      logout().finally(() => setClearingSession(false))
+    } else {
+      setClearingSession(false)
+    }
+  }, [ready]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // If authenticated but no wallet, force-create one
   useEffect(() => {
+    if (clearingSession) return
     if (!ready || !authenticated || !user || hasTriedCreateWalletRef.current) return
     if (wallets[0]) return // wallet already exists
     hasTriedCreateWalletRef.current = true
     createWallet().catch(() => setWalletError(true))
-  }, [ready, authenticated, user, wallets, createWallet])
+  }, [ready, authenticated, user, wallets, createWallet, clearingSession])
 
   // When Privy login completes and wallet is ready, create backend session then redirect
   useEffect(() => {
+    if (clearingSession) return
     if (!ready || !authenticated || !user || hasCreatedSessionRef.current) return
     const wallet = wallets[0]
     if (!wallet) return // Wait for embedded wallet to be created
@@ -70,12 +86,13 @@ function LoginContent() {
 
   // If already authenticated via backend session on mount, redirect immediately
   useEffect(() => {
+    if (clearingSession) return
     if (!isLoading && isAuthenticated) {
       router.replace(redirect)
     }
-  }, [isLoading, isAuthenticated, redirect, router])
+  }, [isLoading, isAuthenticated, redirect, router, clearingSession])
 
-  if (isLoading || !ready) {
+  if (isLoading || !ready || clearingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner />
@@ -107,7 +124,10 @@ function LoginContent() {
   }
 
   // Privy session exists but no backend session yet — useEffect is handling it
-  if (isAuthenticated || (authenticated && hasCreatedSessionRef.current) || authenticated) {
+  if (
+    !clearingSession &&
+    (isAuthenticated || (authenticated && hasCreatedSessionRef.current) || authenticated)
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

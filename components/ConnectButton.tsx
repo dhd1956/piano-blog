@@ -45,7 +45,7 @@ export default function ConnectButton() {
     setIsOpen(false)
     await authLogout()
     if (authenticated) await logout()
-    window.location.href = '/'
+    window.location.href = '/auth/login?logout=1'
   }
 
   if (!isConnected) {
