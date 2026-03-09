@@ -23,11 +23,18 @@ function LoginContent() {
   const params = useSearchParams()
   const redirect = params.get('redirect') || '/'
   const isLogoutRedirect = params.get('logout') === '1'
+
+  // Gate: only allow auto-session-creation after user explicitly clicks a button.
+  // When coming from logout, start as false so cached Privy sessions can't sneak through.
+  const [userInitiatedLogin, setUserInitiatedLogin] = useState(!isLogoutRedirect)
+
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
   const [walletError, setWalletError] = useState(false)
-  // True while we are actively clearing a lingering Google/Privy session
-  const [clearingSession, setClearingSession] = useState(isLogoutRedirect)
+
+  // Clearing state: true while we force-clear any lingering Privy session after logout
+  const [clearing, setClearing] = useState(isLogoutRedirect)
+
   // Email OTP state
   const [emailInput, setEmailInput] = useState('')
   const [otpCode, setOtpCode] = useState('')
@@ -36,32 +43,28 @@ function LoginContent() {
   const [emailLoading, setEmailLoading] = useState(false)
   const { sendCode, loginWithCode } = useLoginWithEmail()
 
-  // If user just logged out and Google silently re-authed Privy, force-clear it
-  // so they can choose a different account (e.g. Yahoo email OTP)
+  // When coming from logout: always force-clear Privy session once SDK is ready,
+  // even if authenticated appears false at this instant (session may load a moment later)
   useEffect(() => {
     if (!ready || !isLogoutRedirect) return
-    if (authenticated) {
-      logout().finally(() => setClearingSession(false))
-    } else {
-      setClearingSession(false)
-    }
+    logout().finally(() => setClearing(false))
   }, [ready]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // If authenticated but no wallet, force-create one
+  // Create embedded wallet if needed — only after user explicitly initiated login
   useEffect(() => {
-    if (clearingSession) return
+    if (!userInitiatedLogin) return
     if (!ready || !authenticated || !user || hasTriedCreateWalletRef.current) return
-    if (wallets[0]) return // wallet already exists
+    if (wallets[0]) return
     hasTriedCreateWalletRef.current = true
     createWallet().catch(() => setWalletError(true))
-  }, [ready, authenticated, user, wallets, createWallet, clearingSession])
+  }, [ready, authenticated, user, wallets, createWallet, userInitiatedLogin])
 
-  // When Privy login completes and wallet is ready, create backend session then redirect
+  // Create backend session after Privy login completes — only after user-initiated login
   useEffect(() => {
-    if (clearingSession) return
+    if (!userInitiatedLogin) return
     if (!ready || !authenticated || !user || hasCreatedSessionRef.current) return
     const wallet = wallets[0]
-    if (!wallet) return // Wait for embedded wallet to be created
+    if (!wallet) return
 
     hasCreatedSessionRef.current = true
 
@@ -89,17 +92,17 @@ function LoginContent() {
         }
       })
       .catch(console.error)
-  }, [ready, authenticated, user, wallets, redirect, refreshUser, router])
+  }, [ready, authenticated, user, wallets, redirect, refreshUser, router, userInitiatedLogin])
 
-  // If already authenticated via backend session on mount, redirect immediately
+  // If already authenticated via backend session on mount, redirect — but NOT after logout
   useEffect(() => {
-    if (clearingSession) return
+    if (isLogoutRedirect) return
     if (!isLoading && isAuthenticated) {
       router.replace(redirect)
     }
-  }, [isLoading, isAuthenticated, redirect, router, clearingSession])
+  }, [isLoading, isAuthenticated, redirect, router, isLogoutRedirect])
 
-  if (isLoading || !ready || clearingSession) {
+  if (isLoading || !ready || clearing) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner />
@@ -108,7 +111,7 @@ function LoginContent() {
   }
 
   // Privy session exists but wallet creation failed — let user retry
-  if (authenticated && walletError) {
+  if (userInitiatedLogin && authenticated && walletError) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
@@ -130,9 +133,9 @@ function LoginContent() {
     )
   }
 
-  // Privy session exists but no backend session yet — useEffect is handling it
+  // Show "Signing you in..." only when user explicitly triggered login
   if (
-    !clearingSession &&
+    userInitiatedLogin &&
     (isAuthenticated || (authenticated && hasCreatedSessionRef.current) || authenticated)
   ) {
     return (
@@ -169,13 +172,20 @@ function LoginContent() {
       return
     }
     setEmailLoading(true)
+    setUserInitiatedLogin(true)
     try {
       await loginWithCode({ code: otpCode.trim() })
     } catch {
       setEmailError('Invalid or expired code. Please try again.')
+      setUserInitiatedLogin(false)
     } finally {
       setEmailLoading(false)
     }
+  }
+
+  const handleGoogleLogin = () => {
+    setUserInitiatedLogin(true)
+    login()
   }
 
   return (
@@ -247,7 +257,7 @@ function LoginContent() {
 
         {/* Google */}
         <button
-          onClick={() => login()}
+          onClick={handleGoogleLogin}
           className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
         >
           Continue with Google
