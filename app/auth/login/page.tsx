@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  usePrivy,
-  useWallets,
-  useCreateWallet,
-  useLoginWithEmail,
-  useLoginWithOAuth,
-} from '@privy-io/react-auth'
+import { usePrivy, useWallets, useCreateWallet, useLoginWithEmail } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
@@ -21,19 +15,10 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
 }
 
 function LoginContent() {
-  const { authenticated, user, ready, logout } = usePrivy()
+  const { login, authenticated, user, ready, logout } = usePrivy()
   const { wallets } = useWallets()
   const { createWallet } = useCreateWallet()
-  const { sendCode, loginWithCode } = useLoginWithEmail({
-    onComplete: () => {
-      userClickedLoginRef.current = true
-    },
-  })
-  const { initOAuth } = useLoginWithOAuth({
-    onComplete: () => {
-      userClickedLoginRef.current = true
-    },
-  })
+  const { sendCode, loginWithCode } = useLoginWithEmail()
   const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
@@ -42,7 +27,10 @@ function LoginContent() {
 
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
-  const userClickedLoginRef = useRef(false)
+  // Persisted across Google OAuth redirects via sessionStorage
+  const userClickedLoginRef = useRef(
+    typeof sessionStorage !== 'undefined' && sessionStorage.getItem('login_initiated') === '1'
+  )
 
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -79,6 +67,7 @@ function LoginContent() {
     if (!wallet) return
 
     hasCreatedSessionRef.current = true
+    sessionStorage.removeItem('login_initiated')
 
     const userEmail = user.email?.address || (user.google as any)?.email
     const authProvider = user.google ? 'google' : 'email'
@@ -174,9 +163,10 @@ function LoginContent() {
     setVerifying(true)
     setFormError('')
     try {
+      userClickedLoginRef.current = true
       await loginWithCode({ code })
-      // onComplete callback sets userClickedLoginRef
     } catch (e: any) {
+      userClickedLoginRef.current = false
       setFormError(e.message || 'Invalid code. Please try again.')
     } finally {
       setVerifying(false)
@@ -184,8 +174,10 @@ function LoginContent() {
   }
 
   const handleGoogleLogin = () => {
+    // Persist across the OAuth redirect so we can create the session on return
+    sessionStorage.setItem('login_initiated', '1')
     userClickedLoginRef.current = true
-    initOAuth({ provider: 'google' })
+    login()
   }
 
   return (
