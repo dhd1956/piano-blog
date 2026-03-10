@@ -39,6 +39,7 @@ function LoginContent() {
   const [verifying, setVerifying] = useState(false)
   const [formError, setFormError] = useState('')
   const [walletError, setWalletError] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   // If Privy restored a session after logout (via its cross-origin iframe), kill it so
   // the user can choose a different account.
@@ -102,6 +103,13 @@ function LoginContent() {
     }
   }, [isLoading, isAuthenticated, redirect, router])
 
+  // Countdown timer for resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setTimeout(() => setResendCooldown((n) => n - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendCooldown])
+
   if (isLoading || !ready) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -149,10 +157,30 @@ function LoginContent() {
     setSending(true)
     setFormError('')
     try {
+      // If Privy silently restored a session (e.g. Gmail via iframe), log out first.
+      // Otherwise loginWithCode would try to link Yahoo to the Gmail account and fail.
+      if (authenticated) await logout()
       await sendCode({ email })
       setCodeSent(true)
+      setResendCooldown(30)
     } catch (e: any) {
       setFormError(e.message || 'Failed to send code. Please try again.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return
+    setSending(true)
+    setFormError('')
+    setCode('')
+    try {
+      if (authenticated) await logout()
+      await sendCode({ email })
+      setResendCooldown(30)
+    } catch (e: any) {
+      setFormError(e.message || 'Failed to resend code.')
     } finally {
       setSending(false)
     }
@@ -241,16 +269,25 @@ function LoginContent() {
             >
               {verifying ? 'Verifying…' : 'Verify code'}
             </button>
-            <button
-              onClick={() => {
-                setCodeSent(false)
-                setCode('')
-                setFormError('')
-              }}
-              className="w-full text-center text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            >
-              ← Use a different email
-            </button>
+            <div className="flex items-center justify-between text-sm">
+              <button
+                onClick={handleResend}
+                disabled={resendCooldown > 0 || sending}
+                className="text-blue-600 hover:underline disabled:cursor-default disabled:text-gray-400 dark:text-blue-400"
+              >
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+              </button>
+              <button
+                onClick={() => {
+                  setCodeSent(false)
+                  setCode('')
+                  setFormError('')
+                }}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                ← Different email
+              </button>
+            </div>
           </div>
         )}
 
