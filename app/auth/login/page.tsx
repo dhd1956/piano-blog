@@ -22,21 +22,37 @@ function LoginContent() {
   const router = useRouter()
   const params = useSearchParams()
   const redirect = params.get('redirect') || '/'
+  // True when we arrived here from a logout — prevents Privy's auto-restored session
+  // from silently creating a backend session before the user has a chance to choose an account
+  const isPostLogout = params.get('logout') === '1'
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
+  const userClickedLoginRef = useRef(false)
   const [walletError, setWalletError] = useState(false)
 
-  // If authenticated but no wallet, force-create one
+  // If Privy restored a session after logout (via its cross-origin iframe), kill it so
+  // the user can choose a different account
+  useEffect(() => {
+    if (isPostLogout && ready && authenticated) {
+      logout()
+    }
+  }, [isPostLogout, ready, authenticated, logout])
+
+  // If authenticated but no wallet, force-create one — only after explicit login
   useEffect(() => {
     if (!ready || !authenticated || !user || hasTriedCreateWalletRef.current) return
+    if (!userClickedLoginRef.current) return
     if (wallets[0]) return // wallet already exists
     hasTriedCreateWalletRef.current = true
     createWallet().catch(() => setWalletError(true))
   }, [ready, authenticated, user, wallets, createWallet])
 
   // When Privy login completes and wallet is ready, create backend session then redirect
+  // Only runs after the user explicitly clicked "Continue" — prevents auto-login from
+  // a Privy session restored from its cross-origin iframe
   useEffect(() => {
     if (!ready || !authenticated || !user || hasCreatedSessionRef.current) return
+    if (!userClickedLoginRef.current) return
     const wallet = wallets[0]
     if (!wallet) return // Wait for embedded wallet to be created
 
@@ -106,8 +122,8 @@ function LoginContent() {
     )
   }
 
-  // Privy session exists but no backend session yet — useEffect is handling it
-  if (isAuthenticated || (authenticated && hasCreatedSessionRef.current) || authenticated) {
+  // Privy session exists and user explicitly initiated login — useEffect is handling it
+  if (isAuthenticated || (authenticated && userClickedLoginRef.current)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -124,7 +140,10 @@ function LoginContent() {
         <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">Sign in</h1>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">No password needed</p>
         <button
-          onClick={() => login()}
+          onClick={() => {
+            userClickedLoginRef.current = true
+            login()
+          }}
           className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
         >
           Continue with email or Google
