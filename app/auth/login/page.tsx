@@ -56,7 +56,11 @@ function LoginContent() {
     if (!userClickedLoginRef.current) return
     if (wallets[0]) return
     hasTriedCreateWalletRef.current = true
-    createWallet().catch(() => setWalletError(true))
+    createWallet().catch((e: any) => {
+      // Ignore "already exists" — the wallet will load momentarily on its own
+      const msg = e?.message?.toLowerCase() ?? ''
+      if (!msg.includes('already') && !msg.includes('exist')) setWalletError(true)
+    })
   }, [ready, authenticated, user, wallets, createWallet])
 
   // When Privy login completes and wallet is ready, create backend session then redirect.
@@ -118,7 +122,8 @@ function LoginContent() {
     )
   }
 
-  if (authenticated && walletError) {
+  // Only show wallet error if login didn't succeed anyway (wallet may already exist)
+  if (authenticated && walletError && !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
