@@ -1,6 +1,12 @@
 'use client'
 
-import { usePrivy, useWallets, useCreateWallet } from '@privy-io/react-auth'
+import {
+  usePrivy,
+  useWallets,
+  useCreateWallet,
+  useLoginWithEmail,
+  useLoginWithOAuth,
+} from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
@@ -15,24 +21,40 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
 }
 
 function LoginContent() {
-  const { login, authenticated, user, ready, logout } = usePrivy()
+  const { authenticated, user, ready, logout } = usePrivy()
   const { wallets } = useWallets()
   const { createWallet } = useCreateWallet()
+  const { sendCode, loginWithCode } = useLoginWithEmail({
+    onComplete: () => {
+      userClickedLoginRef.current = true
+    },
+  })
+  const { initOAuth } = useLoginWithOAuth({
+    onComplete: () => {
+      userClickedLoginRef.current = true
+    },
+  })
   const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
   const redirect = params.get('redirect') || '/'
-  // True when we arrived here from a logout — prevents Privy's auto-restored session
-  // from silently creating a backend session before the user has a chance to choose an account
   const isPostLogout = params.get('logout') === '1'
+
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
   const userClickedLoginRef = useRef(false)
+
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [codeSent, setCodeSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [formError, setFormError] = useState('')
   const [walletError, setWalletError] = useState(false)
 
   // If Privy restored a session after logout (via its cross-origin iframe), kill it so
   // the user can choose a different account.
-  // Guard on !userClickedLoginRef.current so we don't interrupt a new login in progress.
+  // Guard on !userClickedLoginRef.current so we don't interrupt a login in progress.
   useEffect(() => {
     if (isPostLogout && ready && authenticated && !userClickedLoginRef.current) {
       logout()
@@ -43,35 +65,34 @@ function LoginContent() {
   useEffect(() => {
     if (!ready || !authenticated || !user || hasTriedCreateWalletRef.current) return
     if (!userClickedLoginRef.current) return
-    if (wallets[0]) return // wallet already exists
+    if (wallets[0]) return
     hasTriedCreateWalletRef.current = true
     createWallet().catch(() => setWalletError(true))
   }, [ready, authenticated, user, wallets, createWallet])
 
-  // When Privy login completes and wallet is ready, create backend session then redirect
-  // Only runs after the user explicitly clicked "Continue" — prevents auto-login from
-  // a Privy session restored from its cross-origin iframe
+  // When Privy login completes and wallet is ready, create backend session then redirect.
+  // Only runs after explicit user action — prevents auto-login from a restored iframe session.
   useEffect(() => {
     if (!ready || !authenticated || !user || hasCreatedSessionRef.current) return
     if (!userClickedLoginRef.current) return
     const wallet = wallets[0]
-    if (!wallet) return // Wait for embedded wallet to be created
+    if (!wallet) return
 
     hasCreatedSessionRef.current = true
 
-    const email = user.email?.address || (user.google as any)?.email
+    const userEmail = user.email?.address || (user.google as any)?.email
     const authProvider = user.google ? 'google' : 'email'
 
     fetch('/api/auth/embedded-login', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ walletAddress: wallet.address, email, authProvider }),
+      body: JSON.stringify({ walletAddress: wallet.address, email: userEmail, authProvider }),
     })
       .then(() => refreshUser())
       .then(() =>
         fetch(
-          `/api/profile/${wallet.address}?email=${encodeURIComponent(email || '')}&emailVerified=true&authProvider=${authProvider}`
+          `/api/profile/${wallet.address}?email=${encodeURIComponent(userEmail || '')}&emailVerified=true&authProvider=${authProvider}`
         )
       )
       .then((res) => (res.ok ? res.json() : null))
@@ -100,7 +121,6 @@ function LoginContent() {
     )
   }
 
-  // Privy session exists but wallet creation failed — let user retry
   if (authenticated && walletError) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
@@ -135,20 +155,114 @@ function LoginContent() {
     )
   }
 
+  const handleSendCode = async () => {
+    if (!email) return
+    setSending(true)
+    setFormError('')
+    try {
+      await sendCode({ email })
+      setCodeSent(true)
+    } catch (e: any) {
+      setFormError(e.message || 'Failed to send code. Please try again.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleVerifyCode = async () => {
+    if (!code) return
+    setVerifying(true)
+    setFormError('')
+    try {
+      await loginWithCode({ code })
+      // onComplete callback sets userClickedLoginRef
+    } catch (e: any) {
+      setFormError(e.message || 'Invalid code. Please try again.')
+    } finally {
+      setVerifying(false)
+    }
+  }
+
+  const handleGoogleLogin = () => {
+    userClickedLoginRef.current = true
+    initOAuth({ provider: 'google' })
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">Sign in</h1>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">No password needed</p>
-        <button
-          onClick={() => {
-            userClickedLoginRef.current = true
-            login()
-          }}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          Continue with email or Google
-        </button>
+
+        {!codeSent ? (
+          <div className="space-y-3">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendCode()}
+              placeholder="your@email.com"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+            />
+            <button
+              onClick={handleSendCode}
+              disabled={!email || sending}
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {sending ? 'Sending…' : 'Continue with email'}
+            </button>
+
+            <div className="relative flex items-center py-1">
+              <div className="flex-grow border-t border-gray-200 dark:border-gray-700" />
+              <span className="mx-3 shrink-0 text-xs text-gray-400">or</span>
+              <div className="flex-grow border-t border-gray-200 dark:border-gray-700" />
+            </div>
+
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Continue with Google
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Code sent to <strong>{email}</strong>
+            </p>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleVerifyCode()}
+              placeholder="Enter 6-digit code"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+            />
+            <button
+              onClick={handleVerifyCode}
+              disabled={!code || verifying}
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {verifying ? 'Verifying…' : 'Verify code'}
+            </button>
+            <button
+              onClick={() => {
+                setCodeSent(false)
+                setCode('')
+                setFormError('')
+              }}
+              className="w-full text-center text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              ← Use a different email
+            </button>
+          </div>
+        )}
+
+        {formError && <p className="mt-3 text-sm text-red-500">{formError}</p>}
       </div>
     </div>
   )
