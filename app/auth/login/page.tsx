@@ -31,9 +31,10 @@ function LoginContent() {
   const [walletError, setWalletError] = useState(false)
 
   // If Privy restored a session after logout (via its cross-origin iframe), kill it so
-  // the user can choose a different account
+  // the user can choose a different account.
+  // Guard on !userClickedLoginRef.current so we don't interrupt a new login in progress.
   useEffect(() => {
-    if (isPostLogout && ready && authenticated) {
+    if (isPostLogout && ready && authenticated && !userClickedLoginRef.current) {
       logout()
     }
   }, [isPostLogout, ready, authenticated, logout])
