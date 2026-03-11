@@ -39,6 +39,7 @@ function LoginContent() {
   const [verifying, setVerifying] = useState(false)
   const [formError, setFormError] = useState('')
   const [walletError, setWalletError] = useState(false)
+  const [sessionError, setSessionError] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
 
   // If Privy restored a session after logout (via its cross-origin iframe), kill it so
@@ -97,7 +98,10 @@ function LoginContent() {
           router.replace(redirect)
         }
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error('[login] session creation failed:', err)
+        setSessionError(true)
+      })
   }, [ready, authenticated, user, wallets, redirect, refreshUser, router])
 
   // If already authenticated via backend session on mount, redirect immediately
@@ -135,6 +139,29 @@ function LoginContent() {
               await logout()
               setWalletError(false)
               hasTriedCreateWalletRef.current = false
+            }}
+            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (sessionError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-sm text-center">
+          <p className="mb-4 text-sm text-red-500">Sign-in failed. Please try again.</p>
+          <button
+            onClick={async () => {
+              await logout()
+              setSessionError(false)
+              hasCreatedSessionRef.current = false
+              userClickedLoginRef.current = false
+              setCodeSent(false)
+              setCode('')
             }}
             className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
