@@ -84,7 +84,10 @@ function LoginContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ walletAddress: wallet.address, email: userEmail, authProvider }),
     })
-      .then(() => refreshUser())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Session creation failed (${res.status})`)
+        return refreshUser()
+      })
       .then(() =>
         fetch(
           `/api/profile/${wallet.address}?email=${encodeURIComponent(userEmail || '')}&emailVerified=true&authProvider=${authProvider}`
@@ -104,9 +107,11 @@ function LoginContent() {
       })
   }, [ready, authenticated, user, wallets, redirect, refreshUser, router])
 
-  // If already authenticated via backend session on mount, redirect immediately
+  // If already authenticated via backend session on mount, redirect immediately.
+  // Skip when the user just clicked login — the session creation effect handles that redirect
+  // to avoid a double-navigation race that can leave isAuthenticated=false on community pages.
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && isAuthenticated && !userClickedLoginRef.current) {
       router.replace(redirect)
     }
   }, [isLoading, isAuthenticated, redirect, router])

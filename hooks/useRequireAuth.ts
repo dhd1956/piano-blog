@@ -16,6 +16,7 @@ export function useRequireAuth(options: UseRequireAuthOptions = {}) {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const { redirectTo, onUnauthenticated } = options
 
   useEffect(() => {
     // Don't redirect while still checking auth status
@@ -31,16 +32,16 @@ export function useRequireAuth(options: UseRequireAuthOptions = {}) {
       }
 
       // Call custom handler if provided
-      if (options.onUnauthenticated) {
-        options.onUnauthenticated()
+      if (onUnauthenticated) {
+        onUnauthenticated()
         return
       }
 
       // Default: redirect to home with login modal trigger
-      const redirectPath = options.redirectTo || '/?login=true'
+      const redirectPath = redirectTo || '/?login=true'
       router.push(redirectPath)
     }
-  }, [isAuthenticated, isLoading, pathname, router, options])
+  }, [isAuthenticated, isLoading, pathname, router, redirectTo, onUnauthenticated])
 
   return {
     isAuthenticated,
