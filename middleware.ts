@@ -112,6 +112,9 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       const response = NextResponse.redirect(loginUrl)
+      // Prevent Next.js router from caching this redirect — stale cached redirects
+      // cause an infinite loop after login when the user navigates to this route.
+      response.headers.set('Cache-Control', 'no-store')
       setAuthActiveCookie(response, false)
       return response
     }
@@ -126,6 +129,7 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       const response = NextResponse.redirect(loginUrl)
+      response.headers.set('Cache-Control', 'no-store')
       response.cookies.delete('auth_token')
       setAuthActiveCookie(response, false)
       return response
