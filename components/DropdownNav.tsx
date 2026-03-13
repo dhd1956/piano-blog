@@ -60,6 +60,7 @@ export default function DropdownNav({ title, items, className = '' }: DropdownNa
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className="hover:bg-primary-50 dark:hover:bg-primary-900/20 block px-4 py-2 text-sm text-gray-700 dark:text-gray-300"
               onClick={() => setIsOpen(false)}
             >
