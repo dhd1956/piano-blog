@@ -25,6 +25,12 @@ function LoginContent() {
   const redirect = params.get('redirect') || '/'
   const isPostLogout = params.get('logout') === '1'
 
+  // Target URL to navigate to once isAuthenticated is confirmed in React state.
+  // Using state (not direct router.replace) avoids a race where router.replace
+  // fires before React commits isAuthenticated=true, causing useRequireAuth on
+  // community pages to see stale false and redirect back to login.
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
+
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
   // Persisted across Google OAuth redirects via sessionStorage
@@ -95,26 +101,36 @@ function LoginContent() {
       )
       .then((res) => (res.ok ? res.json() : null))
       .then((profileData) => {
-        if (profileData?.profile && !profileData.profile.username && redirect === '/') {
-          router.replace('/profile/setup')
-        } else {
-          router.replace(redirect)
-        }
+        const target =
+          profileData?.profile && !profileData.profile.username && redirect === '/'
+            ? '/profile/setup'
+            : redirect
+        setPendingRedirect(target)
       })
       .catch((err) => {
         console.error('[login] session creation failed:', err)
         setSessionError(true)
       })
-  }, [ready, authenticated, user, wallets, redirect, refreshUser, router])
+  }, [ready, authenticated, user, wallets, redirect, refreshUser])
 
   // If already authenticated via backend session on mount, redirect immediately.
-  // Skip when the user just clicked login — the session creation effect handles that redirect
-  // to avoid a double-navigation race that can leave isAuthenticated=false on community pages.
+  // Skip when the user just clicked login — the pendingRedirect effect handles that.
   useEffect(() => {
     if (!isLoading && isAuthenticated && !userClickedLoginRef.current) {
       router.replace(redirect)
     }
   }, [isLoading, isAuthenticated, redirect, router])
+
+  // Navigate only after isAuthenticated is committed in React state.
+  // setPendingRedirect() is called (instead of router.replace directly) at the
+  // end of the session-creation chain so that navigation happens here — inside
+  // a useEffect — which React guarantees runs after the component re-renders
+  // with the new isAuthenticated=true value.
+  useEffect(() => {
+    if (isAuthenticated && pendingRedirect !== null) {
+      router.replace(pendingRedirect)
+    }
+  }, [isAuthenticated, pendingRedirect, router])
 
   // Countdown timer for resend cooldown
   useEffect(() => {
