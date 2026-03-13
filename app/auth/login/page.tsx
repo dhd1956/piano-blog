@@ -115,22 +115,21 @@ function LoginContent() {
 
   // If already authenticated via backend session on mount, redirect immediately.
   // Skip when the user just clicked login — the pendingRedirect effect handles that.
+  // Use window.location.href (hard nav) to bypass the Next.js router cache, which
+  // can serve a stale middleware redirect and cause an infinite loop.
   useEffect(() => {
     if (!isLoading && isAuthenticated && !userClickedLoginRef.current) {
-      router.replace(redirect)
+      window.location.href = redirect
     }
-  }, [isLoading, isAuthenticated, redirect, router])
+  }, [isLoading, isAuthenticated, redirect])
 
   // Navigate only after isAuthenticated is committed in React state.
-  // setPendingRedirect() is called (instead of router.replace directly) at the
-  // end of the session-creation chain so that navigation happens here — inside
-  // a useEffect — which React guarantees runs after the component re-renders
-  // with the new isAuthenticated=true value.
+  // Uses window.location.href (hard nav) to bypass the Next.js router cache.
   useEffect(() => {
     if (isAuthenticated && pendingRedirect !== null) {
-      router.replace(pendingRedirect)
+      window.location.href = pendingRedirect
     }
-  }, [isAuthenticated, pendingRedirect, router])
+  }, [isAuthenticated, pendingRedirect])
 
   // Countdown timer for resend cooldown
   useEffect(() => {
