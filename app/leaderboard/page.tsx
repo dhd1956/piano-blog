@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable'
+import { getDb } from '@/lib/get-db'
 
 export const metadata: Metadata = {
   title: 'PXP Leaderboard | GlobalPiano.Network',
@@ -12,7 +13,26 @@ export const metadata: Metadata = {
   },
 }
 
-export default function LeaderboardPage() {
+async function getCommunityStats() {
+  try {
+    const db = await getDb()
+    const [totalPXPResult, activeContributors, venuesDiscovered] = await Promise.all([
+      db.user.aggregate({ _sum: { totalCAVEarned: true } }),
+      db.user.count({ where: { totalCAVEarned: { gt: 0 } } }),
+      db.venue.count({ where: { isActive: true, verified: true } }),
+    ])
+    return {
+      totalPXP: totalPXPResult._sum.totalCAVEarned ?? 0,
+      activeContributors,
+      venuesDiscovered,
+    }
+  } catch {
+    return { totalPXP: 0, activeContributors: 0, venuesDiscovered: 0 }
+  }
+}
+
+export default async function LeaderboardPage() {
+  const stats = await getCommunityStats()
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
@@ -29,21 +49,27 @@ export default function LeaderboardPage() {
       {/* Community Stats Banner */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-6 text-center dark:border-gray-700 dark:from-blue-900/20 dark:to-gray-800">
-          <div className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">∞</div>
+          <div className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">
+            {stats.totalPXP.toLocaleString()}
+          </div>
           <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
             Total PXP in Community
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-purple-50 to-white p-6 text-center dark:border-gray-700 dark:from-purple-900/20 dark:to-gray-800">
-          <div className="mb-2 text-4xl font-bold text-purple-600 dark:text-purple-400">∞</div>
+          <div className="mb-2 text-4xl font-bold text-purple-600 dark:text-purple-400">
+            {stats.activeContributors.toLocaleString()}
+          </div>
           <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
             Active Contributors
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-green-50 to-white p-6 text-center dark:border-gray-700 dark:from-green-900/20 dark:to-gray-800">
-          <div className="mb-2 text-4xl font-bold text-green-600 dark:text-green-400">∞</div>
+          <div className="mb-2 text-4xl font-bold text-green-600 dark:text-green-400">
+            {stats.venuesDiscovered.toLocaleString()}
+          </div>
           <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
             Venues Discovered
           </div>

@@ -1,6 +1,12 @@
 'use client'
 
-import { usePrivy, useWallets, useCreateWallet, useLoginWithEmail } from '@privy-io/react-auth'
+import {
+  usePrivy,
+  useWallets,
+  useCreateWallet,
+  useLoginWithEmail,
+  useLoginWithOAuth,
+} from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
@@ -19,6 +25,7 @@ function LoginContent() {
   const { wallets } = useWallets()
   const { createWallet } = useCreateWallet()
   const { sendCode, loginWithCode } = useLoginWithEmail()
+  const { initOAuth } = useLoginWithOAuth()
   const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
@@ -257,7 +264,7 @@ function LoginContent() {
     // Persist across the OAuth redirect so we can create the session on return
     sessionStorage.setItem('login_initiated', '1')
     userClickedLoginRef.current = true
-    login()
+    initOAuth({ provider: 'google' })
   }
 
   return (
