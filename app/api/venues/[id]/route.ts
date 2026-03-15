@@ -200,9 +200,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Award PXP to scout if venue was newly verified
     if (isNewlyVerified && existingVenue.submittedBy) {
       try {
-        // Find the scout user by wallet address
-        const scoutUser = await db.user.findUnique({
-          where: { walletAddress: existingVenue.submittedBy.toLowerCase() },
+        // submittedBy may be a wallet address or a username (submit page stores username).
+        // Try wallet address first, then fall back to username.
+        const submittedByValue = existingVenue.submittedBy.toLowerCase()
+        let scoutUser = await db.user.findUnique({
+          where: { walletAddress: submittedByValue },
           select: {
             id: true,
             walletAddress: true,
@@ -211,6 +213,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             firstPXPEarnedAt: true,
           },
         })
+        if (!scoutUser) {
+          scoutUser = await db.user.findUnique({
+            where: { username: existingVenue.submittedBy },
+            select: {
+              id: true,
+              walletAddress: true,
+              username: true,
+              displayName: true,
+              firstPXPEarnedAt: true,
+            },
+          })
+        }
 
         if (scoutUser) {
           // Get venue verification reward from PXP config

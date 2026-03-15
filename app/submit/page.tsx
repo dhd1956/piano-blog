@@ -170,8 +170,9 @@ export default function SubmitVenue() {
       return
     }
 
-    // Use username or user ID as submitter (no wallet required)
-    const submittedBy = user.username || `user_${user.id}`
+    // Use wallet address as submitter so PXP rewards can be attributed on verification.
+    // Fall back to username if wallet is not available.
+    const submittedBy = user.walletAddress || user.username || `user_${user.id}`
 
     // Validate required fields with specific error messages
     const errors: { name?: string; city?: string; address?: string } = {}
