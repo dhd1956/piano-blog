@@ -253,10 +253,12 @@ function LoginContent() {
     }
   }
 
-  const handleGoogleLogin = () => {
-    // Persist across the OAuth redirect so we can create the session on return
+  const handleGoogleLogin = async () => {
     sessionStorage.setItem('login_initiated', '1')
     userClickedLoginRef.current = true
+    // If Privy silently restored a session via its iframe, log out first.
+    // Otherwise login() sees authenticated=true and does nothing.
+    if (authenticated) await logout()
     login()
   }
 
