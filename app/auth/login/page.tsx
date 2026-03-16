@@ -1,6 +1,12 @@
 'use client'
 
-import { usePrivy, useWallets, useCreateWallet, useLoginWithEmail } from '@privy-io/react-auth'
+import {
+  usePrivy,
+  useWallets,
+  useCreateWallet,
+  useLoginWithEmail,
+  useLoginWithOAuth,
+} from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
@@ -19,6 +25,7 @@ function LoginContent() {
   const { wallets } = useWallets()
   const { createWallet } = useCreateWallet()
   const { sendCode, loginWithCode } = useLoginWithEmail()
+  const { initOAuth } = useLoginWithOAuth()
   const { isAuthenticated, isLoading, refreshUser } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
@@ -253,13 +260,10 @@ function LoginContent() {
     }
   }
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     sessionStorage.setItem('login_initiated', '1')
     userClickedLoginRef.current = true
-    // If Privy silently restored a session via its iframe, log out first.
-    // Otherwise login() sees authenticated=true and does nothing.
-    if (authenticated) await logout()
-    login()
+    initOAuth({ provider: 'google' })
   }
 
   return (
