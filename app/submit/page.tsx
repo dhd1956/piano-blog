@@ -164,11 +164,7 @@ export default function SubmitVenue() {
     setPhoneError('')
     setError('')
 
-    // Check authentication - require login for venue submission
-    if (!isAuthenticated || !user) {
-      setError('Please sign in to submit a venue')
-      return
-    }
+    if (!isAuthenticated || !user) return
 
     // Use wallet address as submitter so PXP rewards can be attributed on verification.
     // Fall back to username if wallet is not available.
@@ -389,31 +385,6 @@ export default function SubmitVenue() {
           <p className="mt-2 text-sm text-blue-600">
             Current venues in database: {venueCount} | Reward: Community recognition
           </p>
-        </div>
-
-        {/* Optional Wallet Connection Section */}
-        <div className="mb-8 rounded-lg bg-blue-50 p-4">
-          {!isAuthenticated ? (
-            <div>
-              <p className="mb-3 text-blue-800">
-                Optionally sign in to get credit for your submissions
-              </p>
-            </div>
-          ) : (
-            <div>
-              <p className="mb-2 text-green-800">
-                ✅ Signed In - You'll get credit for this submission
-              </p>
-              <p className="mb-3 text-sm text-gray-600">
-                Logged in as:{' '}
-                {user?.displayName ||
-                  user?.username ||
-                  user?.email ||
-                  (user?.walletAddress &&
-                    `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`)}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Error Display */}
