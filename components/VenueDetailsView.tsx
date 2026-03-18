@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Venue, VenueMetadata, VENUE_TYPES } from '@/types/venue'
 import { formatAddress } from '@/utils/permissions'
-import UnifiedPXPPayment from '@/components/payments/UnifiedPXPPayment'
 
 interface VenueDetailsViewProps {
   venue: Venue
@@ -35,7 +34,6 @@ export default function VenueDetailsView({
         {/* Right Column - Meta Information */}
         <div className="space-y-6">
           <VerificationDetails venue={venue} />
-          {venue.verified && <CAVPaymentSection venue={venue} />}
           <MusicalInformation venue={venue} extendedData={extendedData} />
           <CuratorNotes venue={venue} extendedData={extendedData} />
           <ContactInformation venue={venue} extendedData={extendedData} />
@@ -628,30 +626,6 @@ function AmbianceInfo({ ambiance }: { ambiance: any }) {
         )}
       </div>
     </div>
-  )
-}
-
-function CAVPaymentSection({ venue }: { venue: Venue }) {
-  return (
-    <UnifiedPXPPayment
-      paymentRequest={{
-        recipientAddress: venue.submittedBy,
-        recipientName: venue.name,
-        memo: `Payment to ${venue.name} - ${venue.city}`,
-      }}
-      onPaymentInitiated={(method, details) => {
-        console.log(`Payment initiated via ${method}:`, details)
-      }}
-      onPaymentCompleted={(txHash) => {
-        console.log('Payment completed:', txHash)
-        alert(`Payment successful! Transaction: ${txHash.substring(0, 10)}...`)
-      }}
-      onPaymentFailed={(error) => {
-        console.error('Payment failed:', error)
-        alert(`Payment failed: ${error}`)
-      }}
-      className="bg-transparent p-0 shadow-none"
-    />
   )
 }
 

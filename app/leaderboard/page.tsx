@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable'
 import { getDb } from '@/lib/get-db'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'PXP Leaderboard | GlobalPiano.Network',
   description:

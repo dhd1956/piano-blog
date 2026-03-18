@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
 
 interface Venue {
   id: number
@@ -255,20 +254,6 @@ export default function VenueList() {
                     )}
                   </div>
                 </div>
-
-                {/* PXP Payment for verified venues */}
-                {venue.verified && (
-                  <div className="border-t border-gray-200 px-3 py-3 sm:px-6 dark:border-gray-700">
-                    <QuickPXPPayment
-                      recipientAddress={venue.submittedBy}
-                      recipientName={venue.name}
-                      memo={`Payment to ${venue.name} - ${venue.city}`}
-                      onPayment={(details) => {
-                        console.log('Payment initiated from venue listing:', details)
-                      }}
-                    />
-                  </div>
-                )}
 
                 {/* Actions */}
                 <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">

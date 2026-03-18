@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
-import { QuickPXPPayment } from '@/components/payments/UnifiedPXPPayment'
+import React from 'react'
 
 interface Venue {
   id: number
@@ -13,29 +12,14 @@ interface Venue {
   submittedBy: string
   timestamp: number
   submissionDate: Date
-  // Extended properties for PXP integration
   isPartner?: boolean
-  paymentAddress?: string
-  totalCAVReceived?: number
 }
 
 interface VenueCardProps {
   venue: Venue
-  showQRCode?: boolean
-  onPayment?: (venueId: number, amount: string) => void
 }
 
-export default function VenueCard({ venue, showQRCode = true, onPayment }: VenueCardProps) {
-  const [selectedAmount, setSelectedAmount] = useState('10')
-
-  // Use venue's payment address or fallback to submitter
-  const paymentAddress = venue.paymentAddress || venue.submittedBy
-
-  const handlePayment = (amount: string) => {
-    onPayment?.(venue.id, amount)
-    // In production, this might trigger a Web3 transaction
-  }
-
+export default function VenueCard({ venue }: VenueCardProps) {
   const getVenueIcon = () => {
     if (venue.hasPiano) return '🎹'
     return '🏢'
@@ -95,29 +79,6 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
         </div>
       </div>
 
-      {/* PXP Payment Section (for partner venues) */}
-      {venue.isPartner && showQRCode && (
-        <div className="px-6 pb-4">
-          <QuickPXPPayment
-            recipientAddress={paymentAddress}
-            recipientName={venue.name}
-            amount={selectedAmount}
-            memo={`Payment to ${venue.name} - ${venue.city}`}
-            onPayment={(details) => {
-              console.log('Payment initiated:', details)
-              onPayment?.(venue.id, details.amount || selectedAmount)
-            }}
-          />
-
-          {/* Payment Stats */}
-          {venue.totalCAVReceived && venue.totalCAVReceived > 0 && (
-            <div className="mt-3 text-center text-sm text-gray-600">
-              💼 Total PXP received: {venue.totalCAVReceived.toFixed(2)}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Actions */}
       <div className="flex items-center justify-between bg-gray-50 px-6 py-4">
         <div className="text-xs text-gray-500">
@@ -125,16 +86,6 @@ export default function VenueCard({ venue, showQRCode = true, onPayment }: Venue
         </div>
 
         <div className="flex gap-2">
-          {/* Web3 Payment Button (for verified venues) */}
-          {venue.verified && (
-            <button
-              onClick={() => handlePayment(selectedAmount || '10')}
-              className="rounded bg-green-100 px-3 py-1 text-sm text-green-700 transition-colors hover:bg-green-200"
-            >
-              🌐 Web3 Pay
-            </button>
-          )}
-
           {/* Share Button */}
           <button
             onClick={() => {
