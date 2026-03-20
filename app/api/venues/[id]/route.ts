@@ -8,6 +8,7 @@ import { VenueService, AnalyticsService } from '@/lib/database-simplified'
 import { getDb } from '@/lib/get-db'
 import { requireRole, can } from '@/lib/auth-middleware'
 import { UserRole } from '@prisma/client'
+import { sendPXPReward } from '@/lib/send-pxp-reward'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -236,19 +237,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           const rewardAmount =
             verificationConfig && verificationConfig.enabled ? verificationConfig.value : 50
 
-          // Award PXP to scout
-          await db.user.update({
-            where: { id: scoutUser.id },
-            data: {
-              totalCAVEarned: { increment: rewardAmount },
-              // Set firstPXPEarnedAt only if this is their first time earning PXP
-              ...(scoutUser.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
-            },
-          })
+          // On-chain transfer first; DB only updated on success
+          if (scoutUser.walletAddress) {
+            const transfer = await sendPXPReward(
+              scoutUser.walletAddress,
+              rewardAmount,
+              `Venue verified: ${updatedVenue.name}`
+            )
 
-          console.log(
-            `✅ Awarded ${rewardAmount} PXP to scout ${scoutUser.walletAddress || scoutUser.username} for verified venue ${updatedVenue.name}`
-          )
+            if (transfer.success) {
+              await db.user.update({
+                where: { id: scoutUser.id },
+                data: {
+                  totalCAVEarned: { increment: rewardAmount },
+                  ...(scoutUser.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
+                },
+              })
+              console.log(
+                `✅ Awarded ${rewardAmount} PXP (on-chain + DB) to scout ${scoutUser.walletAddress} for verified venue ${updatedVenue.name}`
+              )
+            } else {
+              console.error(
+                `[venue verify] On-chain transfer failed for scout ${scoutUser.walletAddress}: ${transfer.error}`
+              )
+            }
+          } else {
+            console.warn(
+              `[venue verify] Scout ${scoutUser.username} has no walletAddress — skipping PXP award`
+            )
+          }
 
           // TODO: Create notification for scout (Sprint 3 Epic 4)
         } else {
@@ -279,19 +296,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         const curatorReward = curatorConfig && curatorConfig.enabled ? curatorConfig.value : 20
 
-        // Award PXP to the curator who verified the venue
-        await db.user.update({
-          where: { id: user.id },
-          data: {
-            totalCAVEarned: { increment: curatorReward },
-            // Set firstPXPEarnedAt only if this is their first time earning PXP
-            ...(curatorUser?.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
-          },
-        })
+        // On-chain transfer first; DB only updated on success
+        if (user.walletAddress) {
+          const transfer = await sendPXPReward(
+            user.walletAddress,
+            curatorReward,
+            `Curator verification: ${updatedVenue.name}`
+          )
 
-        console.log(
-          `✅ Awarded ${curatorReward} PXP to curator ${user.walletAddress || user.username} for verifying venue ${updatedVenue.name}`
-        )
+          if (transfer.success) {
+            await db.user.update({
+              where: { id: user.id },
+              data: {
+                totalCAVEarned: { increment: curatorReward },
+                ...(curatorUser?.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
+              },
+            })
+            console.log(
+              `✅ Awarded ${curatorReward} PXP (on-chain + DB) to curator ${user.walletAddress} for verifying venue ${updatedVenue.name}`
+            )
+          } else {
+            console.error(
+              `[venue verify] On-chain transfer failed for curator ${user.walletAddress}: ${transfer.error}`
+            )
+          }
+        } else {
+          console.warn(
+            `[venue verify] Curator ${user.username} has no walletAddress — skipping PXP award`
+          )
+        }
 
         // TODO: Create notification for curator (Sprint 3 Epic 4)
       } catch (pxpError) {

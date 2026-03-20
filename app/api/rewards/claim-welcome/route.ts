@@ -79,12 +79,22 @@ export async function POST(request: NextRequest) {
       transport: rpcTransport,
     })
 
-    // 2. Check DB eligibility
+    // 2. Check DB eligibility and load reward amount from PXPConfig
     const db = await getDb()
-    const dbUser = await db.user.findUnique({
-      where: { walletAddress: address },
-      select: { hasClaimedNewUserReward: true },
-    })
+    const [dbUser, welcomeConfig] = await Promise.all([
+      db.user.findUnique({
+        where: { walletAddress: address },
+        select: { hasClaimedNewUserReward: true },
+      }),
+      db.pXPConfig.findUnique({
+        where: { key: 'wallet_connection' },
+        select: { value: true, enabled: true },
+      }),
+    ])
+
+    // Use DB config value; fall back to REWARD_AMOUNTS.NEW_USER if missing or disabled
+    const rewardAmount =
+      welcomeConfig && welcomeConfig.enabled ? welcomeConfig.value : REWARD_AMOUNTS.NEW_USER
 
     if (dbUser?.hasClaimedNewUserReward) {
       // DB says claimed — verify on-chain balance at the transfer target.
@@ -107,7 +117,7 @@ export async function POST(request: NextRequest) {
         where: { walletAddress: address },
         data: {
           hasClaimedNewUserReward: false,
-          totalCAVEarned: { decrement: REWARD_AMOUNTS.NEW_USER },
+          totalCAVEarned: { decrement: rewardAmount },
         },
       })
     }
@@ -150,7 +160,7 @@ export async function POST(request: NextRequest) {
       address: PXP_TOKEN_ADDRESS as `0x${string}`,
       abi: TRANSFER_ABI,
       functionName: 'transfer',
-      args: [transferTo as `0x${string}`, parseEther(REWARD_AMOUNTS.NEW_USER.toString())],
+      args: [transferTo as `0x${string}`, parseEther(rewardAmount.toString())],
       chain: celoSepoliaChain as any,
       gas: BigInt(100_000),
     })
@@ -183,11 +193,11 @@ export async function POST(request: NextRequest) {
       where: { walletAddress: address },
       data: {
         hasClaimedNewUserReward: true,
-        totalCAVEarned: { increment: REWARD_AMOUNTS.NEW_USER },
+        totalCAVEarned: { increment: rewardAmount },
       },
     })
 
-    return NextResponse.json({ success: true, hash: txHash, amount: REWARD_AMOUNTS.NEW_USER })
+    return NextResponse.json({ success: true, hash: txHash, amount: rewardAmount })
   } catch (error: any) {
     console.error('[claim-welcome] Error:', error)
     return NextResponse.json(

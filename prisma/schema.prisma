@@ -97,6 +97,7 @@ model Venue {
   analytics    VenueAnalytics[]
   events       Event[] // Events hosted at this venue
   eventSeries  EventSeries[] // Recurring event series at this venue
+  photos       VenuePhoto[] // Community-uploaded venue photos
 
   // Indexes for performance
   @@index([city, verified, isActive])
@@ -218,6 +219,7 @@ model User {
   organizedSeries EventSeries[]    @relation("OrganizedSeries") // Event series created by this user
   rsvps           EventRSVP[]      @relation("EventRSVPs") // Events this user RSVPed to
   youtubeVideos   YouTubeVideo[]   // Submitted YouTube videos for PXP rewards
+  venuePhotos     VenuePhoto[]     // Photos uploaded by this user
 
   @@index([walletAddress])
   @@index([username])
@@ -368,6 +370,23 @@ model VenueAnalytics {
 
   @@unique([venueId, date])
   @@index([date])
+}
+
+// Community-uploaded venue photos — one PXP award per user per venue
+model VenuePhoto {
+  id         Int      @id @default(autoincrement())
+  venue      Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId    Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  url        String   // URL or IPFS hash of the photo
+  pxpAwarded Boolean  @default(false) // Whether the venue_photo PXP was issued for this upload
+
+  createdAt  DateTime @default(now())
+
+  @@unique([venueId, userId, url]) // Prevent duplicate awards for same photo
+  @@index([venueId])
+  @@index([userId])
 }
 
 // App configuration
@@ -608,6 +627,10 @@ model EventRSVP {
   // Additional info
   attendeeCount Int     @default(1) // For "+1" guests
   notes         String? @db.Text    // Special requests/notes
+
+  // Performer tracking
+  isPerformer         Boolean @default(false) // Marked as performer at this event (by organizer)
+  performerPXPAwarded Boolean @default(false) // Whether event_perform PXP was already awarded
 
   // Timestamps
   createdAt   DateTime @default(now())

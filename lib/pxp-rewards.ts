@@ -408,6 +408,42 @@ export async function awardMusicianProfileCompletion(
 }
 
 /**
+ * Award PXP for performing at an event.
+ * Called by the performers endpoint after organizer marks an RSVP as a performer.
+ */
+export async function awardEventPerform(
+  userId: number,
+  eventId: number,
+  walletAddress: string
+): Promise<{
+  success: boolean
+  pxpAwarded: number
+}> {
+  try {
+    const pxpAmount = await getPXPConfig('event_perform')
+    if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(walletAddress, pxpAmount, `Performing at event ${eventId}`)
+    if (!transfer.success) {
+      console.error(`[awardEventPerform] On-chain transfer failed: ${transfer.error}`)
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const result = await awardPXP(userId, pxpAmount, `Performing at event ${eventId}`)
+
+    return {
+      success: result.success,
+      pxpAwarded: pxpAmount,
+    }
+  } catch (error) {
+    console.error('Error awarding event perform PXP:', error)
+    return { success: false, pxpAwarded: 0 }
+  }
+}
+
+/**
  * Award PXP for writing a venue review
  */
 export async function awardVenueReview(
