@@ -82,3 +82,8 @@ CREATE POLICY "Allow all access via service role" ON "YouTubeVideo"
 ALTER TABLE "GasSponsoredTransaction" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all access via service role" ON "GasSponsoredTransaction"
   FOR ALL USING (true) WITH CHECK (true);
+
+-- VenuePhoto table (added with PXP tokenomics update)
+ALTER TABLE "VenuePhoto" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access via service role" ON "VenuePhoto"
+  FOR ALL USING (true) WITH CHECK (true);
