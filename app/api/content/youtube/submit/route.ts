@@ -243,14 +243,14 @@ export async function POST(request: NextRequest) {
         select: {
           id: true,
           walletAddress: true,
-          totalCAVEarned: true,
+          totalPXPEarned: true,
           firstPXPEarnedAt: true,
         },
       })
 
       if (user) {
         // Check if this is the user's first PXP
-        const isFirstPXP = !user.firstPXPEarnedAt && user.totalCAVEarned === 0
+        const isFirstPXP = !user.firstPXPEarnedAt && user.totalPXPEarned === 0
 
         // Award PXP to performer for video submission (from config or default to 100)
         performerPXP = performerConfig && performerConfig.enabled ? performerConfig.value : 100
@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
           await db.user.update({
             where: { id: user.id },
             data: {
-              totalCAVEarned: { increment: performerPXP },
+              totalPXPEarned: { increment: performerPXP },
               firstPXPEarnedAt: isFirstPXP ? new Date() : undefined,
             },
           })
@@ -307,7 +307,7 @@ export async function POST(request: NextRequest) {
             await db.user.update({
               where: { id: event.organizerId },
               data: {
-                totalCAVEarned: { increment: organizerPXP },
+                totalPXPEarned: { increment: organizerPXP },
               },
             })
 

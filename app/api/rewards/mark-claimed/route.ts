@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       where: { walletAddress: address.toLowerCase() },
       data: {
         hasClaimedNewUserReward: true,
-        totalCAVEarned: {
+        totalPXPEarned: {
           increment: 25, // REWARD_AMOUNTS.NEW_USER
         },
       },

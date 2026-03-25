@@ -18,7 +18,7 @@ interface ReferredUser {
   avatar: string | null
   createdAt: string
   profileCompleted: boolean
-  totalCAVEarned: number
+  totalPXPEarned: number
 }
 
 interface ReferralConfig {
@@ -257,7 +257,7 @@ export default function ReferralDashboard() {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-green-600 dark:text-green-400">
-                    {referred.totalCAVEarned} PXP
+                    {referred.totalPXPEarned} PXP
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {referred.profileCompleted ? '✓ Profile Complete' : 'Profile Incomplete'}

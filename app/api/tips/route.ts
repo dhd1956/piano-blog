@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     await db.user.updateMany({
       where: { walletAddress: toAddress.toLowerCase() },
       data: {
-        totalCAVEarned: {
+        totalPXPEarned: {
           increment: amount,
         },
       },

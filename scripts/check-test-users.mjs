@@ -14,7 +14,7 @@ async function checkUsers() {
       username: true,
       walletAddress: true,
       role: true,
-      totalCAVEarned: true,
+      totalPXPEarned: true,
       displayName: true,
     },
     orderBy: { id: 'asc' },
@@ -26,7 +26,7 @@ async function checkUsers() {
     console.log(`ID: ${user.id}`)
     console.log(`  Username: ${user.username}`)
     console.log(`  Role: ${user.role}`)
-    console.log(`  PXP: ${user.totalCAVEarned}`)
+    console.log(`  PXP: ${user.totalPXPEarned}`)
     console.log(`  Wallet: ${user.walletAddress || 'none'}`)
     console.log()
   })
@@ -39,7 +39,7 @@ async function checkUsers() {
   // Check for scout users
   const scouts = users.filter((u) => u.role === 'SCOUT')
   console.log(`\n🔍 Scouts: ${scouts.length}`)
-  scouts.forEach((s) => console.log(`  - ${s.username} (${s.totalCAVEarned} PXP)`))
+  scouts.forEach((s) => console.log(`  - ${s.username} (${s.totalPXPEarned} PXP)`))
 }
 
 checkUsers()

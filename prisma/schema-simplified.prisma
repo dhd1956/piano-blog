@@ -80,7 +80,7 @@ model User {
   profileNFT     String?  // Profile picture NFT
 
   // PXP-related fields (cached from blockchain)
-  totalCAVEarned Float    @default(0) // Total PXP earned (cached)
+  totalPXPEarned Float    @default(0) // Total PXP earned (cached)
   hasClaimedNewUserReward Boolean @default(false) // Cached from contract
   isAuthorizedVerifier   Boolean @default(false) // Cached from contract
 
@@ -93,7 +93,7 @@ model User {
   reviews        VenueReview[]
 
   @@index([walletAddress])
-  @@index([totalCAVEarned])
+  @@index([totalPXPEarned])
 }
 
 // User reviews (PostgreSQL-only for performance)

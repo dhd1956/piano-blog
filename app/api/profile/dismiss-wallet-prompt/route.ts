@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         walletAddress: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         walletLinkingPromptDismissedAt: true,
         walletLinkingPromptShownCount: true,
       },
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Don't show if user hasn't earned any PXP yet
-    if (user.totalCAVEarned <= 0) {
+    if (user.totalPXPEarned <= 0) {
       return NextResponse.json({
         shouldShow: false,
         reason: 'User has not earned any PXP yet',
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       shouldShow: true,
       reason: 'User has PXP and no wallet linked',
-      pxpBalance: user.totalCAVEarned,
+      pxpBalance: user.totalPXPEarned,
       showCount: user.walletLinkingPromptShownCount,
       dismissedAt: user.walletLinkingPromptDismissedAt?.toISOString(),
     })

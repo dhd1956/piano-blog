@@ -116,7 +116,7 @@ async function seedProductionData(db: PrismaClient) {
       email: 'admin@globalpiano.network',
       bio: 'Platform administrator and community manager',
       role: 'BLOG_OWNER',
-      totalCAVEarned: 0,
+      totalPXPEarned: 0,
       hasClaimedNewUserReward: false,
       isAuthorizedVerifier: true,
       publicProfile: true,

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         location: true,
         title: true,
         profileSlug: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         lastActive: true,
         musicianProfile: {
           select: {

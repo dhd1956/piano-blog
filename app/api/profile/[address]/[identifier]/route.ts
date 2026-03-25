@@ -51,7 +51,7 @@ export async function GET(
         skills: user.skills,
         socialLinks: user.socialLinks,
         ensName: user.ensName,
-        totalPXPEarned: user.showPXPBalance ? user.totalCAVEarned : null,
+        totalPXPEarned: user.showPXPBalance ? user.totalPXPEarned : null,
         badges: user.badges,
         publicProfile: user.publicProfile,
         createdAt: user.createdAt,

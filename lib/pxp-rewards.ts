@@ -2,7 +2,7 @@
  * PXP Reward Distribution System
  * Helper functions to award PXP for various user actions.
  * All rewards trigger a real on-chain ERC-20 transfer from the hot wallet;
- * DB totalCAVEarned is only incremented after on-chain confirmation.
+ * DB totalPXPEarned is only incremented after on-chain confirmation.
  */
 
 import { getDb } from '@/lib/get-db'
@@ -42,16 +42,16 @@ async function awardPXP(
   const user = await db.user.update({
     where: { id: userId },
     data: {
-      totalCAVEarned: { increment: amount },
+      totalPXPEarned: { increment: amount },
     },
-    select: { totalCAVEarned: true, username: true },
+    select: { totalPXPEarned: true, username: true },
   })
 
   console.log(`✓ Awarded ${amount} PXP to ${user.username} for: ${reason}`)
 
   return {
     success: true,
-    newTotal: user.totalCAVEarned,
+    newTotal: user.totalPXPEarned,
   }
 }
 
@@ -131,7 +131,7 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
     await db.user.update({
       where: { id: user.referredByUser.id },
       data: {
-        totalCAVEarned: { increment: pxpAmount },
+        totalPXPEarned: { increment: pxpAmount },
         referralPXPEarned: { increment: pxpAmount },
       },
     })
@@ -230,7 +230,7 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
     await db.user.update({
       where: { id: user.referredByUser.id },
       data: {
-        totalCAVEarned: { increment: pxpAmount },
+        totalPXPEarned: { increment: pxpAmount },
         referralPXPEarned: { increment: pxpAmount },
       },
     })
@@ -392,7 +392,7 @@ export async function awardMusicianProfileCompletion(
     await db.user.update({
       where: { id: userId },
       data: {
-        totalCAVEarned: { increment: pxpAmount },
+        totalPXPEarned: { increment: pxpAmount },
         musicianProfileCompleted: true,
         musicianProfileCompletedAt: new Date(),
       },

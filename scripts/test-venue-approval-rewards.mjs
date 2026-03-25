@@ -41,7 +41,7 @@ async function testVenueApprovalRewards() {
     // Get scout user (submitter)
     const scoutUser = await prisma.user.findUnique({
       where: { walletAddress: venue.submittedBy.toLowerCase() },
-      select: { id: true, username: true, walletAddress: true, totalCAVEarned: true },
+      select: { id: true, username: true, walletAddress: true, totalPXPEarned: true },
     })
 
     if (!scoutUser) {
@@ -51,7 +51,7 @@ async function testVenueApprovalRewards() {
     // Get curator user
     const curatorUser = await prisma.user.findUnique({
       where: { username: curatorUsername },
-      select: { id: true, username: true, role: true, totalCAVEarned: true },
+      select: { id: true, username: true, role: true, totalPXPEarned: true },
     })
 
     if (!curatorUser) {
@@ -59,13 +59,13 @@ async function testVenueApprovalRewards() {
     }
 
     console.log(`\n👤 Scout: ${scoutUser.username}`)
-    console.log(`   Initial PXP: ${scoutUser.totalCAVEarned}`)
+    console.log(`   Initial PXP: ${scoutUser.totalPXPEarned}`)
 
     console.log(`\n👤 Curator: ${curatorUser.username}`)
-    console.log(`   Initial PXP: ${curatorUser.totalCAVEarned}`)
+    console.log(`   Initial PXP: ${curatorUser.totalPXPEarned}`)
 
-    const scoutInitialPXP = scoutUser.totalCAVEarned
-    const curatorInitialPXP = curatorUser.totalCAVEarned
+    const scoutInitialPXP = scoutUser.totalPXPEarned
+    const curatorInitialPXP = curatorUser.totalPXPEarned
 
     // Step 2: Get PXP config
     console.log('\n📊 STEP 2: Fetching PXP Configuration\n')
@@ -110,7 +110,7 @@ async function testVenueApprovalRewards() {
     await prisma.user.update({
       where: { id: scoutUser.id },
       data: {
-        totalCAVEarned: { increment: scoutReward },
+        totalPXPEarned: { increment: scoutReward },
       },
     })
 
@@ -122,7 +122,7 @@ async function testVenueApprovalRewards() {
     await prisma.user.update({
       where: { id: curatorUser.id },
       data: {
-        totalCAVEarned: { increment: curatorReward },
+        totalPXPEarned: { increment: curatorReward },
       },
     })
 
@@ -133,30 +133,30 @@ async function testVenueApprovalRewards() {
 
     const scoutFinal = await prisma.user.findUnique({
       where: { id: scoutUser.id },
-      select: { username: true, totalCAVEarned: true },
+      select: { username: true, totalPXPEarned: true },
     })
 
     const curatorFinal = await prisma.user.findUnique({
       where: { id: curatorUser.id },
-      select: { username: true, totalCAVEarned: true },
+      select: { username: true, totalPXPEarned: true },
     })
 
     console.log(`👤 Scout: ${scoutFinal.username}`)
     console.log(`   Initial PXP: ${scoutInitialPXP}`)
-    console.log(`   Final PXP: ${scoutFinal.totalCAVEarned}`)
-    console.log(`   Change: +${scoutFinal.totalCAVEarned - scoutInitialPXP} PXP`)
+    console.log(`   Final PXP: ${scoutFinal.totalPXPEarned}`)
+    console.log(`   Change: +${scoutFinal.totalPXPEarned - scoutInitialPXP} PXP`)
     console.log(`   Expected: +${scoutReward} PXP`)
     console.log(
-      `   ✅ ${scoutFinal.totalCAVEarned - scoutInitialPXP === scoutReward ? 'CORRECT' : 'ERROR'}`
+      `   ✅ ${scoutFinal.totalPXPEarned - scoutInitialPXP === scoutReward ? 'CORRECT' : 'ERROR'}`
     )
 
     console.log(`\n👤 Curator: ${curatorFinal.username}`)
     console.log(`   Initial PXP: ${curatorInitialPXP}`)
-    console.log(`   Final PXP: ${curatorFinal.totalCAVEarned}`)
-    console.log(`   Change: +${curatorFinal.totalCAVEarned - curatorInitialPXP} PXP`)
+    console.log(`   Final PXP: ${curatorFinal.totalPXPEarned}`)
+    console.log(`   Change: +${curatorFinal.totalPXPEarned - curatorInitialPXP} PXP`)
     console.log(`   Expected: +${curatorReward} PXP`)
     console.log(
-      `   ✅ ${curatorFinal.totalCAVEarned - curatorInitialPXP === curatorReward ? 'CORRECT' : 'ERROR'}`
+      `   ✅ ${curatorFinal.totalPXPEarned - curatorInitialPXP === curatorReward ? 'CORRECT' : 'ERROR'}`
     )
 
     console.log('\n' + '='.repeat(60))

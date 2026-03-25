@@ -86,7 +86,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           }),
           db.user.update({
             where: { id: user.id },
-            data: { totalCAVEarned: { increment: rewardAmount } },
+            data: { totalPXPEarned: { increment: rewardAmount } },
           }),
         ])
         pxpAwarded = rewardAmount

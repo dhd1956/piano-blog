@@ -13,7 +13,7 @@ async function checkUser() {
         username: true,
         displayName: true,
         walletAddress: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         hasClaimedNewUserReward: true,
       },
     })
@@ -23,7 +23,7 @@ async function checkUser() {
       console.log(`  Username: ${user.username}`)
       console.log(`  Display Name: ${user.displayName}`)
       console.log(`  Wallet: ${user.walletAddress}`)
-      console.log(`  Total PXP: ${user.totalCAVEarned}`)
+      console.log(`  Total PXP: ${user.totalPXPEarned}`)
       console.log(`  Claimed Welcome Reward: ${user.hasClaimedNewUserReward}`)
     } else {
       console.log('User not found')

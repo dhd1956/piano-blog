@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       const fullUser = await db.user.findUnique({
         where: { id: user.id },
         select: {
-          totalCAVEarned: true,
+          totalPXPEarned: true,
           firstPXPEarnedAt: true,
         },
       })
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       let showWelcomeReward = false
       let welcomePXP = 0
 
-      if (fullUser && fullUser.totalCAVEarned === 0 && !fullUser.firstPXPEarnedAt) {
+      if (fullUser && fullUser.totalPXPEarned === 0 && !fullUser.firstPXPEarnedAt) {
         // This is a brand new wallet user - award welcome reward
         try {
           // Get welcome reward amount from PXP config
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
           await db.user.update({
             where: { id: user.id },
             data: {
-              totalCAVEarned: { increment: welcomePXP },
+              totalPXPEarned: { increment: welcomePXP },
               firstPXPEarnedAt: new Date(),
             },
           })

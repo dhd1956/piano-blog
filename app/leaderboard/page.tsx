@@ -19,12 +19,12 @@ async function getCommunityStats() {
   try {
     const db = await getDb()
     const [totalPXPResult, activeContributors, venuesDiscovered] = await Promise.all([
-      db.user.aggregate({ _sum: { totalCAVEarned: true } }),
-      db.user.count({ where: { totalCAVEarned: { gt: 0 } } }),
+      db.user.aggregate({ _sum: { totalPXPEarned: true } }),
+      db.user.count({ where: { totalPXPEarned: { gt: 0 } } }),
       db.venue.count({ where: { isActive: true, verified: true } }),
     ])
     return {
-      totalPXP: totalPXPResult._sum.totalCAVEarned ?? 0,
+      totalPXP: totalPXPResult._sum.totalPXPEarned ?? 0,
       activeContributors,
       venuesDiscovered,
     }

@@ -329,7 +329,7 @@ export default async function DashboardPage() {
             <h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">Your Rewards</h3>
             <div className="mb-4">
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {user.totalCAVEarned} PXP
+                {user.totalPXPEarned} PXP
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total earned</p>
             </div>

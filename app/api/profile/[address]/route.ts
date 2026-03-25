@@ -197,7 +197,7 @@ export async function GET(
       skills: user.skills,
       socialLinks: user.socialLinks,
       ensName: user.ensName,
-      totalPXPEarned: user.totalCAVEarned, // Note: Using cached value
+      totalPXPEarned: user.totalPXPEarned, // Note: Using cached value
       badges: user.badges,
       publicProfile: user.publicProfile,
       showPXPBalance: user.showPXPBalance,

@@ -68,7 +68,7 @@ async function awardMilestonePXP(
     await db.user.update({
       where: { id: userId },
       data: {
-        totalCAVEarned: { increment: pxpAmount },
+        totalPXPEarned: { increment: pxpAmount },
       },
     })
 

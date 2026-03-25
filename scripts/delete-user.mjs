@@ -15,7 +15,7 @@
  *   onboarding flow from scratch, WITHOUT deleting the DB record or the wallet
  *   address.  This preserves the on-chain token balance while resetting the DB
  *   counters — avoiding duplicate PXP sends caused by delete-then-recreate.
- *   Clears: reward flags, totalCAVEarned, profileCompleted, sessions, RSVPs,
+ *   Clears: reward flags, totalPXPEarned, profileCompleted, sessions, RSVPs,
  *   reviews, validations, YouTube videos, gas transactions, musician profile.
  *   Keeps: walletAddress, email, username, displayName, referralCode, referredBy.
  *
@@ -158,7 +158,7 @@ async function run() {
   if (resetMode) {
     console.log('\n  Reward fields that will be zeroed:')
     console.log('    hasClaimedNewUserReward → false')
-    console.log('    totalCAVEarned          → 0')
+    console.log('    totalPXPEarned          → 0')
     console.log('    profileCompleted        → false')
     console.log('    profileCompletedAt      → null')
     console.log('    firstPXPEarnedAt        → null')
@@ -256,7 +256,7 @@ async function run() {
         where: { id: user.id },
         data: {
           hasClaimedNewUserReward: false,
-          totalCAVEarned: 0,
+          totalPXPEarned: 0,
           profileCompleted: false,
           profileCompletedAt: null,
           firstPXPEarnedAt: null,

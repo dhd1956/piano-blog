@@ -15,7 +15,7 @@ async function checkWalletOwner() {
       displayName: true,
       walletAddress: true,
       role: true,
-      totalCAVEarned: true,
+      totalPXPEarned: true,
     },
   })
 
@@ -24,7 +24,7 @@ async function checkWalletOwner() {
     console.log(`  Username: ${user.username}`)
     console.log(`  Display Name: ${user.displayName || 'none'}`)
     console.log(`  Role: ${user.role}`)
-    console.log(`  Current PXP: ${user.totalCAVEarned}`)
+    console.log(`  Current PXP: ${user.totalPXPEarned}`)
     console.log(`  Wallet: ${user.walletAddress}`)
   } else {
     console.log('❌ No user found with this wallet address')

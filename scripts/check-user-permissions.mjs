@@ -25,7 +25,7 @@ async function checkPermissions() {
         email: true,
         role: true,
         isAuthorizedVerifier: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         createdAt: true,
       },
     })
@@ -47,7 +47,7 @@ async function checkPermissions() {
     console.log(`   💼 Wallet:          ${user.walletAddress}`)
     console.log(`   🎭 Role:            ${user.role}`)
     console.log(`   ✓  Authorized:      ${user.isAuthorizedVerifier ? 'Yes' : 'No'}`)
-    console.log(`   🪙 PXP Balance:     ${user.totalCAVEarned || 0}`)
+    console.log(`   🪙 PXP Balance:     ${user.totalPXPEarned || 0}`)
     console.log(`   📅 Created:         ${user.createdAt.toLocaleDateString()}`)
 
     console.log('\n╔════════════════════════════════════════════════════════════╗')

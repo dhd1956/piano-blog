@@ -29,7 +29,7 @@ interface Musician {
   location: string | null
   title: string | null
   profileSlug: string | null
-  totalCAVEarned: number
+  totalPXPEarned: number
   lastActive: Date
   musicianProfile: MusicianProfile
 }

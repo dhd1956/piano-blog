@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       where: {
         publicProfile: true,
         showPXPBalance: true,
-        totalCAVEarned: { gt: 0 },
+        totalPXPEarned: { gt: 0 },
       },
     })
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       where: {
         publicProfile: true,
         showPXPBalance: true,
-        totalCAVEarned: { gt: 0 },
+        totalPXPEarned: { gt: 0 },
       },
       select: {
         id: true,
@@ -49,11 +49,11 @@ export async function GET(request: NextRequest) {
         profileSlug: true,
         avatar: true,
         location: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         badges: true,
       },
       orderBy: {
-        totalCAVEarned: 'desc',
+        totalPXPEarned: 'desc',
       },
       take: limit,
       skip: skip,
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       username: user.username || undefined,
       avatar: user.avatar || undefined,
       location: user.location || undefined,
-      totalPXPEarned: user.totalCAVEarned,
+      totalPXPEarned: user.totalPXPEarned,
       badges: user.badges || [],
       venuesDiscovered: venueCountMap.get(user.walletAddress || '') || 0,
       reviewCount: reviewCountMap.get(user.id) || 0,
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
           profileSlug: true,
           avatar: true,
           location: true,
-          totalCAVEarned: true,
+          totalPXPEarned: true,
           badges: true,
         },
       })
@@ -123,8 +123,8 @@ export async function GET(request: NextRequest) {
           where: {
             publicProfile: true,
             showPXPBalance: true,
-            totalCAVEarned: {
-              gt: userData.totalCAVEarned,
+            totalPXPEarned: {
+              gt: userData.totalPXPEarned,
             },
           },
         })
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
             username: userData.username || undefined,
             avatar: userData.avatar || undefined,
             location: userData.location || undefined,
-            totalPXPEarned: userData.totalCAVEarned,
+            totalPXPEarned: userData.totalPXPEarned,
             badges: userData.badges || [],
             venuesDiscovered: userVenueCount,
             reviewCount: userReviewCount,

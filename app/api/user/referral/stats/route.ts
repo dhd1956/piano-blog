@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
             avatar: true,
             createdAt: true,
             profileCompleted: true,
-            totalCAVEarned: true,
+            totalPXPEarned: true,
           },
           orderBy: { createdAt: 'desc' },
           take: 50, // Limit to recent 50 referrals

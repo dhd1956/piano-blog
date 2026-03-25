@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         where: { walletAddress: address },
         data: {
           hasClaimedNewUserReward: false,
-          totalCAVEarned: { decrement: rewardAmount },
+          totalPXPEarned: { decrement: rewardAmount },
         },
       })
     }
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
       where: { walletAddress: address },
       data: {
         hasClaimedNewUserReward: true,
-        totalCAVEarned: { increment: rewardAmount },
+        totalPXPEarned: { increment: rewardAmount },
       },
     })
 

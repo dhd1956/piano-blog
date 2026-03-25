@@ -249,7 +249,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
               await db.user.update({
                 where: { id: scoutUser.id },
                 data: {
-                  totalCAVEarned: { increment: rewardAmount },
+                  totalPXPEarned: { increment: rewardAmount },
                   ...(scoutUser.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
                 },
               })
@@ -308,7 +308,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             await db.user.update({
               where: { id: user.id },
               data: {
-                totalCAVEarned: { increment: curatorReward },
+                totalPXPEarned: { increment: curatorReward },
                 ...(curatorUser?.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
               },
             })

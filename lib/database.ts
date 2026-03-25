@@ -267,7 +267,7 @@ export const UserService = {
         displayName: true,
         email: true,
         createdAt: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
       },
     })
   },
@@ -314,7 +314,7 @@ export const UserService = {
             skills: oldUser.skills,
             socialLinks: oldUser.socialLinks as any,
             ensName: oldUser.ensName,
-            totalCAVEarned: oldUser.totalCAVEarned,
+            totalPXPEarned: oldUser.totalPXPEarned,
             badges: oldUser.badges as any,
             publicProfile: oldUser.publicProfile,
             showPXPBalance: oldUser.showPXPBalance,
@@ -338,7 +338,7 @@ export const UserService = {
             skills: newUser.skills?.length ? newUser.skills : oldUser.skills,
             socialLinks: (newUser.socialLinks || oldUser.socialLinks) as any,
             // Merge PXP earnings
-            totalCAVEarned: (newUser.totalCAVEarned || 0) + (oldUser.totalCAVEarned || 0),
+            totalPXPEarned: (newUser.totalPXPEarned || 0) + (oldUser.totalPXPEarned || 0),
             // Merge badges (combine arrays, remove duplicates)
             badges: (newUser.badges || oldUser.badges
               ? Array.from(new Set([...(newUser.badges || []), ...(oldUser.badges || [])]))

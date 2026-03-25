@@ -37,7 +37,7 @@ async function verifyTestResults() {
       select: {
         username: true,
         role: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         firstPXPEarnedAt: true,
       },
       orderBy: { username: 'asc' },
@@ -45,7 +45,7 @@ async function verifyTestResults() {
 
     users.forEach((user) => {
       console.log(`   ${user.username} (${user.role}):`)
-      console.log(`     Total PXP: ${user.totalCAVEarned}`)
+      console.log(`     Total PXP: ${user.totalPXPEarned}`)
       console.log(
         `     First Earned: ${user.firstPXPEarnedAt ? user.firstPXPEarnedAt.toISOString() : 'N/A'}`
       )

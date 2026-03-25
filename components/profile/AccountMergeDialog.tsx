@@ -9,7 +9,7 @@ interface ExistingAccount {
   displayName: string | null
   email: string
   createdAt: Date
-  totalCAVEarned: number
+  totalPXPEarned: number
 }
 
 interface AccountMergeDialogProps {
@@ -100,9 +100,9 @@ export default function AccountMergeDialog({
               <p className="text-gray-700 dark:text-gray-300">
                 <span className="font-medium">Joined:</span> {formatDate(existingAccount.createdAt)}
               </p>
-              {existingAccount.totalCAVEarned > 0 && (
+              {existingAccount.totalPXPEarned > 0 && (
                 <p className="text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">PXP:</span> {existingAccount.totalCAVEarned}
+                  <span className="font-medium">PXP:</span> {existingAccount.totalPXPEarned}
                 </p>
               )}
             </div>

@@ -42,7 +42,7 @@ async function awardVerificationRewards(
       await db.user.update({
         where: { id: scoutUser.id },
         data: {
-          totalCAVEarned: { increment: scoutReward },
+          totalPXPEarned: { increment: scoutReward },
           firstPXPEarnedAt: scoutUser.firstPXPEarnedAt || new Date(),
         },
       })
@@ -72,7 +72,7 @@ async function awardVerificationRewards(
     await db.user.update({
       where: { id: verifier.id },
       data: {
-        totalCAVEarned: { increment: verifierReward },
+        totalPXPEarned: { increment: verifierReward },
         firstPXPEarnedAt: verifierUser?.firstPXPEarnedAt || new Date(),
       },
     })

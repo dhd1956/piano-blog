@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       message?: string
       error?: string
     } | null = null
-    if (updatedUser.totalCAVEarned > 0) {
+    if (updatedUser.totalPXPEarned > 0) {
       try {
         // TODO: Integrate with your PXP token contract to mint tokens
         // This is a placeholder - you'll need to implement actual minting logic
@@ -98,25 +98,25 @@ export async function POST(request: NextRequest) {
 
         const txHash = await rewardsService.mintPXP(
           normalizedAddress,
-          updatedUser.totalCAVEarned,
+          updatedUser.totalPXPEarned,
           'Accumulated PXP from pre-wallet activities'
         )
 
         mintingResult = {
           success: true,
-          amount: updatedUser.totalCAVEarned,
+          amount: updatedUser.totalPXPEarned,
           txHash,
         }
         */
 
         // For now, just log it
         console.log(
-          `[WALLET LINKING] Would mint ${updatedUser.totalCAVEarned} PXP to ${normalizedAddress}`
+          `[WALLET LINKING] Would mint ${updatedUser.totalPXPEarned} PXP to ${normalizedAddress}`
         )
 
         mintingResult = {
           success: true,
-          amount: updatedUser.totalCAVEarned,
+          amount: updatedUser.totalPXPEarned,
           message: 'PXP minting queued (contract integration pending)',
         }
       } catch (error) {
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         id: updatedUser.id,
         username: updatedUser.username,
         walletAddress: updatedUser.walletAddress,
-        totalPXPEarned: updatedUser.totalCAVEarned,
+        totalPXPEarned: updatedUser.totalPXPEarned,
       },
       pxpMinting: mintingResult,
     })
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
         id: true,
         username: true,
         walletAddress: true,
-        totalCAVEarned: true,
+        totalPXPEarned: true,
         createdAt: true,
       },
     })
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
       eligible: !user.walletAddress,
       hasWallet: !!user.walletAddress,
       walletAddress: user.walletAddress,
-      pendingPXP: user.totalCAVEarned,
+      pendingPXP: user.totalPXPEarned,
       username: user.username,
     })
   } catch (error) {

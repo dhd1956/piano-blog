@@ -108,7 +108,7 @@ export default function AddEmailModal({ walletAddress, onClose, onSuccess }: Add
           walletAddress: existingAccount.walletAddress || '',
           email: email,
           createdAt: new Date(),
-          totalCAVEarned: 0,
+          totalPXPEarned: 0,
         }}
         newWalletAddress={walletAddress}
         onMerge={handleMergeSuccess}

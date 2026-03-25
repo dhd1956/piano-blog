@@ -526,7 +526,7 @@ export const UserService = {
     updates: {
       hasClaimedNewUserReward?: boolean
       isAuthorizedVerifier?: boolean
-      totalCAVEarned?: number
+      totalPXPEarned?: number
     }
   ) {
     const db = await getDbInternal()
@@ -679,7 +679,7 @@ export const BlockchainEventService = {
         if (event.eventData.user) {
           await UserService.updateUserBlockchainCache(event.eventData.user, {
             hasClaimedNewUserReward: true,
-            totalCAVEarned: event.eventData.amount / 1e18, // Convert from wei
+            totalPXPEarned: event.eventData.amount / 1e18, // Convert from wei
           })
         }
         break
@@ -689,7 +689,7 @@ export const BlockchainEventService = {
         if (event.eventData.scout && event.eventData.amount) {
           const currentUser = await UserService.findOrCreateUser(event.eventData.scout)
           await UserService.updateUserBlockchainCache(event.eventData.scout, {
-            totalCAVEarned: currentUser.totalCAVEarned + event.eventData.amount / 1e18,
+            totalPXPEarned: currentUser.totalPXPEarned + event.eventData.amount / 1e18,
           })
         }
         break
