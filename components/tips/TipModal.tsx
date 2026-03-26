@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
-import { PXP_TOKEN_ADDRESS, ERC20_ABI } from '@/utils/rewards-contract'
+import {
+  PXP_TOKEN_ADDRESS,
+  PXP_REWARDS_ADDRESS,
+  ERC20_ABI,
+  PXP_REWARDS_ABI,
+} from '@/utils/rewards-contract'
 
 interface TipModalProps {
   recipientAddress: string
@@ -15,7 +20,14 @@ interface TipModalProps {
 
 const PRESET_AMOUNTS = [5, 10, 25]
 
-type ModalState = 'idle' | 'processing' | 'confirming' | 'success' | 'error'
+type ModalState =
+  | 'idle'
+  | 'approving' // approve tx in wallet
+  | 'approve_confirming' // approve tx on-chain
+  | 'processing' // tipWithBurn tx in wallet
+  | 'confirming' // tipWithBurn tx on-chain
+  | 'success'
+  | 'error'
 
 export default function TipModal({
   recipientAddress,
@@ -48,42 +60,68 @@ export default function TipModal({
   const [claimError, setClaimError] = useState('')
   const [claimSuccess, setClaimSuccess] = useState(false)
 
-  // Use wagmi's writeContract hook - this integrates with Privy embedded wallet
+  // ── Step 1: approve ──────────────────────────────────────────────────
   const {
-    data: txHash,
-    writeContract,
-    isPending: isWritePending,
-    error: writeError,
-    reset: resetWrite,
+    data: approveTxHash,
+    writeContract: writeApprove,
+    isPending: isApprovePending,
+    error: approveWriteError,
+    reset: resetApprove,
   } = useWriteContract()
 
-  // Wait for transaction confirmation
   const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-    error: confirmError,
-  } = useWaitForTransactionReceipt({
-    hash: txHash,
-  })
+    isLoading: isApproveConfirming,
+    isSuccess: isApproveConfirmed,
+    error: approveConfirmError,
+  } = useWaitForTransactionReceipt({ hash: approveTxHash })
 
-  // Handle transaction states
+  // ── Step 2: tipWithBurn ───────────────────────────────────────────────
+  const {
+    data: tipTxHash,
+    writeContract: writeTip,
+    isPending: isTipPending,
+    error: tipWriteError,
+    reset: resetTip,
+  } = useWriteContract()
+
+  const {
+    isLoading: isTipConfirming,
+    isSuccess: isTipConfirmed,
+    error: tipConfirmError,
+  } = useWaitForTransactionReceipt({ hash: tipTxHash })
+
+  // ── State machine ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (isWritePending) {
+    if (isApprovePending) setModalState('approving')
+  }, [isApprovePending])
+  useEffect(() => {
+    if (isApproveConfirming) setModalState('approve_confirming')
+  }, [isApproveConfirming])
+
+  useEffect(() => {
+    if (isApproveConfirmed) {
+      // Approval confirmed — now submit the tip
       setModalState('processing')
+      const amountWei = parseEther(getAmount().toString())
+      writeTip({
+        address: PXP_REWARDS_ADDRESS as `0x${string}`,
+        abi: PXP_REWARDS_ABI,
+        functionName: 'tipWithBurn',
+        args: [recipientAddress as `0x${string}`, amountWei],
+      })
     }
-  }, [isWritePending])
+  }, [isApproveConfirmed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (isConfirming) {
-      setModalState('confirming')
-    }
-  }, [isConfirming])
+    if (isTipPending) setModalState('processing')
+  }, [isTipPending])
+  useEffect(() => {
+    if (isTipConfirming) setModalState('confirming')
+  }, [isTipConfirming])
 
   useEffect(() => {
-    if (isConfirmed && txHash) {
+    if (isTipConfirmed && tipTxHash) {
       setModalState('success')
-
-      // Record the tip to the database
       const amount = getAmount()
       fetch('/api/tips', {
         method: 'POST',
@@ -92,23 +130,20 @@ export default function TipModal({
           fromAddress: walletAddress,
           toAddress: recipientAddress,
           amount,
-          transactionHash: txHash,
+          transactionHash: tipTxHash,
           message: message || undefined,
         }),
       }).catch((err) => console.warn('Failed to record tip to database:', err))
-
-      // Notify parent after a short delay
       setTimeout(() => {
-        onTipSent(txHash, amount)
+        onTipSent(tipTxHash, amount)
       }, 2000)
     }
-  }, [isConfirmed, txHash]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isTipConfirmed, tipTxHash]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const error = writeError || confirmError
+    const error = approveWriteError || approveConfirmError || tipWriteError || tipConfirmError
     if (error) {
       console.error('[TipModal] Transaction error:', error)
-      // Show a human-readable message instead of the raw viem/contract error
       const msg = error.message || ''
       if (msg.includes('InsufficientBalance') || msg.includes('insufficient')) {
         setErrorMessage("You don't have enough PXP to send that amount.")
@@ -119,7 +154,7 @@ export default function TipModal({
       }
       setModalState('error')
     }
-  }, [writeError, confirmError])
+  }, [approveWriteError, approveConfirmError, tipWriteError, tipConfirmError])
 
   // Check welcome reward eligibility when the balance is below the minimum preset
   const balanceIsLow =
@@ -199,10 +234,7 @@ export default function TipModal({
   }
 
   const handleSendTip = () => {
-    // Guard against multiple submissions
-    if (modalState === 'processing' || modalState === 'confirming') {
-      return
-    }
+    if (['approving', 'approve_confirming', 'processing', 'confirming'].includes(modalState)) return
 
     if (getAmount() <= 0 || isNaN(getAmount())) {
       setErrorMessage('Please select or enter a valid amount')
@@ -218,21 +250,23 @@ export default function TipModal({
 
     const amount = getAmount()
     setErrorMessage('')
-    resetWrite()
+    resetApprove()
+    resetTip()
 
-    // Use wagmi to write contract - this will use gas sponsorship if configured
-    writeContract({
+    // Step 1: approve the rewards contract to spend `amount` PXP
+    writeApprove({
       address: PXP_TOKEN_ADDRESS as `0x${string}`,
       abi: ERC20_ABI,
-      functionName: 'transfer',
-      args: [recipientAddress as `0x${string}`, parseEther(amount.toString())],
+      functionName: 'approve',
+      args: [PXP_REWARDS_ADDRESS as `0x${string}`, parseEther(amount.toString())],
     })
   }
 
   const handleRetry = () => {
     setModalState('idle')
     setErrorMessage('')
-    resetWrite()
+    resetApprove()
+    resetTip()
   }
 
   const displayName =
@@ -262,7 +296,62 @@ export default function TipModal({
 
         {/* Content */}
         <div className="p-4">
-          {modalState === 'success' ? (
+          {modalState === 'approving' ? (
+            <div className="py-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+                <svg className="h-10 w-10 animate-spin text-amber-500" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+              <h4 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                Step 1 of 2
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Approve PXP spend in your wallet…
+              </p>
+            </div>
+          ) : modalState === 'approve_confirming' ? (
+            <div className="py-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+                <svg className="h-10 w-10 animate-spin text-amber-500" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+              <h4 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                Step 1 of 2
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Confirming approval on-chain…
+              </p>
+              <p className="mt-1 text-xs text-gray-400">Step 2 (tip) will open automatically</p>
+            </div>
+          ) : modalState === 'success' ? (
             <div className="py-6 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                 <svg
@@ -285,9 +374,9 @@ export default function TipModal({
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 You sent {getAmount()} PXP to {displayName}
               </p>
-              {txHash && (
+              {tipTxHash && (
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                  Transaction: {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                  Transaction: {tipTxHash.slice(0, 10)}...{tipTxHash.slice(-8)}
                 </p>
               )}
             </div>
@@ -311,11 +400,11 @@ export default function TipModal({
                   />
                 </svg>
               </div>
-              <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                Confirming Transaction...
+              <h4 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                Step 2 of 2
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Waiting for blockchain confirmation
+                Sending tip (10% will be burned)…
               </p>
             </div>
           ) : (
@@ -435,43 +524,50 @@ export default function TipModal({
         </div>
 
         {/* Footer */}
-        {modalState !== 'success' && modalState !== 'confirming' && (
-          <div className="flex gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-            <button
-              onClick={onClose}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSendTip}
-              disabled={modalState === 'processing' || !isValidAmount()}
-              className="flex-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {modalState === 'processing' ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Confirm in Wallet...
-                </span>
-              ) : (
-                `Send ${isValidAmount() ? getAmount() : ''} PXP`
-              )}
-            </button>
+        {!['success', 'confirming', 'approve_confirming', 'approving'].includes(modalState) && (
+          <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+            {isValidAmount() && (
+              <p className="mb-3 text-center text-xs text-gray-400">
+                Recipient gets {(getAmount() * 0.9).toFixed(2)} PXP · 10% burned 🔥
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendTip}
+                disabled={modalState === 'processing' || !isValidAmount()}
+                className="flex-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {modalState === 'processing' ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Confirm Tip in Wallet…
+                  </span>
+                ) : (
+                  `Send ${isValidAmount() ? getAmount() : ''} PXP`
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>

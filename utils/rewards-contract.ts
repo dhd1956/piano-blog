@@ -129,6 +129,48 @@ export const PXP_REWARDS_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
+  // V3: Tip with burn
+  {
+    inputs: [
+      { name: 'recipient', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'tipWithBurn',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'burnRateBps',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'totalBurned',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'bps', type: 'uint256' }],
+    name: 'setBurnRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { indexed: true, name: 'from', type: 'address' },
+      { indexed: true, name: 'to', type: 'address' },
+      { indexed: false, name: 'recipientAmount', type: 'uint256' },
+      { indexed: false, name: 'burnAmount', type: 'uint256' },
+    ],
+    name: 'TipWithBurn',
+    type: 'event',
+  },
   // V2: Configurable Reward Functions
   {
     inputs: [],

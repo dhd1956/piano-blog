@@ -220,6 +220,7 @@ model User {
   rsvps           EventRSVP[]      @relation("EventRSVPs") // Events this user RSVPed to
   youtubeVideos   YouTubeVideo[]   // Submitted YouTube videos for PXP rewards
   venuePhotos     VenuePhoto[]     // Photos uploaded by this user
+  notifications   Notification[]   // In-app notifications
 
   @@index([walletAddress])
   @@index([username])
@@ -437,6 +438,27 @@ model BlockchainEvent {
   @@index([eventType, processed])
   @@index([blockNumber])
   @@index([contractAddress])
+}
+
+// In-app notification system (Sprint 3 Epic 4)
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String   // "REWARD_EARNED" | "VENUE_VERIFIED" | "VENUE_REJECTED" | "EVENT_REMINDER"
+  title     String
+  message   String   @db.Text
+  link      String?  // Optional deep-link (e.g. /venues/123)
+  pxpAmount Float?   // For reward notifications, the amount earned
+
+  read      Boolean  @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 // Simplified enums

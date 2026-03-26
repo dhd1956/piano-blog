@@ -20,6 +20,7 @@ export interface User {
   emailVerified?: boolean
   walletType?: 'embedded' | 'external' | 'linked' | null
   authProvider?: string | null
+  totalPXPEarned?: number
 }
 
 // Auth state interface

@@ -10,6 +10,7 @@ import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
 import AuthButton from './AuthButton'
 import DropdownNav from './DropdownNav'
+import NotificationBell from './notifications/NotificationBell'
 
 const Header = () => {
   const pathname = usePathname()
@@ -60,6 +61,7 @@ const Header = () => {
         </div>
         <SearchButton />
         <ThemeSwitch />
+        <NotificationBell />
         <AuthButton />
         <MobileNav />
       </div>

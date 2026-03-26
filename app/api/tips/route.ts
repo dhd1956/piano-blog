@@ -66,15 +66,34 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update recipient's total PXP earned
-    await db.user.updateMany({
+    // Update recipient's total PXP earned and create notification
+    const recipient = await db.user.findUnique({
       where: { walletAddress: toAddress.toLowerCase() },
-      data: {
-        totalPXPEarned: {
-          increment: amount,
-        },
-      },
+      select: { id: true },
     })
+
+    if (recipient) {
+      await db.user.update({
+        where: { id: recipient.id },
+        data: { totalPXPEarned: { increment: amount } },
+      })
+
+      const senderLabel = fromAddress
+        ? `${fromAddress.slice(0, 6)}…${fromAddress.slice(-4)}`
+        : 'Someone'
+
+      await db.notification.create({
+        data: {
+          userId: recipient.id,
+          type: 'REWARD_EARNED',
+          title: 'You received a tip!',
+          message: message
+            ? `${senderLabel} sent you ${amount} PXP — "${message}"`
+            : `${senderLabel} sent you ${amount} PXP`,
+          pxpAmount: amount,
+        },
+      })
+    }
 
     return NextResponse.json({
       success: true,

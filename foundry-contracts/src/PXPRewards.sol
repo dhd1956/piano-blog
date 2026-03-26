@@ -5,13 +5,18 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+// Minimal interface to call burn() on the PXP token contract
+interface IPXPToken is IERC20 {
+    function burn(uint256 amount) external;
+}
+
 /**
  * @title PXP Rewards Contract
  * @dev Simplified contract focused only on PXP token rewards and payment tracking
  * All venue data is stored off-chain in PostgreSQL for performance
  */
 contract PXPRewards is Ownable, ReentrancyGuard {
-    IERC20 public immutable pxpToken;
+    IPXPToken public immutable pxpToken;
 
     // Reward amounts (in PXP tokens with 18 decimals) - Now configurable!
     uint256 public newUserReward = 25 * 10**18;      // 25 PXP
@@ -25,6 +30,10 @@ contract PXPRewards is Ownable, ReentrancyGuard {
     // Verification requirements
     uint256 public constant MIN_VERIFICATIONS = 2;
     uint256 public constant MAX_VERIFICATIONS = 3;
+
+    // Tipping with burn
+    uint256 public burnRateBps = 1000; // 10% in basis points (1000/10000)
+    uint256 public totalBurned;        // Cumulative PXP burned (18 decimals)
 
     // Authorized verifiers (curators)
     mapping(address => bool) public authorizedVerifiers;
@@ -43,9 +52,47 @@ contract PXPRewards is Ownable, ReentrancyGuard {
     event PaymentTracked(address indexed from, address indexed to, uint256 amount, string memo);
     event VerifierStatusUpdated(address indexed verifier, bool authorized);
     event RewardAmountUpdated(string indexed rewardType, uint256 oldAmount, uint256 newAmount);
+    event TipWithBurn(address indexed from, address indexed to, uint256 recipientAmount, uint256 burnAmount);
+    event BurnRateUpdated(uint256 oldBps, uint256 newBps);
 
     constructor(address _pxpToken) Ownable(msg.sender) {
-        pxpToken = IERC20(_pxpToken);
+        pxpToken = IPXPToken(_pxpToken);
+    }
+
+    /**
+     * @dev Tip another user with a 10% burn (configurable via burnRateBps).
+     *      Caller must first approve this contract to spend `amount` PXP.
+     * @param recipient Address to receive the tip (minus burn)
+     * @param amount Total PXP to deduct from sender (recipient gets amount * (1 - burnRate))
+     */
+    function tipWithBurn(address recipient, uint256 amount) external nonReentrant {
+        require(recipient != address(0), "Invalid recipient");
+        require(recipient != msg.sender, "Cannot tip yourself");
+        require(amount > 0, "Amount must be > 0");
+
+        uint256 burnAmount = (amount * burnRateBps) / 10000;
+        uint256 recipientAmount = amount - burnAmount;
+
+        // Pull full amount from sender into this contract
+        require(pxpToken.transferFrom(msg.sender, address(this), amount), "TransferFrom failed");
+
+        // Forward recipient's share
+        require(pxpToken.transfer(recipient, recipientAmount), "Recipient transfer failed");
+
+        // Burn our share (we are msg.sender in the burn call, so _burn targets our balance)
+        pxpToken.burn(burnAmount);
+        totalBurned += burnAmount;
+
+        emit TipWithBurn(msg.sender, recipient, recipientAmount, burnAmount);
+    }
+
+    /**
+     * @dev Update the burn rate. Max 30% (3000 bps). Owner only.
+     */
+    function setBurnRate(uint256 bps) external onlyOwner {
+        require(bps <= 3000, "Burn rate exceeds 30%");
+        emit BurnRateUpdated(burnRateBps, bps);
+        burnRateBps = bps;
     }
 
     function claimNewUserReward() external nonReentrant {

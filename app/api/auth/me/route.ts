@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         emailVerified: true,
         walletType: true,
         authProvider: true,
+        totalPXPEarned: true,
       },
     })
 
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest) {
         emailVerified: fullUser.emailVerified,
         walletType: fullUser.walletType,
         authProvider: fullUser.authProvider,
+        totalPXPEarned: fullUser.totalPXPEarned,
       },
     })
   } catch (error: any) {

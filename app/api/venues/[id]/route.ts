@@ -238,6 +238,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             verificationConfig && verificationConfig.enabled ? verificationConfig.value : 50
 
           // On-chain transfer first; DB only updated on success
+          let scoutPXPAwarded = false
           if (scoutUser.walletAddress) {
             const transfer = await sendPXPReward(
               scoutUser.walletAddress,
@@ -253,6 +254,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                   ...(scoutUser.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
                 },
               })
+              scoutPXPAwarded = true
               console.log(
                 `✅ Awarded ${rewardAmount} PXP (on-chain + DB) to scout ${scoutUser.walletAddress} for verified venue ${updatedVenue.name}`
               )
@@ -267,7 +269,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             )
           }
 
-          // TODO: Create notification for scout (Sprint 3 Epic 4)
+          // Create notification for scout
+          await db.notification.create({
+            data: {
+              userId: scoutUser.id,
+              type: 'VENUE_VERIFIED',
+              title: 'Your venue was verified!',
+              message: scoutPXPAwarded
+                ? `${updatedVenue.name} has been approved. You earned ${rewardAmount} PXP for scouting this venue.`
+                : `${updatedVenue.name} has been approved by our curators.`,
+              link: `/venueDetails/${updatedVenue.id}`,
+              pxpAmount: scoutPXPAwarded ? rewardAmount : null,
+            },
+          })
         } else {
           console.warn(
             `Could not find user with wallet address ${existingVenue.submittedBy} to award venue verification PXP`
@@ -297,6 +311,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const curatorReward = curatorConfig && curatorConfig.enabled ? curatorConfig.value : 20
 
         // On-chain transfer first; DB only updated on success
+        let curatorPXPAwarded = false
         if (user.walletAddress) {
           const transfer = await sendPXPReward(
             user.walletAddress,
@@ -312,6 +327,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 ...(curatorUser?.firstPXPEarnedAt ? {} : { firstPXPEarnedAt: new Date() }),
               },
             })
+            curatorPXPAwarded = true
             console.log(
               `✅ Awarded ${curatorReward} PXP (on-chain + DB) to curator ${user.walletAddress} for verifying venue ${updatedVenue.name}`
             )
@@ -326,7 +342,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           )
         }
 
-        // TODO: Create notification for curator (Sprint 3 Epic 4)
+        // Create notification for curator
+        await db.notification.create({
+          data: {
+            userId: user.id,
+            type: 'REWARD_EARNED',
+            title: 'Curation reward earned',
+            message: curatorPXPAwarded
+              ? `You earned ${curatorReward} PXP for verifying ${updatedVenue.name}.`
+              : `You verified ${updatedVenue.name} as a valid venue.`,
+            link: `/venueDetails/${updatedVenue.id}`,
+            pxpAmount: curatorPXPAwarded ? curatorReward : null,
+          },
+        })
       } catch (pxpError) {
         console.error('Error awarding curator verification PXP:', pxpError)
         // Don't fail the venue update if PXP awarding fails

@@ -6,6 +6,7 @@ import VenueDetailsView from '@/components/VenueDetailsView'
 import VenueEditForm from '@/components/VenueEditForm'
 import VenueQRCard from '@/components/qr/VenueQRCard'
 import VenueEvents from '@/components/venue/VenueEvents'
+import TipButton from '@/components/tips/TipButton'
 import { useHybridWallet } from '@/hooks/useHybridWallet'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
@@ -389,19 +390,27 @@ export default function VenueDetailsPage() {
               ← Back to Venues
             </button>
 
-            {/* Edit Controls */}
-            {permissions.canEdit && (
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className={`rounded-lg px-3 py-1 text-sm ${
-                  isEditing
-                    ? 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-400'
-                    : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500'
-                }`}
-              >
-                {isEditing ? 'Cancel Edit' : 'Edit Venue'}
-              </button>
-            )}
+            {/* Header Actions */}
+            <div className="flex items-center gap-2">
+              {!isEditing && venue.submittedBy && /^0x[a-fA-F0-9]{40}$/.test(venue.submittedBy) && (
+                <TipButton
+                  recipientAddress={venue.submittedBy}
+                  recipientName={`${venue.name} scout`}
+                />
+              )}
+              {permissions.canEdit && (
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className={`rounded-lg px-3 py-1 text-sm ${
+                    isEditing
+                      ? 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-400'
+                      : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500'
+                  }`}
+                >
+                  {isEditing ? 'Cancel Edit' : 'Edit Venue'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
