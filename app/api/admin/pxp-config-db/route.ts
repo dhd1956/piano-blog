@@ -13,8 +13,8 @@ import { requireRole } from '@/lib/auth-middleware'
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify user is authenticated and is admin
-    const authResult = await requireRole(request, ['BLOG_OWNER'])
+    // Curators can view (read-only); only BLOG_OWNER can edit (POST)
+    const authResult = await requireRole(request, ['BLOG_OWNER', 'CURATOR'])
     if (authResult instanceof NextResponse) {
       return authResult
     }

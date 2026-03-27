@@ -16,6 +16,7 @@ interface DatabaseReward {
 
 function PXPConfigPage() {
   const { user, isAuthenticated, hasWallet } = useAuth()
+  const isBlogOwner = user?.role === 'BLOG_OWNER'
 
   // Database state
   const [databaseRewards, setDatabaseRewards] = useState<DatabaseReward[]>([])
@@ -183,6 +184,15 @@ function PXPConfigPage() {
         </div>
       )}
 
+      {!isBlogOwner && (
+        <div className="mb-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/20">
+          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+            <span className="font-semibold">Read-only view.</span> Only the blog owner can modify
+            these values.
+          </p>
+        </div>
+      )}
+
       <form
         onSubmit={handleDatabaseSubmit}
         className="rounded-lg border border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-800"
@@ -201,32 +211,45 @@ function PXPConfigPage() {
                     key={reward.key}
                     className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700/50"
                   >
-                    <label htmlFor={reward.key} className="mb-2 block font-medium">
+                    <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
                       {reward.label}
-                      {reward.description && (
-                        <span className="ml-2 block text-sm font-normal text-gray-600 dark:text-gray-400">
-                          {reward.description}
+                    </p>
+                    {reward.description && (
+                      <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                        {reward.description}
+                      </p>
+                    )}
+                    {isBlogOwner ? (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="number"
+                            id={reward.key}
+                            value={getCurrentValue(reward)}
+                            onChange={(e) => handleRewardChange(reward.key, Number(e.target.value))}
+                            min={0}
+                            max={10000}
+                            className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                          />
+                          <span className="font-semibold text-gray-700 dark:text-gray-300">
+                            PXP
+                          </span>
+                        </div>
+                        {editedRewards[reward.key] !== undefined &&
+                          editedRewards[reward.key] !== reward.value && (
+                            <p className="mt-1 text-sm text-orange-600 dark:text-orange-400">
+                              Modified (was {reward.value})
+                            </p>
+                          )}
+                      </>
+                    ) : (
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                        {reward.value}{' '}
+                        <span className="text-base font-normal text-gray-500 dark:text-gray-400">
+                          PXP
                         </span>
-                      )}
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="number"
-                        id={reward.key}
-                        value={getCurrentValue(reward)}
-                        onChange={(e) => handleRewardChange(reward.key, Number(e.target.value))}
-                        min={0}
-                        max={10000}
-                        className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                      />
-                      <span className="font-semibold text-gray-700 dark:text-gray-300">PXP</span>
-                    </div>
-                    {editedRewards[reward.key] !== undefined &&
-                      editedRewards[reward.key] !== reward.value && (
-                        <p className="mt-1 text-sm text-orange-600 dark:text-orange-400">
-                          Modified (was {reward.value})
-                        </p>
-                      )}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -234,23 +257,25 @@ function PXPConfigPage() {
           ))}
         </div>
 
-        <div className="mt-8 flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => setEditedRewards({})}
-            className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
-            disabled={Object.keys(editedRewards).length === 0}
-          >
-            Reset Changes
-          </button>
-          <button
-            type="submit"
-            disabled={saving || Object.keys(editedRewards).length === 0}
-            className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {saving ? 'Saving...' : `Save Changes (${Object.keys(editedRewards).length})`}
-          </button>
-        </div>
+        {isBlogOwner && (
+          <div className="mt-8 flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => setEditedRewards({})}
+              className="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+              disabled={Object.keys(editedRewards).length === 0}
+            >
+              Reset Changes
+            </button>
+            <button
+              type="submit"
+              disabled={saving || Object.keys(editedRewards).length === 0}
+              className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : `Save Changes (${Object.keys(editedRewards).length})`}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   )
