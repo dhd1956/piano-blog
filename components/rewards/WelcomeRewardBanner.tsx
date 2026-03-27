@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { PXP_REWARDS_ADDRESS, REWARD_AMOUNTS } from '@/utils/rewards-contract'
+import { PXP_REWARDS_ADDRESS } from '@/utils/rewards-contract'
 import { useAuth } from '@/context/AuthContext'
 
 interface WelcomeRewardBannerProps {
@@ -13,6 +13,7 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
   const walletAddress = userAddress || user?.walletAddress || undefined
 
   const [eligible, setEligible] = useState(false)
+  const [rewardAmount, setRewardAmount] = useState(0)
   const [claiming, setClaiming] = useState(false)
   const [message, setMessage] = useState('')
   const [dismissed, setDismissed] = useState(false)
@@ -23,7 +24,10 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
     fetch(`/api/rewards/check-welcome?address=${walletAddress}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.eligible) setEligible(true)
+        if (data.eligible) {
+          setEligible(true)
+          setRewardAmount(data.amount ?? 0)
+        }
       })
       .catch((err) => console.error('Error checking reward eligibility:', err))
   }, [walletAddress])
@@ -52,7 +56,7 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
           ? ' (dev mode)'
           : ''
 
-      setMessage(`🎉 You earned ${REWARD_AMOUNTS.NEW_USER} PXP!${txSuffix}`)
+      setMessage(`🎉 You earned ${rewardAmount} PXP!${txSuffix}`)
       setEligible(false)
       await refreshUser()
     } catch (error: any) {
@@ -73,8 +77,8 @@ export default function WelcomeRewardBanner({ userAddress }: WelcomeRewardBanner
             🎁 Welcome Reward Available!
           </h3>
           <p className="mt-2 text-blue-800 dark:text-blue-200">
-            Claim your welcome reward of <strong>{REWARD_AMOUNTS.NEW_USER} PXP tokens</strong> for
-            joining the Piano Blog community!
+            Claim your welcome reward of <strong>{rewardAmount} PXP tokens</strong> for joining the
+            Piano Blog community!
           </p>
 
           {message && (

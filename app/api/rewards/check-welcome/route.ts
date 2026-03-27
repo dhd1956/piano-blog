@@ -37,10 +37,19 @@ export async function GET(request: NextRequest) {
     const db = await getDb()
 
     // Check database first
-    const user = await db.user.findUnique({
-      where: { walletAddress: address.toLowerCase() },
-      select: { hasClaimedNewUserReward: true },
-    })
+    const [user, welcomeConfig] = await Promise.all([
+      db.user.findUnique({
+        where: { walletAddress: address.toLowerCase() },
+        select: { hasClaimedNewUserReward: true },
+      }),
+      db.pXPConfig.findUnique({
+        where: { key: 'wallet_connection' },
+        select: { value: true, enabled: true },
+      }),
+    ])
+
+    const rewardAmount =
+      welcomeConfig && welcomeConfig.enabled ? welcomeConfig.value : REWARD_AMOUNTS.NEW_USER
 
     if (user?.hasClaimedNewUserReward) {
       // Secondary check: verify on-chain PXP balance.
@@ -64,7 +73,7 @@ export async function GET(request: NextRequest) {
           )
           return NextResponse.json({
             eligible: true,
-            amount: REWARD_AMOUNTS.NEW_USER,
+            amount: rewardAmount,
             message: 'Previous claim did not complete — please claim again',
           })
         }
@@ -83,7 +92,7 @@ export async function GET(request: NextRequest) {
     // Check blockchain eligibility
     const eligibility = await checkWelcomeRewardEligibility(address)
 
-    return NextResponse.json(eligibility)
+    return NextResponse.json({ ...eligibility, amount: rewardAmount })
   } catch (error: any) {
     console.error('Error checking welcome reward:', error)
     return NextResponse.json(
