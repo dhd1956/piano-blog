@@ -158,15 +158,19 @@ function PXPConfigPage() {
     <div className="container mx-auto max-w-6xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold">PXP Reward Configuration</h1>
       <p className="mb-8 text-gray-600 dark:text-gray-400">
-        Configure Piano Experience Points rewards for all community actions
+        {isBlogOwner
+          ? 'Configure Piano Experience Points rewards for all community actions'
+          : 'Piano Experience Points earned for each community action'}
       </p>
 
-      {/* Auth Status */}
-      <div className="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
-        <p className="text-sm text-blue-800 dark:text-blue-400">
-          <span className="font-semibold">Auth Status:</span> {authStatus}
-        </p>
-      </div>
+      {/* Auth Status — only show to blog owner for debugging */}
+      {isBlogOwner && (
+        <div className="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+          <p className="text-sm text-blue-800 dark:text-blue-400">
+            <span className="font-semibold">Auth Status:</span> {authStatus}
+          </p>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
