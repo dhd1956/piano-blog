@@ -50,6 +50,15 @@ export default function YouTubeVideoGallery({
   const [error, setError] = useState('')
   const [totalPXP, setTotalPXP] = useState(0)
 
+  // Submission form state
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitSuccess, setSubmitSuccess] = useState<{
+    title: string
+    pxp: number
+  } | null>(null)
+
   useEffect(() => {
     fetchVideos()
   }, [userId, eventId, limit])
@@ -87,6 +96,33 @@ export default function YouTubeVideoGallery({
       console.error('Error fetching videos:', err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!eventId || !youtubeUrl.trim()) return
+
+    setSubmitting(true)
+    setSubmitError('')
+    setSubmitSuccess(null)
+
+    try {
+      const res = await fetch('/api/content/youtube/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ youtubeUrl: youtubeUrl.trim(), eventId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to submit video')
+      setSubmitSuccess({ title: data.video.title, pxp: data.performerPXP })
+      setYoutubeUrl('')
+      fetchVideos()
+    } catch (err: any) {
+      setSubmitError(err.message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -129,24 +165,62 @@ export default function YouTubeVideoGallery({
     )
   }
 
+  const uploadForm = showUploadForm && eventId && (
+    <form onSubmit={handleSubmit} className="mb-6">
+      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        YouTube video URL
+      </label>
+      <div className="flex gap-2">
+        <input
+          type="url"
+          value={youtubeUrl}
+          onChange={(e) => setYoutubeUrl(e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=..."
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          required
+        />
+        <button
+          type="submit"
+          disabled={submitting || !youtubeUrl.trim()}
+          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          {submitting ? 'Submitting…' : 'Add Video'}
+        </button>
+      </div>
+      {submitError && (
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400">❌ {submitError}</p>
+      )}
+      {submitSuccess && (
+        <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
+          🎉 <strong>"{submitSuccess.title}"</strong> added!{' '}
+          {submitSuccess.pxp > 0 && <span>You earned {submitSuccess.pxp} PXP.</span>}
+        </div>
+      )}
+    </form>
+  )
+
   if (videos.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-        <div className="mb-4 text-4xl">🎹</div>
-        <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
-          No videos submitted yet
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {showUploadForm
-            ? 'Submit your first piano video above to start earning PXP!'
-            : 'Submit your piano performances to earn PXP rewards'}
-        </p>
+      <div>
+        {uploadForm}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+          <div className="mb-4 text-4xl">🎹</div>
+          <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+            No videos submitted yet
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {showUploadForm
+              ? 'Paste a YouTube URL above to link your performance and earn PXP!'
+              : 'Submit your piano performances to earn PXP rewards'}
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      {uploadForm}
       {/* Total PXP Summary */}
       {totalPXP > 0 && (
         <div className="rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50 p-4 dark:border-yellow-800 dark:from-yellow-900/20 dark:to-amber-900/20">

@@ -744,7 +744,12 @@ export default function EventDetailPage() {
             </svg>
             Performance Videos
           </h2>
-          <YouTubeVideoGallery eventId={event.id} limit={20} showEventContext={false} />
+          <YouTubeVideoGallery
+            eventId={event.id}
+            limit={20}
+            showEventContext={false}
+            showUploadForm={true}
+          />
         </div>
       )}
     </div>
