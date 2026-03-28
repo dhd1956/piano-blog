@@ -48,19 +48,20 @@ export default function CurrentUserCard({ currentUser }: CurrentUserCardProps) {
           </button>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Row 1: rank + avatar + name/stats */}
+        <div className="flex items-center gap-3">
           {/* Rank Badge */}
-          <div className="flex h-20 w-20 flex-shrink-0 flex-col items-center justify-center rounded-full bg-white shadow-md dark:bg-gray-800">
-            <div className="text-3xl">{getRankEmoji()}</div>
-            <div className="text-sm font-bold text-gray-700 dark:text-gray-300">#{rank}</div>
+          <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-full bg-white shadow-md dark:bg-gray-800">
+            <div className="text-2xl">{getRankEmoji()}</div>
+            <div className="text-xs font-bold text-gray-700 dark:text-gray-300">#{rank}</div>
           </div>
 
           {/* Avatar */}
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+          <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
             {entry.avatar ? (
               <Image src={entry.avatar} alt={entry.displayName} fill className="object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-500">
+              <div className="flex h-full w-full items-center justify-center text-xl font-bold text-gray-500">
                 {entry.displayName.charAt(0).toUpperCase()}
               </div>
             )}
@@ -68,24 +69,24 @@ export default function CurrentUserCard({ currentUser }: CurrentUserCardProps) {
 
           {/* User Info */}
           <div className="min-w-0 flex-1">
-            <h4 className="truncate text-xl font-bold text-gray-900 dark:text-white">
+            <h4 className="truncate font-bold text-gray-900 dark:text-white">
               {entry.displayName}
             </h4>
-            <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-600 dark:text-gray-400">
               <span>🗺️ {entry.venuesDiscovered} venues</span>
               <span>✍️ {entry.reviewCount} reviews</span>
             </div>
           </div>
+        </div>
 
-          {/* PXP */}
-          <div className="flex-shrink-0 text-right">
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+        {/* Row 2: PXP + View Profile */}
+        <div className="mt-3 flex items-center justify-between">
+          <div>
+            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {entry.totalPXPEarned.toLocaleString()}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">PXP Earned</div>
+            </span>
+            <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">PXP Earned</span>
           </div>
-
-          {/* View Profile Link */}
           <Link
             href={`/profile/${entry.profileIdentifier}`}
             className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
