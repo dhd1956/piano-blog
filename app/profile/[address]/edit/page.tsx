@@ -80,8 +80,94 @@ export default function ProfileEditPage() {
   const [repertoire, setRepertoire] = useState<string[]>([])
   const [newRepertoireItem, setNewRepertoireItem] = useState('')
 
+  const [hasDraft, setHasDraft] = useState(false)
+  const draftKey = `profile_draft_${address}`
+
+  // Auto-save draft to localStorage whenever fields change
+  useEffect(() => {
+    if (loading) return
+    const draft = {
+      displayName,
+      email,
+      bio,
+      location,
+      title,
+      instruments,
+      musicalStyles,
+      genres,
+      experienceLevel,
+      yearsPlaying,
+      availableForGigs,
+      availableForCollab,
+      availabilityNotes,
+      recordingLinks,
+      repertoire,
+      youtubeHandle,
+      instagramHandle,
+      soundcloudHandle,
+    }
+    localStorage.setItem(draftKey, JSON.stringify(draft))
+  }, [
+    displayName,
+    email,
+    bio,
+    location,
+    title,
+    instruments,
+    musicalStyles,
+    genres,
+    experienceLevel,
+    yearsPlaying,
+    availableForGigs,
+    availableForCollab,
+    availabilityNotes,
+    recordingLinks,
+    repertoire,
+    youtubeHandle,
+    instagramHandle,
+    soundcloudHandle,
+    loading,
+    draftKey,
+  ])
+
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem(draftKey)
+      if (!raw) return
+      const d = JSON.parse(raw)
+      if (d.displayName !== undefined) setDisplayName(d.displayName)
+      if (d.email !== undefined) setEmail(d.email)
+      if (d.bio !== undefined) setBio(d.bio)
+      if (d.location !== undefined) setLocation(d.location)
+      if (d.title !== undefined) setTitle(d.title)
+      if (d.instruments) setInstruments(d.instruments)
+      if (d.musicalStyles) setMusicalStyles(d.musicalStyles)
+      if (d.genres) setGenres(d.genres)
+      if (d.experienceLevel !== undefined) setExperienceLevel(d.experienceLevel)
+      if (d.yearsPlaying !== undefined) setYearsPlaying(d.yearsPlaying)
+      if (d.availableForGigs !== undefined) setAvailableForGigs(d.availableForGigs)
+      if (d.availableForCollab !== undefined) setAvailableForCollab(d.availableForCollab)
+      if (d.availabilityNotes !== undefined) setAvailabilityNotes(d.availabilityNotes)
+      if (d.recordingLinks) setRecordingLinks(d.recordingLinks)
+      if (d.repertoire) setRepertoire(d.repertoire)
+      if (d.youtubeHandle !== undefined) setYoutubeHandle(d.youtubeHandle)
+      if (d.instagramHandle !== undefined) setInstagramHandle(d.instagramHandle)
+      if (d.soundcloudHandle !== undefined) setSoundcloudHandle(d.soundcloudHandle)
+      setHasDraft(false)
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  const discardDraft = () => {
+    localStorage.removeItem(draftKey)
+    setHasDraft(false)
+  }
+
   useEffect(() => {
     loadProfile()
+    // Check for a saved draft before loading
+    if (localStorage.getItem(draftKey)) setHasDraft(true)
   }, [address])
 
   const loadProfile = async () => {
@@ -235,6 +321,7 @@ export default function ProfileEditPage() {
 
       setSuccess(true)
       if (isProfileComplete) setAlreadyEarnedPXP(true)
+      localStorage.removeItem(draftKey)
 
       // Redirect back to profile after 1 second
       setTimeout(() => {
@@ -399,6 +486,29 @@ export default function ProfileEditPage() {
       {success && (
         <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800">
           Profile saved successfully! Redirecting...
+        </div>
+      )}
+
+      {/* Draft restore banner */}
+      {hasDraft && !success && (
+        <div className="mb-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/20">
+          <p className="mb-2 font-medium text-yellow-900 dark:text-yellow-200">
+            📝 You have unsaved changes from a previous session.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={restoreDraft}
+              className="rounded-lg bg-yellow-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-yellow-700"
+            >
+              Restore my draft
+            </button>
+            <button
+              onClick={discardDraft}
+              className="text-sm text-yellow-700 hover:underline dark:text-yellow-400"
+            >
+              Discard
+            </button>
+          </div>
         </div>
       )}
 
