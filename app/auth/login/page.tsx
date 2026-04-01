@@ -274,6 +274,9 @@ function LoginContent() {
 
         {!codeSent ? (
           <div className="space-y-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Enter your email and we'll send you a 6-digit code — no password needed.
+            </p>
             <input
               type="email"
               value={email}
@@ -307,16 +310,27 @@ function LoginContent() {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Code sent to <strong>{email}</strong>
-            </p>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
+              <p className="mb-1 text-sm font-medium text-blue-800 dark:text-blue-300">
+                Check your inbox
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-400">
+                We sent a 6-digit code to <strong>{email}</strong>. Open that email and paste the
+                code below. It expires in 10 minutes.
+              </p>
+              <p className="mt-1.5 text-xs text-blue-600 dark:text-blue-500">
+                Can't find it? Check your spam or junk folder.
+              </p>
+            </div>
             <input
               type="text"
+              inputMode="numeric"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleVerifyCode()}
               placeholder="Enter 6-digit code"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              maxLength={6}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-center text-lg tracking-widest focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
@@ -325,7 +339,7 @@ function LoginContent() {
               disabled={!code || verifying}
               className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
-              {verifying ? 'Verifying…' : 'Verify code'}
+              {verifying ? 'Verifying…' : 'Sign in'}
             </button>
             <div className="flex items-center justify-between text-sm">
               <button

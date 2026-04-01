@@ -178,9 +178,9 @@ export default function AccountSettingsPage() {
               </p>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+            <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700 dark:bg-gray-900">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
                   <svg
                     className="h-5 w-5 text-purple-600 dark:text-purple-400"
                     fill="none"
@@ -195,8 +195,8 @@ export default function AccountSettingsPage() {
                     />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                     {profile.email || 'No email address'}
                   </p>
                   {profile.email && (
@@ -215,7 +215,7 @@ export default function AccountSettingsPage() {
               <button
                 onClick={() => setShowChangeEmailModal(true)}
                 disabled={actionLoading}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 sm:w-auto dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               >
                 {profile.email ? 'Change Email' : 'Add Email'}
               </button>

@@ -28,7 +28,7 @@ export default function ProfileEditPage() {
   const params = useParams()
   const router = useRouter()
   const address = params.address as string
-  const { user: currentUser, isAuthenticated } = useAuth()
+  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -165,10 +165,11 @@ export default function ProfileEditPage() {
   }
 
   useEffect(() => {
+    if (authLoading) return
     loadProfile()
     // Check for a saved draft before loading
     if (localStorage.getItem(draftKey)) setHasDraft(true)
-  }, [address])
+  }, [address, currentUser, authLoading])
 
   const loadProfile = async () => {
     try {
@@ -587,9 +588,11 @@ export default function ProfileEditPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={100}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
                 placeholder="e.g., Professional Jazz Pianist"
               />
+              <p className="mt-1 text-xs text-gray-500">{title.length}/100 characters</p>
             </div>
 
             <div>
@@ -598,9 +601,16 @@ export default function ProfileEditPage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={4}
+                maxLength={500}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
                 placeholder="Tell us about yourself..."
               />
+              <p className="mt-1 text-xs text-gray-500">
+                {bio.length}/500 characters
+                {bio.length < 20 && (
+                  <span className="ml-2 text-orange-500">(minimum 20 required)</span>
+                )}
+              </p>
             </div>
 
             <div>
@@ -937,10 +947,10 @@ export default function ProfileEditPage() {
           <div className="flex gap-4">
             <button
               onClick={handleSave}
-              disabled={saving || deleting}
+              disabled={saving || deleting || authLoading}
               className="flex-1 rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 disabled:bg-gray-400"
             >
-              {saving ? 'Saving...' : 'Save Profile'}
+              {saving ? 'Saving...' : authLoading ? 'Loading...' : 'Save Profile'}
             </button>
             <button
               onClick={() => router.push(`/profile/${address}`)}
