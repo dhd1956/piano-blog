@@ -109,7 +109,7 @@ export default function TipModal({
           abi: PXP_REWARDS_ABI,
           functionName: 'tipWithBurn',
           args: [recipientAddress as `0x${string}`, amountWei],
-          account: walletAddress as `0x${string}`,
+          ...(walletAddress ? { account: walletAddress as `0x${string}` } : {}),
         })
       }, 2000)
       return () => clearTimeout(timer)
@@ -286,7 +286,7 @@ export default function TipModal({
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [PXP_REWARDS_ADDRESS as `0x${string}`, parseEther(amount.toString())],
-      account: walletAddress as `0x${string}`,
+      ...(walletAddress ? { account: walletAddress as `0x${string}` } : {}),
     })
   }
 
