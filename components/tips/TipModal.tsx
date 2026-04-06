@@ -109,7 +109,6 @@ export default function TipModal({
           abi: PXP_REWARDS_ABI,
           functionName: 'tipWithBurn',
           args: [recipientAddress as `0x${string}`, amountWei],
-          ...(walletAddress ? { account: walletAddress as `0x${string}` } : {}),
         })
       }, 2000)
       return () => clearTimeout(timer)
@@ -278,15 +277,12 @@ export default function TipModal({
     resetApprove()
     resetTip()
 
-    // Step 1: approve the rewards contract to spend `amount` PXP.
-    // Explicitly pass account so wagmi doesn't rely on a potentially-stale
-    // connected account (Privy can briefly drop its connector state post-tx).
+    // Step 1: approve the rewards contract to spend `amount` PXP
     writeApprove({
       address: PXP_TOKEN_ADDRESS as `0x${string}`,
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [PXP_REWARDS_ADDRESS as `0x${string}`, parseEther(amount.toString())],
-      ...(walletAddress ? { account: walletAddress as `0x${string}` } : {}),
     })
   }
 
