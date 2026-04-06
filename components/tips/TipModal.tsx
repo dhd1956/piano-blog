@@ -100,15 +100,18 @@ export default function TipModal({
 
   useEffect(() => {
     if (isApproveConfirmed) {
-      // Approval confirmed — now submit the tip
+      // Approval confirmed — wait 2s for RPC to index the approval before simulating tipWithBurn
       setModalState('processing')
       const amountWei = parseEther(getAmount().toString())
-      writeTip({
-        address: PXP_REWARDS_ADDRESS as `0x${string}`,
-        abi: PXP_REWARDS_ABI,
-        functionName: 'tipWithBurn',
-        args: [recipientAddress as `0x${string}`, amountWei],
-      })
+      const timer = setTimeout(() => {
+        writeTip({
+          address: PXP_REWARDS_ADDRESS as `0x${string}`,
+          abi: PXP_REWARDS_ABI,
+          functionName: 'tipWithBurn',
+          args: [recipientAddress as `0x${string}`, amountWei],
+        })
+      }, 2000)
+      return () => clearTimeout(timer)
     }
   }, [isApproveConfirmed]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -144,13 +147,29 @@ export default function TipModal({
     const error = approveWriteError || approveConfirmError || tipWriteError || tipConfirmError
     if (error) {
       console.error('[TipModal] Transaction error:', error)
-      const msg = error.message || ''
-      if (msg.includes('InsufficientBalance') || msg.includes('insufficient')) {
+      const msg = (error.message || '').toLowerCase()
+      if (
+        msg.includes('insufficientbalance') ||
+        msg.includes('insufficient') ||
+        msg.includes('erc20insufficientbalance')
+      ) {
         setErrorMessage("You don't have enough PXP to send that amount.")
-      } else if (msg.includes('rejected') || msg.includes('denied')) {
+      } else if (
+        msg.includes('insufficientallowance') ||
+        msg.includes('erc20insufficientallowance') ||
+        msg.includes('transferfrom failed')
+      ) {
+        setErrorMessage('Approval issue — please try again.')
+      } else if (
+        msg.includes('rejected') ||
+        msg.includes('denied') ||
+        msg.includes('user rejected')
+      ) {
         setErrorMessage('Transaction was cancelled.')
       } else {
-        setErrorMessage('Transaction failed. Please try again.')
+        // Show a truncated version of the real error for debugging
+        const shortMsg = error.message?.slice(0, 120) || 'unknown error'
+        setErrorMessage(`Transaction failed: ${shortMsg}`)
       }
       setModalState('error')
     }
