@@ -30,9 +30,7 @@ const celoSepolia: Chain = {
 const wagmiConfig = createConfig({
   chains: [celoSepolia, celo],
   transports: {
-    // retryCount: 0 prevents duplicate tx submissions on slow Celo Sepolia RPC
-    // (viem's default retry logic causes "already known" sequencer errors)
-    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia', { retryCount: 0 }),
+    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia'),
     [celo.id]: http(),
   },
 })
