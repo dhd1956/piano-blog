@@ -148,7 +148,12 @@ export default function TipModal({
     if (error) {
       console.error('[TipModal] Transaction error:', error)
       const msg = (error.message || '').toLowerCase()
-      if (
+      if (msg.includes('already known')) {
+        // Sequencer already has this tx — it was submitted successfully on the first attempt.
+        // Treat as success: the tip is in the mempool and will confirm.
+        setModalState('success')
+        return
+      } else if (
         msg.includes('insufficientbalance') ||
         msg.includes('insufficient') ||
         msg.includes('erc20insufficientbalance')
@@ -167,7 +172,6 @@ export default function TipModal({
       ) {
         setErrorMessage('Transaction was cancelled.')
       } else {
-        // Show a truncated version of the real error for debugging
         const shortMsg = error.message?.slice(0, 120) || 'unknown error'
         setErrorMessage(`Transaction failed: ${shortMsg}`)
       }
