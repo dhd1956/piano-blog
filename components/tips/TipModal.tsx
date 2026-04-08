@@ -78,7 +78,10 @@ export default function TipModal({
     isLoading: isApproveConfirming,
     isSuccess: isApproveConfirmed,
     error: approveConfirmError,
-  } = useWaitForTransactionReceipt({ hash: approveTxHash })
+  } = useWaitForTransactionReceipt({
+    hash: approveTxHash,
+    query: { staleTime: Infinity }, // never re-fetch a confirmed receipt — prevents isApproveConfirmed oscillating true→false→true
+  })
 
   // ── Step 2: tipWithBurn ───────────────────────────────────────────────
   const {
@@ -93,7 +96,10 @@ export default function TipModal({
     isLoading: isTipConfirming,
     isSuccess: isTipConfirmed,
     error: tipConfirmError,
-  } = useWaitForTransactionReceipt({ hash: tipTxHash })
+  } = useWaitForTransactionReceipt({
+    hash: tipTxHash,
+    query: { staleTime: Infinity }, // never re-fetch a confirmed receipt
+  })
 
   // ── State machine ─────────────────────────────────────────────────────
   useEffect(() => {
