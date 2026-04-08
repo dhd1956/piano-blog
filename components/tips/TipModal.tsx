@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { PXP_TOKEN_ADDRESS, ERC20_ABI, PXP_REWARDS_ABI } from '@/utils/rewards-contract'
@@ -43,6 +43,9 @@ export default function TipModal({
   const [message, setMessage] = useState('')
   const [modalState, setModalState] = useState<ModalState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  // Guard against the isApproveConfirmed effect firing more than once per tip flow
+  const tipStarted = useRef(false)
 
   // Read sender's on-chain PXP balance
   const { data: pxpBalance, refetch: refetchBalance } = useReadContract({
@@ -101,7 +104,8 @@ export default function TipModal({
   }, [isApproveConfirming])
 
   useEffect(() => {
-    if (isApproveConfirmed) {
+    if (isApproveConfirmed && !tipStarted.current) {
+      tipStarted.current = true
       // Approval confirmed — wait 2s for RPC to index the approval before simulating tipWithBurn
       setModalState('processing')
       const amountWei = parseEther(getAmount().toString())
@@ -127,6 +131,8 @@ export default function TipModal({
   useEffect(() => {
     if (isTipConfirmed && tipTxHash) {
       setModalState('success')
+      resetApprove()
+      resetTip()
       const amount = getAmount()
       fetch('/api/tips', {
         method: 'POST',
@@ -276,6 +282,7 @@ export default function TipModal({
 
     const amount = getAmount()
     setErrorMessage('')
+    tipStarted.current = false
     resetApprove()
     resetTip()
 
