@@ -104,7 +104,7 @@ export default function TipModal({
   }, [isApproveConfirming])
 
   useEffect(() => {
-    if (isApproveConfirmed && !tipStarted.current) {
+    if (isApproveConfirmed && !tipStarted.current && modalState !== 'success') {
       tipStarted.current = true
       // Approval confirmed — wait 2s for RPC to index the approval before simulating tipWithBurn
       setModalState('processing')
@@ -131,8 +131,6 @@ export default function TipModal({
   useEffect(() => {
     if (isTipConfirmed && tipTxHash) {
       setModalState('success')
-      resetApprove()
-      resetTip()
       const amount = getAmount()
       fetch('/api/tips', {
         method: 'POST',
