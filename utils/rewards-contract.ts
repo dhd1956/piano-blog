@@ -7,8 +7,10 @@ import Web3 from 'web3'
 
 // Contract addresses (update after deployment)
 // For development: using zero address to prevent accidental token transfers
+// PXPRewards V3 — deployed 2025 on Celo Sepolia. Fallback is the V3 address
+// so that a missing/stale Vercel env var never silently reverts to zero address.
 export const PXP_REWARDS_ADDRESS =
-  process.env.NEXT_PUBLIC_PXP_REWARDS_ADDRESS || '0x0000000000000000000000000000000000000000'
+  process.env.NEXT_PUBLIC_PXP_REWARDS_ADDRESS || '0x1Fb4303671C3056189b77a45adBF05c730a51F08'
 export const PXP_TOKEN_ADDRESS =
   process.env.NEXT_PUBLIC_PXP_TOKEN_ADDRESS || '0xe787A01BafC3276D0B3fEB93159F60dbB99b889F'
 
