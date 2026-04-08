@@ -5,8 +5,11 @@ import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 
 import { parseEther, formatEther } from 'viem'
 import { PXP_TOKEN_ADDRESS, ERC20_ABI, PXP_REWARDS_ABI } from '@/utils/rewards-contract'
 
-// Hardcoded V3 address — env var resolution has been unreliable across Vercel environments.
-// Update this if the contract is redeployed.
+// Hardcoded V3 address — env var resolution for NEXT_PUBLIC_PXP_REWARDS_ADDRESS has been
+// unreliable across Vercel Preview environments (staging always received the old V1 address
+// despite the env var being set correctly). Once the root cause in Vercel is understood,
+// this should be reverted to use PXP_REWARDS_ADDRESS from @/utils/rewards-contract.
+// Update this value if the contract is redeployed.
 const PXP_REWARDS_ADDRESS = '0x1Fb4303671C3056189b77a45adBF05c730a51F08' as const
 
 interface TipModalProps {
