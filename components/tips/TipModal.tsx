@@ -111,6 +111,7 @@ export default function TipModal({
           abi: PXP_REWARDS_ABI,
           functionName: 'tipWithBurn',
           args: [recipientAddress as `0x${string}`, amountWei],
+          gas: BigInt(150000),
         })
       }, 2000)
       return () => clearTimeout(timer)
@@ -279,12 +280,15 @@ export default function TipModal({
     resetApprove()
     resetTip()
 
-    // Step 1: approve the rewards contract to spend `amount` PXP
+    // Step 1: approve the rewards contract to spend `amount` PXP.
+    // Gas is set explicitly because eth_estimateGas on Celo Sepolia returns ~23666
+    // (intrinsic minimum) instead of the actual cost (~46000 for an ERC20 approve).
     writeApprove({
       address: PXP_TOKEN_ADDRESS as `0x${string}`,
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [PXP_REWARDS_ADDRESS as `0x${string}`, parseEther(amount.toString())],
+      gas: BigInt(100000),
     })
   }
 
