@@ -58,6 +58,7 @@ export default function VenueDetailsPage() {
   const { isConnected, walletAddress, connectWallet } = useHybridWallet()
 
   const [venue, setVenue] = useState<Venue | null>(null)
+  const [submitterName, setSubmitterName] = useState<string | null>(null)
   const [extendedData, setExtendedData] = useState<VenueMetadata>(() => ({
     venueDetails: {
       fullName: '',
@@ -157,6 +158,14 @@ export default function VenueDetailsPage() {
         }
 
         setVenue(processedVenue)
+
+        // Fetch submitter's display name for the TipButton label
+        if (processedVenue.submittedBy && /^0x[a-fA-F0-9]{40}$/.test(processedVenue.submittedBy)) {
+          fetch(`/api/profile/${processedVenue.submittedBy}`)
+            .then((r) => r.json())
+            .then((d) => setSubmitterName(d?.user?.displayName || null))
+            .catch(() => {})
+        }
 
         console.log('🔍 Venue loaded from database:', processedVenue.name)
 
@@ -398,7 +407,7 @@ export default function VenueDetailsPage() {
                 venue.submittedBy.toLowerCase() !== walletAddress?.toLowerCase() && (
                   <TipButton
                     recipientAddress={venue.submittedBy}
-                    recipientName={`${venue.name} scout`}
+                    recipientName={submitterName || `${venue.name} scout`}
                   />
                 )}
               {permissions.canEdit && (
