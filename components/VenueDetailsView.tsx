@@ -35,7 +35,7 @@ export default function VenueDetailsView({
 
         {/* Right Column - Meta Information */}
         <div className="space-y-6">
-          <VerificationDetails venue={venue} />
+          <VerificationDetails venue={venue} submitterName={submitterName} />
           <MusicalInformation venue={venue} extendedData={extendedData} />
           <CuratorNotes venue={venue} extendedData={extendedData} />
           <ContactInformation venue={venue} extendedData={extendedData} />
@@ -156,7 +156,13 @@ function OperationalDetails({ extendedData }: { extendedData?: VenueMetadata }) 
   )
 }
 
-function VerificationDetails({ venue }: { venue: any }) {
+function VerificationDetails({
+  venue,
+  submitterName,
+}: {
+  venue: any
+  submitterName?: string | null
+}) {
   // Handle date - might be submissionDate or createdAt
   const submissionDate = venue.submissionDate || venue.createdAt
 
