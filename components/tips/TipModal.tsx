@@ -398,6 +398,34 @@ export default function TipModal({
               </p>
               <p className="mt-1 text-xs text-gray-400">Step 2 (tip) will open automatically</p>
             </div>
+          ) : modalState === 'processing' ? (
+            <div className="py-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+                <svg className="h-10 w-10 animate-spin text-amber-500" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+              <h4 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                Step 2 of 2
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Confirm the tip in your wallet…
+              </p>
+              <p className="mt-1 text-xs text-gray-400">10% will be burned 🔥</p>
+            </div>
           ) : modalState === 'success' ? (
             <div className="py-6 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -571,7 +599,9 @@ export default function TipModal({
         </div>
 
         {/* Footer */}
-        {!['success', 'confirming', 'approve_confirming', 'approving'].includes(modalState) && (
+        {!['success', 'confirming', 'approve_confirming', 'approving', 'processing'].includes(
+          modalState
+        ) && (
           <div className="border-t border-gray-200 p-4 dark:border-gray-700">
             {isValidAmount() && (
               <p className="mb-3 text-center text-xs text-gray-400">
