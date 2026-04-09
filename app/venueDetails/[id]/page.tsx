@@ -163,7 +163,7 @@ export default function VenueDetailsPage() {
         if (processedVenue.submittedBy && /^0x[a-fA-F0-9]{40}$/.test(processedVenue.submittedBy)) {
           fetch(`/api/profile/${processedVenue.submittedBy}`)
             .then((r) => r.json())
-            .then((d) => setSubmitterName(d?.user?.displayName || null))
+            .then((d) => setSubmitterName(d?.profile?.displayName || null))
             .catch(() => {})
         }
 
