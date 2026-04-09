@@ -44,8 +44,10 @@ export default function TipModal({
   const [modalState, setModalState] = useState<ModalState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  // Guard against the isApproveConfirmed effect firing more than once per tip flow
-  const tipStarted = useRef(false)
+  // Track which approve tx hash has already triggered writeTip.
+  // Comparing against the actual hash (not just a boolean) means even if
+  // isApproveConfirmed oscillates for the same tx, writeTip only fires once.
+  const processedApproveHash = useRef<string | null>(null)
 
   // Read sender's on-chain PXP balance
   const { data: pxpBalance, refetch: refetchBalance } = useReadContract({
@@ -110,8 +112,9 @@ export default function TipModal({
   }, [isApproveConfirming])
 
   useEffect(() => {
-    if (isApproveConfirmed && !tipStarted.current && modalState !== 'success') {
-      tipStarted.current = true
+    // Guard: only fire writeTip once per unique approve tx hash
+    if (isApproveConfirmed && approveTxHash && processedApproveHash.current !== approveTxHash) {
+      processedApproveHash.current = approveTxHash
       // Approval confirmed — wait 2s for RPC to index the approval before simulating tipWithBurn
       setModalState('processing')
       const amountWei = parseEther(getAmount().toString())
@@ -125,7 +128,7 @@ export default function TipModal({
       }, 2000)
       return () => clearTimeout(timer)
     }
-  }, [isApproveConfirmed]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isApproveConfirmed, approveTxHash]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (isTipPending) setModalState('processing')
@@ -286,7 +289,7 @@ export default function TipModal({
 
     const amount = getAmount()
     setErrorMessage('')
-    tipStarted.current = false
+    processedApproveHash.current = null
     resetApprove()
     resetTip()
 
