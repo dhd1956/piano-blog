@@ -48,6 +48,9 @@ export default function TipModal({
   // Comparing against the actual hash (not just a boolean) means even if
   // isApproveConfirmed oscillates for the same tx, writeTip only fires once.
   const processedApproveHash = useRef<string | null>(null)
+  // Hard gate: writeTip can only be called once per tip flow regardless of
+  // what the effect does. Reset in handleSendTip before a new flow starts.
+  const writeTipCalled = useRef(false)
 
   // Read sender's on-chain PXP balance
   const { data: pxpBalance, refetch: refetchBalance } = useReadContract({
@@ -119,6 +122,8 @@ export default function TipModal({
       setModalState('processing')
       const amountWei = parseEther(getAmount().toString())
       const timer = setTimeout(() => {
+        if (writeTipCalled.current) return // hard gate — can only fire once per flow
+        writeTipCalled.current = true
         writeTip({
           address: PXP_REWARDS_ADDRESS as `0x${string}`,
           abi: PXP_REWARDS_ABI,
@@ -141,6 +146,7 @@ export default function TipModal({
     if (isTipConfirmed && tipTxHash) {
       setModalState('success')
       const amount = getAmount()
+      refetchBalance()
       fetch('/api/tips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -290,6 +296,7 @@ export default function TipModal({
     const amount = getAmount()
     setErrorMessage('')
     processedApproveHash.current = null
+    writeTipCalled.current = false
     resetApprove()
     resetTip()
 
