@@ -392,12 +392,15 @@ export default function VenueDetailsPage() {
 
             {/* Header Actions */}
             <div className="flex items-center gap-2">
-              {!isEditing && venue.submittedBy && /^0x[a-fA-F0-9]{40}$/.test(venue.submittedBy) && (
-                <TipButton
-                  recipientAddress={venue.submittedBy}
-                  recipientName={`${venue.name} scout`}
-                />
-              )}
+              {!isEditing &&
+                venue.submittedBy &&
+                /^0x[a-fA-F0-9]{40}$/.test(venue.submittedBy) &&
+                venue.submittedBy.toLowerCase() !== walletAddress?.toLowerCase() && (
+                  <TipButton
+                    recipientAddress={venue.submittedBy}
+                    recipientName={`${venue.name} scout`}
+                  />
+                )}
               {permissions.canEdit && (
                 <button
                   onClick={() => setIsEditing(!isEditing)}
