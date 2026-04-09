@@ -438,7 +438,12 @@ export default function VenueDetailsPage() {
           />
         ) : (
           <>
-            <VenueDetailsView venue={venue} extendedData={extendedData} isLoading={loading} />
+            <VenueDetailsView
+              venue={venue}
+              extendedData={extendedData}
+              isLoading={loading}
+              submitterName={submitterName}
+            />
 
             {/* Events Section */}
             <div className="mt-8">

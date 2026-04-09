@@ -6,12 +6,14 @@ interface VenueDetailsViewProps {
   venue: Venue
   extendedData?: VenueMetadata
   isLoading?: boolean
+  submitterName?: string | null
 }
 
 export default function VenueDetailsView({
   venue,
   extendedData,
   isLoading = false,
+  submitterName,
 }: VenueDetailsViewProps) {
   if (isLoading) {
     return <VenueDetailsViewSkeleton />
@@ -178,7 +180,9 @@ function VerificationDetails({ venue }: { venue: any }) {
           value={
             <div>
               <div>{dateStr}</div>
-              <div className="text-xs text-gray-500">by {formatAddress(venue.submittedBy)}</div>
+              <div className="text-xs text-gray-500">
+                by {submitterName || formatAddress(venue.submittedBy)}
+              </div>
             </div>
           }
         />
