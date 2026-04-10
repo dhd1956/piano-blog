@@ -9,6 +9,7 @@ import { generateToken, AuthUser } from '@/lib/auth'
 import { getDb } from '@/lib/get-db'
 import { UserRole } from '@prisma/client'
 import { z } from 'zod'
+import { sendCeloGasAirdrop } from '@/lib/send-pxp-reward'
 
 // Validation schema
 const embeddedLoginSchema = z.object({
@@ -189,6 +190,17 @@ export async function POST(request: NextRequest) {
 
       // Welcome PXP is distributed on-chain via /api/rewards/claim-welcome
       showWelcomeReward = true
+
+      // Fire-and-forget CELO gas airdrop — gives new user enough gas for ~500 txs.
+      // Non-blocking: login completes immediately regardless of airdrop outcome.
+      sendCeloGasAirdrop(normalizedAddress).then((result) => {
+        if (!result.success && !result.skipped) {
+          console.warn(
+            `[embedded-login] Gas airdrop failed for ${normalizedAddress}:`,
+            result.error
+          )
+        }
+      })
     } else if (!isNewUser) {
       // Existing user - update if needed
       const updates: Record<string, any> = {
