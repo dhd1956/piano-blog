@@ -147,7 +147,7 @@ export default function LandingPage({ posts }: LandingPageProps) {
               </h3>
               <p className="mb-4 text-gray-600 dark:text-gray-400">
                 Connect with musicians, discover events, and share your own musical experiences with
-                fellow pianists
+                fellow community members
               </p>
               <Link
                 href="/musicians"

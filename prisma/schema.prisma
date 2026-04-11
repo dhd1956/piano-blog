@@ -497,6 +497,9 @@ model MusicianProfile {
   // WPB-114: Repertoire
   repertoire          String[] // List of songs/pieces they know
 
+  // Influences
+  influences          String[] // Artists or bands that inspire them
+
   // Metadata
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

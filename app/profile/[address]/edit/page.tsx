@@ -22,6 +22,7 @@ interface MusicianProfile {
   recordingLinks: string[]
   socialMedia: any
   repertoire: string[]
+  influences: string[]
 }
 
 export default function ProfileEditPage() {
@@ -55,7 +56,7 @@ export default function ProfileEditPage() {
 
   // Musician profile fields (WPB-109 through WPB-114)
   const [instruments, setInstruments] = useState<string[]>([])
-  const [newInstrument, setNewInstrument] = useState('')
+  const [otherInstrument, setOtherInstrument] = useState('')
 
   const [musicalStyles, setMusicalStyles] = useState<string[]>([])
   const [newStyle, setNewStyle] = useState('')
@@ -80,6 +81,9 @@ export default function ProfileEditPage() {
   const [repertoire, setRepertoire] = useState<string[]>([])
   const [newRepertoireItem, setNewRepertoireItem] = useState('')
 
+  const [influences, setInfluences] = useState<string[]>([])
+  const [newInfluence, setNewInfluence] = useState('')
+
   const [hasDraft, setHasDraft] = useState(false)
   const draftKey = `profile_draft_${address}`
 
@@ -102,6 +106,7 @@ export default function ProfileEditPage() {
       availabilityNotes,
       recordingLinks,
       repertoire,
+      influences,
       youtubeHandle,
       instagramHandle,
       soundcloudHandle,
@@ -123,6 +128,7 @@ export default function ProfileEditPage() {
     availabilityNotes,
     recordingLinks,
     repertoire,
+    influences,
     youtubeHandle,
     instagramHandle,
     soundcloudHandle,
@@ -150,6 +156,7 @@ export default function ProfileEditPage() {
       if (d.availabilityNotes !== undefined) setAvailabilityNotes(d.availabilityNotes)
       if (d.recordingLinks) setRecordingLinks(d.recordingLinks)
       if (d.repertoire) setRepertoire(d.repertoire)
+      if (d.influences) setInfluences(d.influences)
       if (d.youtubeHandle !== undefined) setYoutubeHandle(d.youtubeHandle)
       if (d.instagramHandle !== undefined) setInstagramHandle(d.instagramHandle)
       if (d.soundcloudHandle !== undefined) setSoundcloudHandle(d.soundcloudHandle)
@@ -204,6 +211,7 @@ export default function ProfileEditPage() {
         setAvailabilityNotes(data.musicianProfile.availabilityNotes || '')
         setRecordingLinks(data.musicianProfile.recordingLinks || [])
         setRepertoire(data.musicianProfile.repertoire || [])
+        setInfluences(data.musicianProfile.influences || [])
 
         // Load social media handles
         if (data.musicianProfile.socialMedia) {
@@ -303,6 +311,7 @@ export default function ProfileEditPage() {
               soundcloud: soundcloudHandle,
             },
             repertoire,
+            influences,
           },
         }),
       })
@@ -388,17 +397,44 @@ export default function ProfileEditPage() {
     }
   }
 
-  // Helper functions for array fields
-  const addInstrument = () => {
-    if (newInstrument && !instruments.includes(newInstrument)) {
-      setInstruments([...instruments, newInstrument])
-      setNewInstrument('')
+  const PRESET_INSTRUMENTS = [
+    'Piano (acoustic)',
+    'Digital Piano / Keyboard',
+    'Organ / Hammond',
+    'Synthesizer',
+    'Guitar (acoustic)',
+    'Guitar (electric)',
+    'Bass Guitar',
+    'Violin',
+    'Viola',
+    'Cello',
+    'Double Bass',
+    'Ukulele',
+    'Harp',
+    'Flute',
+    'Clarinet',
+    'Saxophone',
+    'Trumpet',
+    'Trombone',
+    'Drums / Percussion',
+    'Vocals',
+  ]
+
+  const toggleInstrument = (instrument: string) => {
+    setInstruments((prev) =>
+      prev.includes(instrument) ? prev.filter((i) => i !== instrument) : [...prev, instrument]
+    )
+  }
+
+  const addOtherInstrument = () => {
+    const trimmed = otherInstrument.trim()
+    if (trimmed && !instruments.includes(trimmed)) {
+      setInstruments((prev) => [...prev, trimmed])
+      setOtherInstrument('')
     }
   }
 
-  const removeInstrument = (instrument: string) => {
-    setInstruments(instruments.filter((i) => i !== instrument))
-  }
+  // Helper functions for array fields
 
   const addStyle = () => {
     if (newStyle && !musicalStyles.includes(newStyle)) {
@@ -442,6 +478,18 @@ export default function ProfileEditPage() {
 
   const removeRepertoireItem = (item: string) => {
     setRepertoire(repertoire.filter((r) => r !== item))
+  }
+
+  const addInfluence = () => {
+    const trimmed = newInfluence.trim()
+    if (trimmed && !influences.includes(trimmed)) {
+      setInfluences([...influences, trimmed])
+      setNewInfluence('')
+    }
+  }
+
+  const removeInfluence = (item: string) => {
+    setInfluences(influences.filter((i) => i !== item))
   }
 
   if (loading) {
@@ -629,41 +677,62 @@ export default function ProfileEditPage() {
         {/* WPB-109: Instruments */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-xl font-bold text-gray-900">Instruments</h2>
-          <p className="mb-4 text-sm text-gray-600">What instruments do you play?</p>
+          <p className="mb-4 text-sm text-gray-600">Select all instruments you play.</p>
 
-          <div className="mb-4 flex gap-2">
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {PRESET_INSTRUMENTS.map((instrument) => (
+              <label
+                key={instrument}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 px-3 py-2 hover:bg-gray-50"
+              >
+                <input
+                  type="checkbox"
+                  checked={instruments.includes(instrument)}
+                  onChange={() => toggleInstrument(instrument)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                />
+                <span className="text-sm text-gray-700">{instrument}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
             <input
               type="text"
-              value={newInstrument}
-              onChange={(e) => setNewInstrument(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addInstrument()}
-              className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="Add an instrument (e.g., Piano, Guitar)"
+              value={otherInstrument}
+              onChange={(e) => setOtherInstrument(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addOtherInstrument()}
+              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              placeholder="Other instrument…"
             />
             <button
-              onClick={addInstrument}
-              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              onClick={addOtherInstrument}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
             >
               Add
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {instruments.map((instrument) => (
-              <span
-                key={instrument}
-                className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
-              >
-                {instrument}
-                <button
-                  onClick={() => removeInstrument(instrument)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
+          {instruments.filter((i) => !PRESET_INSTRUMENTS.includes(i)).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {instruments
+                .filter((i) => !PRESET_INSTRUMENTS.includes(i))
+                .map((instrument) => (
+                  <span
+                    key={instrument}
+                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
+                  >
+                    {instrument}
+                    <button
+                      onClick={() => setInstruments((prev) => prev.filter((i) => i !== instrument))}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
 
         {/* WPB-110: Musical Styles & Genres */}
@@ -934,6 +1003,46 @@ export default function ProfileEditPage() {
                 <button
                   onClick={() => removeRepertoireItem(item)}
                   className="text-green-600 hover:text-green-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Influences */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">Influences</h2>
+          <p className="mb-4 text-sm text-gray-600">Artists or bands that inspire your playing</p>
+
+          <div className="mb-4 flex gap-2">
+            <input
+              type="text"
+              value={newInfluence}
+              onChange={(e) => setNewInfluence(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addInfluence()}
+              className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              placeholder="e.g. Bill Evans, Keith Jarrett, Radiohead"
+            />
+            <button
+              onClick={addInfluence}
+              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              Add
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {influences.map((item) => (
+              <span
+                key={item}
+                className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-800"
+              >
+                {item}
+                <button
+                  onClick={() => removeInfluence(item)}
+                  className="text-purple-600 hover:text-purple-800"
                 >
                   ×
                 </button>

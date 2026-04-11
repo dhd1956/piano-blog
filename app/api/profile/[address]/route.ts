@@ -420,6 +420,7 @@ export async function PATCH(
           recordingLinks: body.musicianProfile.recordingLinks || [],
           socialMedia: body.musicianProfile.socialMedia || {},
           repertoire: body.musicianProfile.repertoire || [],
+          influences: body.musicianProfile.influences || [],
         },
         update: {
           instruments: body.musicianProfile.instruments || [],
@@ -433,6 +434,7 @@ export async function PATCH(
           recordingLinks: body.musicianProfile.recordingLinks || [],
           socialMedia: body.musicianProfile.socialMedia || {},
           repertoire: body.musicianProfile.repertoire || [],
+          influences: body.musicianProfile.influences || [],
         },
       })
 
