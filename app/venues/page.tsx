@@ -265,9 +265,16 @@ export default function VenueList() {
                       View Details
                     </a>
                     {venue.verified && (
-                      <button className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
-                        🎹 Visit Venue
-                      </button>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          [venue.name, venue.address, venue.city].filter(Boolean).join(', ')
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                      >
+                        🗺️ Visit Venue
+                      </a>
                     )}
                   </div>
                 </div>
