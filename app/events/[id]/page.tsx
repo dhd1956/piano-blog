@@ -10,7 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { useAuth } from '@/context/AuthContext'
 import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 
 interface Organizer {
@@ -123,7 +123,9 @@ export default function EventDetailPage() {
 
   const params = useParams()
   const eventId = params?.id as string
-  const { walletAddress, isConnected } = useHybridWallet()
+  const { user: currentUserAuth, isAuthenticated } = useAuth()
+  const walletAddress = currentUserAuth?.walletAddress || null
+  const isConnected = isAuthenticated
 
   const [event, setEvent] = useState<Event | null>(null)
   const [stats, setStats] = useState<EventStats | null>(null)
@@ -137,20 +139,13 @@ export default function EventDetailPage() {
   const [username, setUsername] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
 
-  // Check for username session
+  // Sync auth user into local state
   useEffect(() => {
-    const checkSession = async () => {
-      const response = await fetch('/api/auth/session')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.user && data.user.username) {
-          setUsername(data.user.username)
-          setCurrentUserId(data.user.id)
-        }
-      }
+    if (currentUserAuth) {
+      setUsername(currentUserAuth.username || null)
+      setCurrentUserId(currentUserAuth.id)
     }
-    checkSession()
-  }, [])
+  }, [currentUserAuth])
 
   useEffect(() => {
     if (eventId) {
