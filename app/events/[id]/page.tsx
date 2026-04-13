@@ -602,7 +602,15 @@ export default function EventDetailPage() {
                 </div>
               )}
 
-              {userRSVP ? (
+              {!isConnected ? (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Please{' '}
+                  <a href="/auth/login" className="text-blue-600 hover:underline">
+                    sign in
+                  </a>{' '}
+                  to RSVP for this event.
+                </p>
+              ) : userRSVP ? (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Your RSVP: <strong>{userRSVP.status}</strong>
