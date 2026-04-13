@@ -21,8 +21,12 @@ export async function GET(request: NextRequest) {
     // Filter parameters
     const eventType = searchParams.get('type') // JAM_SESSION, GIG, etc.
     const status = searchParams.get('status') || 'UPCOMING' // UPCOMING, ONGOING, COMPLETED, CANCELLED
-    const venueId = searchParams.get('venueId') // Filter by venue
+    const venueId = searchParams.get('venueId') // Filter by venue ID
     const organizerId = searchParams.get('organizerId') // Filter by organizer
+    const city = searchParams.get('city')?.trim() || '' // Filter by venue city
+    const venueName = searchParams.get('venueName')?.trim() || '' // Filter by venue name
+    const dateFrom = searchParams.get('dateFrom') // ISO date string — events on/after this date
+    const dateTo = searchParams.get('dateTo') // ISO date string — events on/before this date
 
     // Build where clause
     const where: any = {
@@ -43,6 +47,20 @@ export async function GET(request: NextRequest) {
 
     if (organizerId) {
       where.organizerId = parseInt(organizerId)
+    }
+
+    if (city || venueName) {
+      where.venue = {
+        ...(city && { city: { contains: city, mode: 'insensitive' } }),
+        ...(venueName && { name: { contains: venueName, mode: 'insensitive' } }),
+      }
+    }
+
+    if (dateFrom || dateTo) {
+      where.startDate = {
+        ...(dateFrom && { gte: new Date(dateFrom) }),
+        ...(dateTo && { lte: new Date(dateTo + 'T23:59:59Z') }),
+      }
     }
 
     const db = await getDb()

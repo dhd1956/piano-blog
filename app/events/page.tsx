@@ -5,7 +5,7 @@
  * Displays all upcoming events with filtering and search
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
@@ -97,10 +97,43 @@ export default function EventsPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [filterType, setFilterType] = useState<string>('')
+  const [venueNameInput, setVenueNameInput] = useState('')
+  const [venueName, setVenueName] = useState('')
+  const [city, setCity] = useState('')
+  const [cityInput, setCityInput] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Debounce venue name and city inputs
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setVenueName(venueNameInput)
+      setCity(cityInput)
+      setCurrentPage(1)
+    }, 300)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [venueNameInput, cityInput])
 
   useEffect(() => {
-    loadEvents(currentPage, filterType)
-  }, [currentPage, filterType])
+    loadEvents(currentPage, filterType, venueName, city, dateFrom, dateTo)
+  }, [currentPage, filterType, venueName, city, dateFrom, dateTo])
+
+  const hasActiveFilters = filterType || venueName || city || dateFrom || dateTo
+
+  const clearFilters = () => {
+    setFilterType('')
+    setVenueNameInput('')
+    setVenueName('')
+    setCityInput('')
+    setCity('')
+    setDateFrom('')
+    setDateTo('')
+    setCurrentPage(1)
+  }
 
   // Show loading while checking authentication
   if (authLoading) {
@@ -114,17 +147,26 @@ export default function EventsPage() {
     )
   }
 
-  const loadEvents = async (page: number, eventType: string) => {
+  const loadEvents = async (
+    page: number,
+    eventType: string,
+    venueNameFilter: string,
+    cityFilter: string,
+    dateFromFilter: string,
+    dateToFilter: string
+  ) => {
     try {
       setLoading(true)
       setError(null)
 
-      let url = `/api/events?page=${page}&limit=12`
-      if (eventType) {
-        url += `&type=${eventType}`
-      }
+      const params = new URLSearchParams({ page: String(page), limit: '12' })
+      if (eventType) params.set('type', eventType)
+      if (venueNameFilter) params.set('venueName', venueNameFilter)
+      if (cityFilter) params.set('city', cityFilter)
+      if (dateFromFilter) params.set('dateFrom', dateFromFilter)
+      if (dateToFilter) params.set('dateTo', dateToFilter)
 
-      const response = await fetch(url)
+      const response = await fetch(`/api/events?${params}`)
 
       if (!response.ok) {
         throw new Error('Failed to load events')
@@ -154,7 +196,7 @@ export default function EventsPage() {
           </h2>
           <p className="mb-4 text-red-800 dark:text-red-200">{error}</p>
           <button
-            onClick={() => loadEvents(currentPage, filterType)}
+            onClick={() => loadEvents(currentPage, filterType, venueName, city, dateFrom, dateTo)}
             className="rounded-md bg-red-600 px-6 py-2 text-white hover:bg-red-700"
           >
             Try Again
@@ -180,36 +222,86 @@ export default function EventsPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <button
-          onClick={() => {
-            setFilterType('')
-            setCurrentPage(1)
-          }}
-          className={`rounded-full px-4 py-2 text-sm font-medium ${
-            filterType === ''
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'
-          }`}
-        >
-          All Events
-        </button>
-        {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
-          <button
-            key={value}
-            onClick={() => {
-              setFilterType(value)
+      <div className="mb-6 space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        {/* Text filters row */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <input
+            type="text"
+            value={venueNameInput}
+            onChange={(e) => setVenueNameInput(e.target.value)}
+            placeholder="Filter by club / venue name…"
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          />
+          <input
+            type="text"
+            value={cityInput}
+            onChange={(e) => setCityInput(e.target.value)}
+            placeholder="Filter by city…"
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          />
+        </div>
+
+        {/* Date range row */}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-sm text-gray-600 dark:text-gray-400">From</label>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value)
               setCurrentPage(1)
             }}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${
-              filterType === value
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          />
+          <label className="text-sm text-gray-600 dark:text-gray-400">To</label>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+          />
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="text-xs text-blue-600 hover:underline">
+              Clear all filters
+            </button>
+          )}
+        </div>
+
+        {/* Event type chips */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => {
+              setFilterType('')
+              setCurrentPage(1)
+            }}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+              filterType === ''
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
             }`}
           >
-            {label}
+            All types
           </button>
-        ))}
+          {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => {
+                setFilterType(value)
+                setCurrentPage(1)
+              }}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+                filterType === value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Create Event Button */}
@@ -227,10 +319,16 @@ export default function EventsPage() {
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center dark:border-gray-700 dark:bg-gray-800">
           <div className="mb-4 text-6xl">🎹</div>
           <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-            No Events Yet
+            {hasActiveFilters ? 'No events match your filters' : 'No Events Yet'}
           </h2>
           <p className="mb-6 text-gray-600 dark:text-gray-400">
-            Be the first to create an event in the Piano Style community!
+            {hasActiveFilters ? (
+              <button onClick={clearFilters} className="text-blue-600 hover:underline">
+                Clear filters
+              </button>
+            ) : (
+              'Be the first to create an event in the Global Piano Network community!'
+            )}
           </p>
           <Link
             href="/events/create"
