@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { useAuth } from '@/context/AuthContext'
 
 export default function SubmitVenue() {
-  const { walletAddress, isConnected, connectWallet } = useHybridWallet()
+  const { user, isAuthenticated } = useAuth()
+  const walletAddress = user?.walletAddress || null
+  const isConnected = isAuthenticated
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -266,12 +268,12 @@ export default function SubmitVenue() {
             <p className="mb-3 text-yellow-700">
               You need to connect your wallet to submit venues and receive PXP token rewards.
             </p>
-            <button
-              onClick={connectWallet}
-              className="rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700"
+            <a
+              href="/auth/login"
+              className="inline-block rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700"
             >
-              Connect Wallet
-            </button>
+              Sign In
+            </a>
           </div>
         )}
 

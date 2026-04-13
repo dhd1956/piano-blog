@@ -7,8 +7,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { useAuth } from '@/context/AuthContext'
 
 interface Venue {
   id: number
@@ -37,7 +37,9 @@ export default function EditEventPage() {
   const router = useRouter()
   const params = useParams()
   const eventId = params?.id as string
-  const { walletAddress, isConnected, isLoading, connectWallet } = useHybridWallet()
+  const { user: currentUserAuth, isAuthenticated } = useAuth()
+  const walletAddress = currentUserAuth?.walletAddress || null
+  const isConnected = isAuthenticated
 
   // Form state
   const [title, setTitle] = useState('')
@@ -257,7 +259,7 @@ export default function EditEventPage() {
   }
 
   // Show loading state while fetching event
-  if (loading || isLoading) {
+  if (loading) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-16 text-center">
         <div className="text-lg text-gray-600 dark:text-gray-400">Loading event...</div>
@@ -272,12 +274,12 @@ export default function EditEventPage() {
         <p className="mb-6 text-lg text-gray-600 dark:text-gray-400">
           Please connect your wallet or sign in to create an event
         </p>
-        <button
-          onClick={connectWallet}
-          className="rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+        <a
+          href="/auth/login"
+          className="inline-block rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
         >
-          Connect Wallet
-        </button>
+          Sign In
+        </a>
       </div>
     )
   }

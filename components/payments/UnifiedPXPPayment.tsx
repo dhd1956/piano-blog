@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { CeloPaymentQRCode } from '@/components/qr/QRCodeGenerator'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
+import { useAuth } from '@/context/AuthContext'
 import { PXPRewardsService } from '@/utils/rewards-contract'
 
 export interface PaymentRequest {
@@ -47,7 +47,9 @@ export default function UnifiedPXPPayment({
   )
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { walletAddress, isConnected, connectWallet } = useHybridWallet()
+  const { user, isAuthenticated } = useAuth()
+  const walletAddress = user?.walletAddress || null
+  const isConnected = isAuthenticated
 
   // Payment method configurations
   const paymentMethods = [
@@ -143,12 +145,7 @@ export default function UnifiedPXPPayment({
     setErrorMessage('')
 
     if (method === 'web3' && !isConnected) {
-      try {
-        await connectWallet()
-      } catch (error: any) {
-        setErrorMessage('Failed to connect wallet')
-        setPaymentStatus('error')
-      }
+      window.location.href = '/auth/login'
     }
   }
 
@@ -347,12 +344,12 @@ export default function UnifiedPXPPayment({
         )}
 
         {!isConnected && selectedMethod === 'web3' && (
-          <button
-            onClick={connectWallet}
-            className="min-h-[44px] touch-manipulation rounded-md bg-purple-600 px-4 py-3 font-medium text-white hover:bg-purple-700 active:bg-purple-800 sm:py-2"
+          <a
+            href="/auth/login"
+            className="inline-block min-h-[44px] touch-manipulation rounded-md bg-purple-600 px-4 py-3 font-medium text-white hover:bg-purple-700 active:bg-purple-800 sm:py-2"
           >
-            Connect Wallet
-          </button>
+            Sign In
+          </a>
         )}
       </div>
     </div>

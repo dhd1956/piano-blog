@@ -7,8 +7,8 @@ import VenueEditForm from '@/components/VenueEditForm'
 import VenueQRCard from '@/components/qr/VenueQRCard'
 import VenueEvents from '@/components/venue/VenueEvents'
 import TipButton from '@/components/tips/TipButton'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { useAuth } from '@/context/AuthContext'
 import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
 
 interface PermissionCheck {
@@ -55,7 +55,9 @@ export default function VenueDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const venueId = params.id ? parseInt(params.id as string, 10) : null
-  const { isConnected, walletAddress, connectWallet } = useHybridWallet()
+  const { user, isAuthenticated } = useAuth()
+  const walletAddress = user?.walletAddress || null
+  const isConnected = isAuthenticated
 
   const [venue, setVenue] = useState<Venue | null>(null)
   const [submitterName, setSubmitterName] = useState<string | null>(null)

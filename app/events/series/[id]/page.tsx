@@ -11,7 +11,6 @@ import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
-import { useHybridWallet } from '@/hooks/useHybridWallet'
 
 interface Organizer {
   id: number
@@ -123,7 +122,7 @@ export default function SeriesDetailPage() {
   const router = useRouter()
   const seriesId = params?.id as string
   const { user } = useAuth()
-  const { walletAddress } = useHybridWallet()
+  const walletAddress = user?.walletAddress || null
 
   const [series, setSeries] = useState<EventSeries | null>(null)
   const [stats, setStats] = useState<SeriesStats | null>(null)
