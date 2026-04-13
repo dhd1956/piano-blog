@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
     const collabType = searchParams.get('collabType')?.trim() || ''
     const availableForCollab = searchParams.get('availableForCollab') === 'true'
 
+    const musicianProfileFilter: any = {}
+    if (collabType) musicianProfileFilter.collaborationTypes = { has: collabType }
+    if (availableForCollab) musicianProfileFilter.availableForCollab = true
+
     const where: any = {
-      musicianProfile: {
-        isNot: null,
-        ...(collabType && { collaborationTypes: { has: collabType } }),
-        ...(availableForCollab && { availableForCollab: true }),
-      },
+      musicianProfile: { is: musicianProfileFilter },
       ...(search && {
         OR: [
           { displayName: { contains: search, mode: 'insensitive' } },
