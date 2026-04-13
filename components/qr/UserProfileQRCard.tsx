@@ -158,6 +158,8 @@ export default function UserProfileQRCard({
         title: userData.title,
         location: userData.location,
         skills: userData.skills || [],
+        collaborationTypes: (userData as any).collaborationTypes || [],
+        influences: (userData as any).influences || [],
         socialLinks: userData.socialLinks,
         stats: {
           totalPXPEarned: userData.totalPXPEarned || 0,
@@ -629,6 +631,39 @@ function UserProfileQRCardContent({
               }}
             >
               {skill}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Collaboration Types */}
+      {!isSmall && (userData as any).collaborationTypes?.length > 0 && (
+        <div className="mt-2 flex flex-wrap justify-center gap-1">
+          {((userData as any).collaborationTypes as string[]).slice(0, 3).map((type: string) => (
+            <span
+              key={type}
+              className="rounded-full px-2 py-1 text-xs"
+              style={{ backgroundColor: '#0d9488' + '20', color: '#0d9488' }}
+            >
+              {type
+                .replace(/_/g, ' ')
+                .toLowerCase()
+                .replace(/\b\w/g, (c) => c.toUpperCase())}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Influences */}
+      {!isSmall && (userData as any).influences?.length > 0 && (
+        <div className="mt-2 flex flex-wrap justify-center gap-1">
+          {((userData as any).influences as string[]).slice(0, 3).map((artist: string) => (
+            <span
+              key={artist}
+              className="rounded-full px-2 py-1 text-xs opacity-80"
+              style={{ backgroundColor: '#7c3aed' + '20', color: '#7c3aed' }}
+            >
+              {artist}
             </span>
           ))}
         </div>

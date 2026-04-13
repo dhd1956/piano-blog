@@ -500,6 +500,9 @@ model MusicianProfile {
   // Influences
   influences          String[] // Artists or bands that inspire them
 
+  // Collaboration types
+  collaborationTypes  String[] // e.g. ["LYRICS","MELODY","CHORDS"]
+
   // Metadata
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

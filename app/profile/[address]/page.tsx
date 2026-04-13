@@ -13,6 +13,7 @@ import YouTubeUploadForm from '@/components/content/YouTubeUploadForm'
 import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 import YouTubeChannelVerification from '@/components/content/YouTubeChannelVerification'
 import TipButton from '@/components/tips/TipButton'
+import CollabRequestButton from '@/components/profile/CollabRequestButton'
 
 interface UserProfile {
   id: number
@@ -49,6 +50,20 @@ interface MusicianProfile {
   recordingLinks: string[]
   socialMedia: any
   repertoire: string[]
+  influences: string[]
+  collaborationTypes: string[]
+}
+
+const COLLAB_TYPE_LABELS: Record<string, string> = {
+  LYRICS: 'Lyrics writing',
+  MELODY: 'Melody composition',
+  CHORDS: 'Chord progressions',
+  ARRANGEMENTS: 'Arrangements',
+  CHARTS_SCORES: 'Charts & scores',
+  INSTRUMENT_PARTS: 'Instrument parts',
+  VOCALS: 'Vocals',
+  PRODUCTION: 'Production',
+  MIXING: 'Mixing',
 }
 
 export default function ProfilePage() {
@@ -321,6 +336,12 @@ export default function ProfilePage() {
               </button>
               {profile.walletAddress && (
                 <TipButton
+                  recipientAddress={profile.walletAddress}
+                  recipientName={profile.displayName || profile.username}
+                />
+              )}
+              {profile.walletAddress && (
+                <CollabRequestButton
                   recipientAddress={profile.walletAddress}
                   recipientName={profile.displayName || profile.username}
                 />
@@ -657,6 +678,40 @@ export default function ProfilePage() {
                     className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800"
                   >
                     {song}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Influences */}
+          {musicianProfile.influences && musicianProfile.influences.length > 0 && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">🎵 Influences</h2>
+              <div className="flex flex-wrap gap-2">
+                {musicianProfile.influences.map((artist) => (
+                  <span
+                    key={artist}
+                    className="rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-800"
+                  >
+                    {artist}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Collaboration Types */}
+          {musicianProfile.collaborationTypes && musicianProfile.collaborationTypes.length > 0 && (
+            <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">🤝 Collaboration Offerings</h2>
+              <div className="flex flex-wrap gap-2">
+                {musicianProfile.collaborationTypes.map((type) => (
+                  <span
+                    key={type}
+                    className="rounded-full bg-teal-100 px-4 py-2 text-sm font-medium text-teal-800"
+                  >
+                    {COLLAB_TYPE_LABELS[type] || type}
                   </span>
                 ))}
               </div>

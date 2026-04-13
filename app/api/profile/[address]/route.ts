@@ -421,6 +421,7 @@ export async function PATCH(
           socialMedia: body.musicianProfile.socialMedia || {},
           repertoire: body.musicianProfile.repertoire || [],
           influences: body.musicianProfile.influences || [],
+          collaborationTypes: body.musicianProfile.collaborationTypes || [],
         },
         update: {
           instruments: body.musicianProfile.instruments || [],
@@ -435,6 +436,7 @@ export async function PATCH(
           socialMedia: body.musicianProfile.socialMedia || {},
           repertoire: body.musicianProfile.repertoire || [],
           influences: body.musicianProfile.influences || [],
+          collaborationTypes: body.musicianProfile.collaborationTypes || [],
         },
       })
 

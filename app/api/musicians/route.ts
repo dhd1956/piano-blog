@@ -6,7 +6,7 @@ import { getDb } from '@/lib/get-db'
  *
  * WPB-201: Musicians Directory API
  * Returns all users with musician profiles
- * Supports pagination
+ * Supports pagination + filtering by search, collabType, availableForCollab
  */
 export async function GET(request: NextRequest) {
   try {
@@ -17,22 +17,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const skip = (page - 1) * limit
 
-    // Query for users with musician profiles
-    // Show all profiles that have musician data (privacy controls can be added later)
-    const where = {
+    // Filter parameters
+    const search = searchParams.get('search')?.trim() || ''
+    const collabType = searchParams.get('collabType')?.trim() || ''
+    const availableForCollab = searchParams.get('availableForCollab') === 'true'
+
+    const where: any = {
       musicianProfile: {
-        isNot: null, // Only users with a musician profile
+        isNot: null,
+        ...(collabType && { collaborationTypes: { has: collabType } }),
+        ...(availableForCollab && { availableForCollab: true }),
       },
-      // Optional: filter by publicProfile if explicitly set to false
-      // For now, show all musician profiles
+      ...(search && {
+        OR: [
+          { displayName: { contains: search, mode: 'insensitive' } },
+          { username: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
     }
 
     const db = await getDb()
 
-    // Get total count for pagination
     const totalCount = await db.user.count({ where })
 
-    // Fetch musicians with their profiles
     const musicians = await db.user.findMany({
       where,
       select: {
@@ -55,17 +62,17 @@ export async function GET(request: NextRequest) {
             yearsPlaying: true,
             availableForGigs: true,
             availableForCollab: true,
+            collaborationTypes: true,
           },
         },
       },
       orderBy: {
-        lastActive: 'desc', // Default: recently active first
+        lastActive: 'desc',
       },
       take: limit,
       skip,
     })
 
-    // Calculate pagination metadata
     const hasMore = skip + musicians.length < totalCount
     const totalPages = Math.ceil(totalCount / limit)
 

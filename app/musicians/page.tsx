@@ -3,12 +3,24 @@
 /**
  * WPB-201: Musicians Directory Page
  * Displays all musicians with profiles in a grid layout
- * Supports pagination
+ * Supports pagination, search, collab type filtering, and availability filtering
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+
+const COLLAB_TYPE_OPTIONS = [
+  { value: 'LYRICS', label: 'Lyrics' },
+  { value: 'MELODY', label: 'Melody' },
+  { value: 'CHORDS', label: 'Chords' },
+  { value: 'ARRANGEMENTS', label: 'Arrangements' },
+  { value: 'CHARTS_SCORES', label: 'Charts & scores' },
+  { value: 'INSTRUMENT_PARTS', label: 'Instrument parts' },
+  { value: 'VOCALS', label: 'Vocals' },
+  { value: 'PRODUCTION', label: 'Production' },
+  { value: 'MIXING', label: 'Mixing' },
+]
 
 interface MusicianProfile {
   instruments: string[]
@@ -18,6 +30,7 @@ interface MusicianProfile {
   yearsPlaying: number | null
   availableForGigs: boolean
   availableForCollab: boolean
+  collaborationTypes: string[]
 }
 
 interface Musician {
@@ -49,20 +62,52 @@ export default function MusiciansPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
-  useEffect(() => {
-    loadMusicians(currentPage)
-  }, [currentPage])
+  // Filters
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
+  const [activeCollabType, setActiveCollabType] = useState('')
+  const [availableForCollabOnly, setAvailableForCollabOnly] = useState(false)
 
-  const loadMusicians = async (page: number) => {
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setSearch(searchInput)
+      setCurrentPage(1)
+    }, 300)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchInput])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeCollabType, availableForCollabOnly])
+
+  useEffect(() => {
+    loadMusicians(currentPage, search, activeCollabType, availableForCollabOnly)
+  }, [currentPage, search, activeCollabType, availableForCollabOnly])
+
+  const loadMusicians = async (
+    page: number,
+    searchTerm: string,
+    collabType: string,
+    availForCollab: boolean
+  ) => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/musicians?page=${page}&limit=20`)
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (searchTerm) params.set('search', searchTerm)
+      if (collabType) params.set('collabType', collabType)
+      if (availForCollab) params.set('availableForCollab', 'true')
 
-      if (!response.ok) {
-        throw new Error('Failed to load musicians')
-      }
+      const response = await fetch(`/api/musicians?${params}`)
+      if (!response.ok) throw new Error('Failed to load musicians')
 
       const data = await response.json()
       setMusicians(data.musicians)
@@ -75,11 +120,14 @@ export default function MusiciansPage() {
     }
   }
 
-  const getProfileUrl = (musician: Musician) => {
-    if (musician.profileSlug) return `/profile/${musician.profileSlug}`
-    if (musician.username) return `/profile/${musician.username}`
-    if (musician.walletAddress) return `/profile/${musician.walletAddress}`
-    return '#'
+  const hasActiveFilters = search || activeCollabType || availableForCollabOnly
+
+  const clearFilters = () => {
+    setSearchInput('')
+    setSearch('')
+    setActiveCollabType('')
+    setAvailableForCollabOnly(false)
+    setCurrentPage(1)
   }
 
   if (loading && musicians.length === 0) {
@@ -93,7 +141,9 @@ export default function MusiciansPage() {
           <h2 className="mb-4 text-2xl font-bold text-red-900">Error Loading Musicians</h2>
           <p className="mb-4 text-red-800">{error}</p>
           <button
-            onClick={() => loadMusicians(currentPage)}
+            onClick={() =>
+              loadMusicians(currentPage, search, activeCollabType, availableForCollabOnly)
+            }
             className="rounded-md bg-red-600 px-6 py-2 text-white hover:bg-red-700"
           >
             Try Again
@@ -106,36 +156,95 @@ export default function MusiciansPage() {
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">
           🎸 Musicians Directory
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-400">
-          Discover talented musicians in the Piano Style community
+          Discover talented musicians in the Global Piano Network community
         </p>
-        {pagination && (
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
-            Showing {musicians.length} of {pagination.totalCount} musicians
-          </p>
-        )}
       </div>
+
+      {/* Search + Filters */}
+      <div className="mb-6 space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        {/* Search input */}
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search by name…"
+          className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+        />
+
+        {/* Collab type chips */}
+        <div className="flex flex-wrap gap-2">
+          {COLLAB_TYPE_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setActiveCollabType(activeCollabType === value ? '' : value)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeCollabType === value
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Available for collabs toggle + clear */}
+        <div className="flex items-center justify-between">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={availableForCollabOnly}
+              onChange={(e) => setAvailableForCollabOnly(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-teal-600"
+            />
+            Available for collaborations only
+          </label>
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="text-xs text-blue-600 hover:underline">
+              Clear filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Result count */}
+      {pagination && (
+        <p className="mb-4 text-sm text-gray-500 dark:text-gray-500">
+          {loading
+            ? 'Loading…'
+            : `Showing ${musicians.length} of ${pagination.totalCount} musicians`}
+        </p>
+      )}
 
       {/* Empty State */}
       {musicians.length === 0 && !loading && (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center dark:border-gray-700 dark:bg-gray-800">
           <div className="mb-4 text-6xl">🎹</div>
           <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-            No Musicians Yet
+            {hasActiveFilters ? 'No musicians match your filters' : 'No Musicians Yet'}
           </h2>
           <p className="mb-6 text-gray-600 dark:text-gray-400">
-            Be the first to create a musician profile!
+            {hasActiveFilters ? (
+              <button onClick={clearFilters} className="text-blue-600 hover:underline">
+                Clear filters
+              </button>
+            ) : (
+              'Be the first to create a musician profile!'
+            )}
           </p>
-          <Link
-            href="/profile"
-            className="inline-block rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-          >
-            Create Your Profile
-          </Link>
+          {!hasActiveFilters && (
+            <Link
+              href="/profile"
+              className="inline-block rounded-md bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+            >
+              Create Your Profile
+            </Link>
+          )}
         </div>
       )}
 
@@ -268,6 +377,25 @@ function MusicianCard({ musician }: { musician: Musician }) {
                 {style}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Collaboration types */}
+        {profile.collaborationTypes && profile.collaborationTypes.length > 0 && (
+          <div className="mb-3 flex flex-wrap justify-center gap-1">
+            {profile.collaborationTypes.slice(0, 3).map((type) => (
+              <span
+                key={type}
+                className="rounded-full bg-teal-100 px-3 py-1 text-xs font-medium text-teal-800 dark:bg-teal-900 dark:text-teal-200"
+              >
+                {COLLAB_TYPE_OPTIONS.find((o) => o.value === type)?.label || type}
+              </span>
+            ))}
+            {profile.collaborationTypes.length > 3 && (
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                +{profile.collaborationTypes.length - 3}
+              </span>
+            )}
           </div>
         )}
 

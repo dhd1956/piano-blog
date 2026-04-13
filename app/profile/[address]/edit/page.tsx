@@ -84,6 +84,8 @@ export default function ProfileEditPage() {
   const [influences, setInfluences] = useState<string[]>([])
   const [newInfluence, setNewInfluence] = useState('')
 
+  const [collaborationTypes, setCollaborationTypes] = useState<string[]>([])
+
   const [hasDraft, setHasDraft] = useState(false)
   const draftKey = `profile_draft_${address}`
 
@@ -107,6 +109,7 @@ export default function ProfileEditPage() {
       recordingLinks,
       repertoire,
       influences,
+      collaborationTypes,
       youtubeHandle,
       instagramHandle,
       soundcloudHandle,
@@ -129,6 +132,7 @@ export default function ProfileEditPage() {
     recordingLinks,
     repertoire,
     influences,
+    collaborationTypes,
     youtubeHandle,
     instagramHandle,
     soundcloudHandle,
@@ -157,6 +161,7 @@ export default function ProfileEditPage() {
       if (d.recordingLinks) setRecordingLinks(d.recordingLinks)
       if (d.repertoire) setRepertoire(d.repertoire)
       if (d.influences) setInfluences(d.influences)
+      if (d.collaborationTypes) setCollaborationTypes(d.collaborationTypes)
       if (d.youtubeHandle !== undefined) setYoutubeHandle(d.youtubeHandle)
       if (d.instagramHandle !== undefined) setInstagramHandle(d.instagramHandle)
       if (d.soundcloudHandle !== undefined) setSoundcloudHandle(d.soundcloudHandle)
@@ -212,6 +217,7 @@ export default function ProfileEditPage() {
         setRecordingLinks(data.musicianProfile.recordingLinks || [])
         setRepertoire(data.musicianProfile.repertoire || [])
         setInfluences(data.musicianProfile.influences || [])
+        setCollaborationTypes(data.musicianProfile.collaborationTypes || [])
 
         // Load social media handles
         if (data.musicianProfile.socialMedia) {
@@ -312,6 +318,7 @@ export default function ProfileEditPage() {
             },
             repertoire,
             influences,
+            collaborationTypes,
           },
         }),
       })
@@ -490,6 +497,24 @@ export default function ProfileEditPage() {
 
   const removeInfluence = (item: string) => {
     setInfluences(influences.filter((i) => i !== item))
+  }
+
+  const COLLAB_TYPE_OPTIONS = [
+    { value: 'LYRICS', label: 'Lyrics writing' },
+    { value: 'MELODY', label: 'Melody composition' },
+    { value: 'CHORDS', label: 'Chord progressions' },
+    { value: 'ARRANGEMENTS', label: 'Arrangements' },
+    { value: 'CHARTS_SCORES', label: 'Charts & scores' },
+    { value: 'INSTRUMENT_PARTS', label: 'Instrument parts' },
+    { value: 'VOCALS', label: 'Vocals' },
+    { value: 'PRODUCTION', label: 'Production' },
+    { value: 'MIXING', label: 'Mixing' },
+  ]
+
+  const toggleCollabType = (value: string) => {
+    setCollaborationTypes((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    )
   }
 
   if (loading) {
@@ -883,6 +908,30 @@ export default function ProfileEditPage() {
               placeholder="e.g., Available weekends, prefer evening gigs..."
             />
             <p className="mt-1 text-xs text-gray-500">{availabilityNotes.length}/500 characters</p>
+          </div>
+        </div>
+
+        {/* Collaboration Types */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-1 text-xl font-bold text-gray-900">Collaboration Types</h2>
+          <p className="mb-4 text-sm text-gray-600">
+            What can you offer as a collaborator? Select all that apply.
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {COLLAB_TYPE_OPTIONS.map(({ value, label }) => (
+              <label
+                key={value}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 px-3 py-2 hover:bg-gray-50"
+              >
+                <input
+                  type="checkbox"
+                  checked={collaborationTypes.includes(value)}
+                  onChange={() => toggleCollabType(value)}
+                  className="h-4 w-4 rounded border-gray-300 text-teal-600"
+                />
+                <span className="text-sm text-gray-700">{label}</span>
+              </label>
+            ))}
           </div>
         </div>
 
