@@ -683,57 +683,64 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* Attendees List (only for organizer) */}
-      {isOrganizer && event.rsvps.length > 0 && (
+      {/* Attendees List */}
+      {event.rsvps.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
           <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">
-            Attendees ({event.rsvps.length})
+            Who's Coming ({event.rsvps.filter((r) => r.status === 'CONFIRMED').length} confirmed)
           </h2>
           <div className="space-y-3">
-            {event.rsvps.map((rsvp) => (
-              <div
-                key={rsvp.id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700"
-              >
-                <div className="flex items-center gap-3">
-                  {rsvp.user.avatar ? (
-                    <Image
-                      src={rsvp.user.avatar}
-                      alt={rsvp.user.displayName || rsvp.user.username || 'User'}
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 rounded-full"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
-                      👤
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      {rsvp.user.displayName || rsvp.user.username || 'Anonymous'}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {rsvp.status} • {rsvp.attendeeCount} attendee
-                      {rsvp.attendeeCount > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    rsvp.status === 'CONFIRMED'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : rsvp.status === 'PENDING'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        : rsvp.status === 'MAYBE'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                  }`}
+            {event.rsvps
+              .filter((r) => isOrganizer || r.status === 'CONFIRMED' || r.status === 'MAYBE')
+              .map((rsvp) => (
+                <div
+                  key={rsvp.id}
+                  className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700"
                 >
-                  {rsvp.status}
-                </span>
-              </div>
-            ))}
+                  <div className="flex items-center gap-3">
+                    {rsvp.user.avatar ? (
+                      <Image
+                        src={rsvp.user.avatar}
+                        alt={rsvp.user.displayName || rsvp.user.username || 'User'}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
+                        👤
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {rsvp.user.displayName || rsvp.user.username || 'Anonymous'}
+                      </p>
+                      {rsvp.attendeeCount > 1 && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          +{rsvp.attendeeCount - 1} guest{rsvp.attendeeCount > 2 ? 's' : ''}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      rsvp.status === 'CONFIRMED'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : rsvp.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          : rsvp.status === 'MAYBE'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                    }`}
+                  >
+                    {rsvp.status === 'CONFIRMED'
+                      ? '✓ Going'
+                      : rsvp.status === 'MAYBE'
+                        ? 'Maybe'
+                        : rsvp.status}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
       )}
