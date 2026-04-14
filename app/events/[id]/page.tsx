@@ -587,7 +587,7 @@ export default function EventDetailPage() {
           )}
 
           {/* RSVP Section */}
-          {event.status !== 'CANCELLED' && !isOrganizer && (
+          {event.status !== 'CANCELLED' && (
             <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
               <h2 className="mb-3 text-lg font-bold text-gray-900 dark:text-gray-100">✉️ RSVP</h2>
 
