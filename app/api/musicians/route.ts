@@ -26,8 +26,10 @@ export async function GET(request: NextRequest) {
     if (collabType) musicianProfileFilter.collaborationTypes = { has: collabType }
     if (availableForCollab) musicianProfileFilter.availableForCollab = true
 
+    const hasMusicianFilter = Object.keys(musicianProfileFilter).length > 0
+
     const where: any = {
-      musicianProfile: { is: musicianProfileFilter },
+      musicianProfile: hasMusicianFilter ? { is: musicianProfileFilter } : { isNot: null },
       ...(search && {
         OR: [
           { displayName: { contains: search, mode: 'insensitive' } },
