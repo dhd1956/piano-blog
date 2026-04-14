@@ -170,9 +170,11 @@ export default function CAVDashboard() {
                   <h4 className="mb-2 font-medium text-blue-900">📱 How to use:</h4>
                   <ul className="space-y-1 text-sm text-blue-800">
                     <li>• Share this QR code with anyone who wants to send you PXP</li>
-                    <li>• They can scan it with any Celo-compatible wallet</li>
-                    <li>• Works with MetaMask, Valora, and other Web3 wallets</li>
-                    <li>• No need to type long wallet addresses!</li>
+                    <li>• PXP is your Global Piano Network experience token</li>
+                    <li>
+                      • Earned by contributing venues, events, and connecting with the community
+                    </li>
+                    <li>• Scan to send PXP directly to this community member</li>
                   </ul>
                 </div>
               </div>
