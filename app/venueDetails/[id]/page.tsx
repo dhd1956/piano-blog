@@ -103,6 +103,7 @@ export default function VenueDetailsPage() {
 
     try {
       setLoading(true)
+      setError('')
 
       // Fetch venue from simplified PostgreSQL API
       const response = await fetch(`/api/venues/${venueId}`, {
@@ -226,21 +227,6 @@ export default function VenueDetailsPage() {
       } else {
         setError(result.error || 'Venue not found')
       }
-
-      // Check permissions if wallet is connected
-      if (isConnected && walletAddress) {
-        const venuePermissions = await checkVenuePermissions(walletAddress, venueId)
-        setPermissions(venuePermissions)
-      } else {
-        // Set client-side permissions for blog owner check
-        const clientPerms = getClientPermissions(walletAddress || '')
-        setPermissions({
-          isBlogOwner: clientPerms.isBlogOwner,
-          isVenueCurator: false,
-          canEdit: clientPerms.isBlogOwner, // Only blog owner can edit
-          canUpdateCurator: clientPerms.isBlogOwner,
-        })
-      }
     } catch (error) {
       // Don't set error state if request was aborted (component unmounted)
       if (error instanceof Error && error.name === 'AbortError') {
@@ -331,17 +317,30 @@ export default function VenueDetailsPage() {
     }
   }
 
-  // Load venue data when venueId or wallet connection changes
+  // Load venue data when venueId changes (auth-independent — venue GET is public)
   useEffect(() => {
     const abortController = new AbortController()
-
     loadVenueData(abortController.signal)
-
-    // Cleanup: abort fetch when component unmounts or dependencies change
     return () => {
       abortController.abort()
     }
-  }, [venueId, isConnected, walletAddress])
+  }, [venueId])
+
+  // Update permissions when auth state changes
+  useEffect(() => {
+    if (!venueId) return
+    if (isConnected && walletAddress) {
+      checkVenuePermissions(walletAddress, venueId).then(setPermissions)
+    } else {
+      const clientPerms = getClientPermissions(walletAddress || '')
+      setPermissions({
+        isBlogOwner: clientPerms.isBlogOwner,
+        isVenueCurator: false,
+        canEdit: clientPerms.isBlogOwner,
+        canUpdateCurator: clientPerms.isBlogOwner,
+      })
+    }
+  }, [isConnected, walletAddress, venueId])
 
   // Show loading while checking authentication
   if (authLoading) {
