@@ -135,18 +135,6 @@ export default function EventsPage() {
     setCurrentPage(1)
   }
 
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
   const loadEvents = async (
     page: number,
     eventType: string,
@@ -183,7 +171,7 @@ export default function EventsPage() {
     }
   }
 
-  if (loading && events.length === 0) {
+  if (authLoading || (loading && events.length === 0)) {
     return <EventsLoadingSkeleton />
   }
 
