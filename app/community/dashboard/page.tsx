@@ -1,329 +1,270 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import QRCodeGenerator, {
-  CeloPaymentQRCode,
-  generateCeloPaymentURI,
-} from '@/components/qr/QRCodeGenerator'
+import Link from 'next/link'
+import { CeloPaymentQRCode } from '@/components/qr/QRCodeGenerator'
+import { useAuth } from '@/context/AuthContext'
 
-// Celo Sepolia network configuration
 const PXP_TOKEN_ADDRESS = '0x04eAE71832147D75D4B69B3FFB5d9514e8471c75'
-const FALLBACK_WALLET = '0x0000000000000000000000000000000000000000'
 
-interface UserData {
-  walletAddress: string | null
-  pxpBalance: number
-  username: string | null
+const EARN_WAYS = [
+  { icon: '📍', label: 'Submit a venue', href: '/venues/submit', pxp: '+50 PXP' },
+  { icon: '🎵', label: 'Attend an event', href: '/events', pxp: '+10 PXP' },
+  { icon: '👤', label: 'Complete your profile', href: '/profile', pxp: '+25 PXP' },
+  { icon: '🤝', label: 'Connect with musicians', href: '/musicians', pxp: '+5 PXP' },
+  { icon: '🎬', label: 'Submit a YouTube video', href: '/profile', pxp: '+15 PXP' },
+]
+
+interface LeaderboardEntry {
+  rank: number
   displayName: string | null
+  username: string | null
+  totalPXPEarned: number
+  profileSlug: string | null
 }
 
-export default function CAVDashboard() {
-  const [selectedTab, setSelectedTab] = useState<'receive' | 'pay' | 'share'>('receive')
-  const [paymentAmount, setPaymentAmount] = useState('')
-  const [paymentMemo, setPaymentMemo] = useState('')
-  const [userData, setUserData] = useState<UserData | null>(null)
+export default function CommunityDashboard() {
+  const { user, isAuthenticated } = useAuth()
+  const [pxpBalance, setPxpBalance] = useState<number | null>(null)
+  const [leaderboardRank, setLeaderboardRank] = useState<number | null>(null)
+  const [topMembers, setTopMembers] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [showQR, setShowQR] = useState(false)
 
-  // Fetch authenticated user data
   useEffect(() => {
-    const fetchUserData = async () => {
+    if (!isAuthenticated || !user) {
+      setLoading(false)
+      return
+    }
+
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include',
-        })
+        const [profileRes, leaderboardRes] = await Promise.all([
+          fetch(`/api/profile/${user.walletAddress || user.username}`, { credentials: 'include' }),
+          fetch('/api/leaderboard?limit=10'),
+        ])
 
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success && data.user) {
-            // Fetch full profile to get PXP balance
-            const profileResponse = await fetch(
-              `/api/profile/${data.user.walletAddress || data.user.username}`,
-              {
-                credentials: 'include',
-              }
-            )
-
-            if (profileResponse.ok) {
-              const profileData = await profileResponse.json()
-              setUserData({
-                walletAddress: data.user.walletAddress,
-                pxpBalance: profileData.profile?.totalPXPEarned || 0,
-                username: data.user.username,
-                displayName: data.user.displayName,
-              })
-            }
-          }
+        if (profileRes.ok) {
+          const profileData = await profileRes.json()
+          setPxpBalance(profileData.profile?.totalPXPEarned ?? 0)
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error)
+
+        if (leaderboardRes.ok) {
+          const lbData = await leaderboardRes.json()
+          setTopMembers(lbData.entries || [])
+          // Find current user's rank
+          const myEntry = lbData.entries?.find(
+            (e: any) =>
+              e.username === user.username ||
+              e.walletAddress?.toLowerCase() === user.walletAddress?.toLowerCase()
+          )
+          if (myEntry) setLeaderboardRank(myEntry.rank)
+          else if (lbData.currentUser) setLeaderboardRank(lbData.currentUser.rank)
+        }
+      } catch (err) {
+        console.error('Dashboard fetch error:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchUserData()
-  }, [])
+    fetchData()
+  }, [isAuthenticated, user])
 
-  const walletAddress = userData?.walletAddress || FALLBACK_WALLET
-  const pxpBalance = userData?.pxpBalance.toFixed(2) || '0.00'
+  const displayName = user?.displayName || user?.username || 'Community Member'
+  const walletAddress = user?.walletAddress || ''
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="mb-4 text-gray-600">Please sign in to view your dashboard.</p>
+          <Link
+            href="/auth/login"
+            className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+          >
+            Sign In
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 dark:bg-gray-900">
       <div className="mx-auto max-w-4xl px-4">
         {/* Header */}
-        <div className="mb-8 rounded-lg bg-gradient-to-r from-green-600 to-blue-600 p-6 text-white">
-          <h1 className="mb-2 text-3xl font-bold">PXP Community Dashboard</h1>
-          <p className="text-green-100">
-            Your hybrid Web3 + QR Code payment hub for Community Asset Vouchers
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Welcome back, {displayName}
+          </h1>
+          <p className="mt-1 text-gray-500 dark:text-gray-400">
+            Your Global Piano Network dashboard
           </p>
         </div>
 
-        {/* Balance Overview */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">PXP Balance</p>
-                <p className="text-2xl font-bold text-gray-900">{loading ? '...' : pxpBalance}</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                💰
-              </div>
+        {/* PXP Balance Hero */}
+        <div className="mb-8 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 p-8 text-white shadow-lg">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="mb-1 text-sm font-medium text-indigo-200">Your PXP Balance</p>
+              <p className="text-5xl font-bold">{loading ? '—' : (pxpBalance ?? 0).toFixed(0)}</p>
+              <p className="mt-1 text-indigo-200">Piano Experience Points</p>
             </div>
+            <div className="text-5xl opacity-80">🎹</div>
           </div>
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Payment Method</p>
-                <p className="text-lg font-medium text-blue-600">Hybrid QR + Web3</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                📱
-              </div>
+          {leaderboardRank && (
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-medium">
+              🏆 Ranked #{leaderboardRank} on the community leaderboard
             </div>
-          </div>
+          )}
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Network</p>
-                <p className="text-lg font-medium text-purple-600">Celo Sepolia</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-                🌐
-              </div>
-            </div>
+          <div className="mt-4 text-sm text-indigo-200">
+            PXP reflects your contributions to the Global Piano Network — venues discovered, events
+            attended, musicians connected.
           </div>
         </div>
 
-        {/* QR Code Tabs */}
-        <div className="overflow-hidden rounded-lg bg-white shadow">
-          {/* Tab Headers */}
-          <div className="border-b border-gray-200">
-            <div className="flex">
-              {[
-                { id: 'receive', label: 'Receive PXP', icon: '📥' },
-                { id: 'pay', label: 'Request Payment', icon: '💸' },
-                { id: 'share', label: 'Share Wallet', icon: '🤝' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setSelectedTab(tab.id as any)}
-                  className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                    selectedTab === tab.id
-                      ? 'border-b-2 border-blue-600 bg-blue-50 text-blue-600'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                  }`}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Ways to Earn */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
+              Ways to Earn PXP
+            </h2>
+            <div className="space-y-3">
+              {EARN_WAYS.map((way) => (
+                <Link
+                  key={way.label}
+                  href={way.href}
+                  className="flex items-center justify-between rounded-lg p-3 transition hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{way.icon}</span>
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                      {way.label}
+                    </span>
+                  </div>
+                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                    {way.pxp}
+                  </span>
+                </Link>
               ))}
             </div>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6">
-            {selectedTab === 'receive' && (
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Receive PXP Payments</h3>
-                  <p className="mb-6 text-gray-600">
-                    Share this QR code to receive PXP tokens at your wallet address
-                  </p>
-                </div>
-
-                <div className="flex justify-center">
-                  <CeloPaymentQRCode
-                    address={walletAddress}
-                    tokenAddress={PXP_TOKEN_ADDRESS}
-                    memo="Payment to PXP Community Member"
-                    size={250}
-                    showCopyButton={true}
-                    allowDownload={true}
-                    downloadFilename="my-cav-wallet"
-                  />
-                </div>
-
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                  <h4 className="mb-2 font-medium text-blue-900">📱 How to use:</h4>
-                  <ul className="space-y-1 text-sm text-blue-800">
-                    <li>• Share this QR code with anyone who wants to send you PXP</li>
-                    <li>• PXP is your Global Piano Network experience token</li>
-                    <li>
-                      • Earned by contributing venues, events, and connecting with the community
-                    </li>
-                    <li>• Scan to send PXP directly to this community member</li>
-                  </ul>
-                </div>
+          {/* Top Community Members */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                Community Leaderboard
+              </h2>
+              <Link
+                href="/leaderboard"
+                className="text-sm text-indigo-600 hover:underline dark:text-indigo-400"
+              >
+                Full list →
+              </Link>
+            </div>
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-8 animate-pulse rounded bg-gray-100 dark:bg-gray-700" />
+                ))}
               </div>
-            )}
-
-            {selectedTab === 'pay' && (
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Request PXP Payment</h3>
-                  <p className="mb-6 text-gray-600">
-                    Generate a QR code requesting a specific amount
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Amount (PXP)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={paymentAmount}
-                        onChange={(e) => setPaymentAmount(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="25.00"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Payment Description
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentMemo}
-                        onChange={(e) => setPaymentMemo(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Coffee payment, venue entry, etc."
-                      />
-                    </div>
-
-                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                      <p className="text-sm text-yellow-800">
-                        💡 <strong>Pro tip:</strong> Include a clear description so the payer knows
-                        what they're paying for!
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center">
-                    {paymentAmount ? (
-                      <CeloPaymentQRCode
-                        address={walletAddress}
-                        amount={paymentAmount}
-                        tokenAddress={PXP_TOKEN_ADDRESS}
-                        memo={paymentMemo || `Payment request for ${paymentAmount} PXP`}
-                        size={220}
-                        showCopyButton={true}
-                        allowDownload={true}
-                        downloadFilename={`payment-request-${paymentAmount}-cav`}
-                      />
-                    ) : (
-                      <div className="flex h-220 w-220 items-center justify-center rounded-lg bg-gray-100">
-                        <div className="text-center text-gray-500">
-                          <div className="mb-2 text-4xl">💰</div>
-                          <div className="text-sm">Enter amount to generate QR</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {selectedTab === 'share' && (
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">Share Your Wallet</h3>
-                  <p className="mb-6 text-gray-600">
-                    Simple QR code containing just your wallet address
-                  </p>
-                </div>
-
-                <div className="flex justify-center">
-                  <QRCodeGenerator
-                    data={walletAddress}
-                    size={250}
-                    showCopyButton={true}
-                    allowDownload={true}
-                    downloadFilename="my-wallet-address"
-                    alt="Wallet address QR code"
-                  />
-                </div>
-
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <h4 className="mb-2 font-medium text-gray-900">Wallet Address:</h4>
-                  <div className="flex items-center space-x-2">
-                    <code className="flex-1 rounded border bg-white px-3 py-2 font-mono text-sm">
-                      {walletAddress}
-                    </code>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(walletAddress)}
-                      className="rounded bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+            ) : topMembers.length === 0 ? (
+              <p className="text-sm text-gray-500">No leaderboard data yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {topMembers.slice(0, 5).map((member, i) => {
+                  const isMe =
+                    member.username === user?.username ||
+                    (member as any).walletAddress?.toLowerCase() ===
+                      user?.walletAddress?.toLowerCase()
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+                        isMe ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''
+                      }`}
                     >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                  <h4 className="mb-2 font-medium text-green-900">🌐 Universal compatibility:</h4>
-                  <ul className="space-y-1 text-sm text-green-800">
-                    <li>• Works with any blockchain wallet or service</li>
-                    <li>• Can be used for any Celo token, not just PXP</li>
-                    <li>• Perfect for sharing in social media or messaging apps</li>
-                    <li>• No payment amount specified - flexible for any transaction</li>
-                  </ul>
-                </div>
+                      <div className="flex items-center gap-3">
+                        <span className="w-5 text-sm font-bold text-gray-400">
+                          {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
+                        </span>
+                        <span
+                          className={`text-sm font-medium ${isMe ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-800 dark:text-gray-200'}`}
+                        >
+                          {member.displayName || member.username || 'Anonymous'}
+                          {isMe && ' (you)'}
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                        {member.totalPXPEarned.toFixed(0)} PXP
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
         </div>
 
-        {/* Development Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 rounded-lg bg-gray-100 p-4">
-            <h4 className="mb-2 font-medium text-gray-900">🛠️ Development Info</h4>
-            <div className="space-y-1 text-sm text-gray-700">
-              <p>
-                <strong>Network:</strong> Celo Sepolia Testnet (Chain ID: 11142220)
-              </p>
-              <p>
-                <strong>PXP Token:</strong> {PXP_TOKEN_ADDRESS}
-              </p>
-              <p>
-                <strong>Wallet:</strong> {walletAddress}
-              </p>
-              <p>
-                <strong>PXP Balance:</strong> {pxpBalance}
-              </p>
-              <p>
-                <strong>QR Code Library:</strong> qrcode@1.5.4
-              </p>
-              <p>
-                <strong>URI Standard:</strong> Celo payment protocol (EIP-681 inspired)
-              </p>
-            </div>
+        {/* Quick Links */}
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[
+            { icon: '📍', label: 'Venues', href: '/venues' },
+            { icon: '🎵', label: 'Events', href: '/events' },
+            { icon: '👥', label: 'Musicians', href: '/musicians' },
+            {
+              icon: '👤',
+              label: 'My Profile',
+              href: user?.walletAddress ? `/profile/${user.walletAddress}` : '/profile',
+            },
+          ].map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="flex flex-col items-center rounded-xl border border-gray-200 bg-white p-4 text-center shadow-sm transition hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+            >
+              <span className="mb-2 text-2xl">{link.icon}</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {link.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Receive PXP — collapsible */}
+        {walletAddress && (
+          <div className="mt-6 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <button
+              onClick={() => setShowQR(!showQR)}
+              className="flex w-full items-center justify-between px-6 py-4 text-left"
+            >
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                📲 Receive PXP from another member
+              </span>
+              <span className="text-gray-400">{showQR ? '▲' : '▼'}</span>
+            </button>
+            {showQR && (
+              <div className="border-t border-gray-100 px-6 py-6 dark:border-gray-700">
+                <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                  Another community member can scan this to send you PXP directly.
+                </p>
+                <div className="flex justify-center">
+                  <CeloPaymentQRCode
+                    address={walletAddress}
+                    tokenAddress={PXP_TOKEN_ADDRESS}
+                    memo="PXP transfer"
+                    size={220}
+                    showCopyButton={true}
+                    allowDownload={true}
+                    downloadFilename="my-gpn-address"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
