@@ -197,7 +197,7 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
           </li>
         </ul>
         <p className="mt-2 text-xs text-gray-600 dark:text-gray-500">
-          Total potential: <strong>450 PXP</strong> (~$4.50 USD) per video + bonus for organizer
+          Total potential: <strong>450 PXP</strong> per video + bonus for organizer
         </p>
       </div>
 
