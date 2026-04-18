@@ -153,7 +153,7 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
           Submit Performance Video
         </h3>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Share your piano performance from an event and earn PXP rewards
+          Share your musical performance from an event and earn PXP rewards
         </p>
       </div>
 
@@ -371,7 +371,7 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
         <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">Guidelines</h4>
         <ul className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
           <li>• Video must be from a performance at the selected event</li>
-          <li>• Must feature piano performance (original or covers)</li>
+          <li>• Must feature a musical performance (original or covers)</li>
           <li>• You must be the channel owner or have permission</li>
           <li>• Video should be publicly accessible on YouTube</li>
           <li>• Each video can only be submitted once</li>
