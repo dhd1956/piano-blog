@@ -70,8 +70,8 @@ export default function CollabRequestButton({
               Collaboration Request
             </h3>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              Send a message to {recipientName || 'this musician'} about collaborating. They'll see
-              a link back to your profile so they can get in touch.
+              Send a message to {recipientName || 'this musician'} about collaborating. They'll
+              receive a notification with a link to your profile.
             </p>
 
             {status === 'sent' ? (
