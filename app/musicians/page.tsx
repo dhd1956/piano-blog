@@ -10,6 +10,31 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
+const PRESET_INSTRUMENTS = [
+  'Piano (acoustic)',
+  'Digital Piano / Keyboard',
+  'Organ / Hammond',
+  'Synthesizer',
+  'Guitar (acoustic)',
+  'Guitar (electric)',
+  'Bass Guitar',
+  'Violin',
+  'Viola',
+  'Cello',
+  'Double Bass',
+  'Ukulele',
+  'Harp',
+  'Flute',
+  'Clarinet',
+  'Saxophone',
+  'Trumpet',
+  'Trombone',
+  'Drums / Percussion',
+  'Vocals',
+]
+
+const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Professional']
+
 const COLLAB_TYPE_OPTIONS = [
   { value: 'LYRICS', label: 'Lyrics' },
   { value: 'MELODY', label: 'Melody' },
@@ -68,6 +93,15 @@ export default function MusiciansPage() {
   const [activeCollabType, setActiveCollabType] = useState('')
   const [availableForCollabOnly, setAvailableForCollabOnly] = useState(false)
 
+  // Advanced search
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [filterInstruments, setFilterInstruments] = useState<string[]>([])
+  const [filterExperience, setFilterExperience] = useState('')
+  const [filterAvailableForGigs, setFilterAvailableForGigs] = useState(false)
+  const [filterLocation, setFilterLocation] = useState('')
+  const [filterInfluences, setFilterInfluences] = useState('')
+  const [filterSongs, setFilterSongs] = useState('')
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Debounce search input
@@ -85,11 +119,31 @@ export default function MusiciansPage() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [activeCollabType, availableForCollabOnly])
+  }, [
+    activeCollabType,
+    availableForCollabOnly,
+    filterInstruments,
+    filterExperience,
+    filterAvailableForGigs,
+    filterLocation,
+    filterInfluences,
+    filterSongs,
+  ])
 
   useEffect(() => {
     loadMusicians(currentPage, search, activeCollabType, availableForCollabOnly)
-  }, [currentPage, search, activeCollabType, availableForCollabOnly])
+  }, [
+    currentPage,
+    search,
+    activeCollabType,
+    availableForCollabOnly,
+    filterInstruments,
+    filterExperience,
+    filterAvailableForGigs,
+    filterLocation,
+    filterInfluences,
+    filterSongs,
+  ])
 
   const loadMusicians = async (
     page: number,
@@ -105,6 +159,12 @@ export default function MusiciansPage() {
       if (searchTerm) params.set('search', searchTerm)
       if (collabType) params.set('collabType', collabType)
       if (availForCollab) params.set('availableForCollab', 'true')
+      if (filterInstruments.length) params.set('instruments', filterInstruments.join(','))
+      if (filterExperience) params.set('experienceLevel', filterExperience)
+      if (filterAvailableForGigs) params.set('availableForGigs', 'true')
+      if (filterLocation.trim()) params.set('location', filterLocation.trim())
+      if (filterInfluences.trim()) params.set('influences', filterInfluences.trim())
+      if (filterSongs.trim()) params.set('songs', filterSongs.trim())
 
       const response = await fetch(`/api/musicians?${params}`)
       if (!response.ok) throw new Error('Failed to load musicians')
@@ -120,14 +180,35 @@ export default function MusiciansPage() {
     }
   }
 
-  const hasActiveFilters = search || activeCollabType || availableForCollabOnly
+  const hasActiveFilters =
+    search ||
+    activeCollabType ||
+    availableForCollabOnly ||
+    filterInstruments.length > 0 ||
+    filterExperience ||
+    filterAvailableForGigs ||
+    filterLocation ||
+    filterInfluences ||
+    filterSongs
 
   const clearFilters = () => {
     setSearchInput('')
     setSearch('')
     setActiveCollabType('')
     setAvailableForCollabOnly(false)
+    setFilterInstruments([])
+    setFilterExperience('')
+    setFilterAvailableForGigs(false)
+    setFilterLocation('')
+    setFilterInfluences('')
+    setFilterSongs('')
     setCurrentPage(1)
+  }
+
+  const toggleFilterInstrument = (instrument: string) => {
+    setFilterInstruments((prev) =>
+      prev.includes(instrument) ? prev.filter((i) => i !== instrument) : [...prev, instrument]
+    )
   }
 
   if (loading && musicians.length === 0) {
@@ -210,6 +291,114 @@ export default function MusiciansPage() {
             </button>
           )}
         </div>
+
+        {/* Advanced Search toggle */}
+        <button
+          onClick={() => setAdvancedOpen((o) => !o)}
+          className="flex items-center gap-1 text-sm font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400"
+        >
+          <span>Advanced Search</span>
+          <span>{advancedOpen ? '▲' : '▼'}</span>
+        </button>
+
+        {advancedOpen && (
+          <div className="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+            {/* Instruments */}
+            <div>
+              <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                Instruments
+              </p>
+              <div className="grid grid-cols-2 gap-1 sm:grid-cols-3">
+                {PRESET_INSTRUMENTS.map((inst) => (
+                  <label
+                    key={inst}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filterInstruments.includes(inst)}
+                      onChange={() => toggleFilterInstrument(inst)}
+                      className="h-4 w-4 rounded border-gray-300 text-teal-600"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">{inst}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Experience level + Location */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                  Experience Level
+                </label>
+                <select
+                  value={filterExperience}
+                  onChange={(e) => setFilterExperience(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                >
+                  <option value="">Any level</option>
+                  {EXPERIENCE_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  placeholder="City or region…"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+            </div>
+
+            {/* Influences + Songs */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                  Influences
+                </label>
+                <input
+                  type="text"
+                  value={filterInfluences}
+                  onChange={(e) => setFilterInfluences(e.target.value)}
+                  placeholder="e.g. Chopin, Bill Evans…"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                  Songs / Repertoire
+                </label>
+                <input
+                  type="text"
+                  value={filterSongs}
+                  onChange={(e) => setFilterSongs(e.target.value)}
+                  placeholder="e.g. Moonlight Sonata…"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+            </div>
+
+            {/* Available for gigs */}
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={filterAvailableForGigs}
+                onChange={(e) => setFilterAvailableForGigs(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-teal-600"
+              />
+              Available for gigs only
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Result count */}

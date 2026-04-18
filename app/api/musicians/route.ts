@@ -22,9 +22,26 @@ export async function GET(request: NextRequest) {
     const collabType = searchParams.get('collabType')?.trim() || ''
     const availableForCollab = searchParams.get('availableForCollab') === 'true'
 
+    // Advanced search parameters
+    const instrumentsParam = searchParams.get('instruments')?.trim() || ''
+    const experienceLevel = searchParams.get('experienceLevel')?.trim() || ''
+    const availableForGigs = searchParams.get('availableForGigs') === 'true'
+    const locationParam = searchParams.get('location')?.trim() || ''
+    const influencesParam = searchParams.get('influences')?.trim() || ''
+    const songsParam = searchParams.get('songs')?.trim() || ''
+
+    const instruments = instrumentsParam ? instrumentsParam.split(',').map((s) => s.trim()) : []
+    const influences = influencesParam ? influencesParam.split(',').map((s) => s.trim()) : []
+    const songs = songsParam ? songsParam.split(',').map((s) => s.trim()) : []
+
     const musicianProfileFilter: any = {}
     if (collabType) musicianProfileFilter.collaborationTypes = { has: collabType }
     if (availableForCollab) musicianProfileFilter.availableForCollab = true
+    if (availableForGigs) musicianProfileFilter.availableForGigs = true
+    if (experienceLevel) musicianProfileFilter.experienceLevel = experienceLevel
+    if (instruments.length) musicianProfileFilter.instruments = { hasSome: instruments }
+    if (influences.length) musicianProfileFilter.influences = { hasSome: influences }
+    if (songs.length) musicianProfileFilter.repertoire = { hasSome: songs }
 
     const hasMusicianFilter = Object.keys(musicianProfileFilter).length > 0
 
@@ -36,6 +53,7 @@ export async function GET(request: NextRequest) {
           { username: { contains: search, mode: 'insensitive' } },
         ],
       }),
+      ...(locationParam && { location: { contains: locationParam, mode: 'insensitive' } }),
     }
 
     const db = await getDb()
@@ -65,6 +83,8 @@ export async function GET(request: NextRequest) {
             availableForGigs: true,
             availableForCollab: true,
             collaborationTypes: true,
+            influences: true,
+            repertoire: true,
           },
         },
       },
