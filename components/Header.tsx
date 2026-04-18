@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import siteMetadata from '@/data/siteMetadata'
 import headerNavLinks from '@/data/headerNavLinks'
-import Logo from '@/data/logo.svg'
+import Image from 'next/image'
 import Link from './Link'
 import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
@@ -31,7 +31,12 @@ const Header = () => {
       <Link href={linkHref} aria-label={displayTitle}>
         <div className="flex items-center justify-between">
           <div className="mr-3">
-            <Logo />
+            <Image
+              src="/static/favicons/android-chrome-192x192.png"
+              alt="Global Piano Network"
+              width={40}
+              height={40}
+            />
           </div>
           {typeof displayTitle === 'string' ? (
             <div className="hidden h-6 text-2xl font-semibold sm:block">{displayTitle}</div>

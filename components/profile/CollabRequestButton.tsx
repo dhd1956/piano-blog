@@ -18,6 +18,7 @@ export default function CollabRequestButton({
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [alreadySent, setAlreadySent] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
   // Don't render if not authenticated or viewing own profile
@@ -40,6 +41,7 @@ export default function CollabRequestButton({
         setStatus('error')
         return
       }
+      setAlreadySent(!!data.alreadySent)
       setStatus('sent')
     } catch {
       setErrorMsg('Network error — please try again')
@@ -52,6 +54,7 @@ export default function CollabRequestButton({
     setMessage('')
     setStatus('idle')
     setErrorMsg('')
+    setAlreadySent(false)
   }
 
   return (
@@ -82,6 +85,11 @@ export default function CollabRequestButton({
                   {recipientName || 'They'} will see your notification and can visit your profile to
                   get in touch.
                 </p>
+                {alreadySent && (
+                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                    Note: you've already sent a request today — allow some time for a response.
+                  </p>
+                )}
               </div>
             ) : (
               <>

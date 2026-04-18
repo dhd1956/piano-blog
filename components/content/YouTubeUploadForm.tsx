@@ -24,9 +24,25 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null)
   const [events, setEvents] = useState<Event[]>([])
   const [loadingEvents, setLoadingEvents] = useState(true)
+  const [eventSearch, setEventSearch] = useState('')
+  const [eventDateFilter, setEventDateFilter] = useState<'30' | '90' | '365' | 'all'>('all')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  const filteredEvents = events.filter((event) => {
+    const searchMatch =
+      eventSearch.trim() === '' ||
+      event.title.toLowerCase().includes(eventSearch.toLowerCase()) ||
+      event.venue.name.toLowerCase().includes(eventSearch.toLowerCase())
+
+    if (!searchMatch) return false
+
+    if (eventDateFilter === 'all') return true
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - Number(eventDateFilter))
+    return new Date(event.startDate) >= cutoff
+  })
 
   // Fetch user's events on mount
   useEffect(() => {
@@ -213,19 +229,50 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
               <span className="text-sm text-gray-600 dark:text-gray-400">Loading events...</span>
             </div>
           ) : events.length > 0 ? (
-            <select
-              value={selectedEventId || ''}
-              onChange={(e) => setSelectedEventId(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 transition-colors focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              disabled={isSubmitting}
-            >
-              <option value="">Select an event...</option>
-              {events.map((event) => (
-                <option key={event.id} value={event.id}>
-                  {event.title} @ {event.venue.name} - {formatEventDate(event.startDate)}
-                </option>
-              ))}
-            </select>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={eventSearch}
+                  onChange={(e) => setEventSearch(e.target.value)}
+                  placeholder="Search by title or venue…"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  disabled={isSubmitting}
+                />
+                <select
+                  value={eventDateFilter}
+                  onChange={(e) =>
+                    setEventDateFilter(e.target.value as '30' | '90' | '365' | 'all')
+                  }
+                  className="rounded-lg border border-gray-300 px-2 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  disabled={isSubmitting}
+                >
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                  <option value="365">Last year</option>
+                  <option value="all">All time</option>
+                </select>
+              </div>
+              <select
+                value={selectedEventId || ''}
+                onChange={(e) => setSelectedEventId(Number(e.target.value))}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 transition-colors focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                disabled={isSubmitting}
+                size={Math.min(filteredEvents.length + 1, 6)}
+              >
+                <option value="">Select an event…</option>
+                {filteredEvents.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.title} @ {event.venue.name} — {formatEventDate(event.startDate)}
+                  </option>
+                ))}
+              </select>
+              {filteredEvents.length === 0 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  No events match your filters.
+                </p>
+              )}
+            </div>
           ) : (
             <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
               <p className="text-sm text-yellow-800 dark:text-yellow-300">

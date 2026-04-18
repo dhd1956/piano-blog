@@ -64,16 +64,6 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    if (recentRequest) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'You already sent a collaboration request to this person in the last 24 hours',
-        },
-        { status: 429 }
-      )
-    }
-
     const senderName = sender.displayName || sender.username || 'A musician'
 
     await db.notification.create({
@@ -90,7 +80,7 @@ export async function POST(request: NextRequest) {
       `[collaborate] ${sender.walletAddress} → ${normalizedRecipient}: "${message.slice(0, 50)}…"`
     )
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, alreadySent: !!recentRequest })
   } catch (error: any) {
     console.error('[collaborate] Error:', error)
     return NextResponse.json(
