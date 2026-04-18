@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is "Developing My Piano Style" - a Next.js blog application that combines traditional blogging with blockchain-based venue submission and discovery. The project is built on the Tailwind Next.js Starter Blog template and extended with Celo blockchain integration for a decentralized piano venue registry and musician's community.
+This is "Global Piano Network" - a Next.js blog application that combines traditional blogging with blockchain-based venue submission and discovery. The project is built on the Tailwind Next.js Starter Blog template and extended with Celo blockchain integration for a decentralized piano venue registry and musician's community.
 
 ## Core Architecture
 
