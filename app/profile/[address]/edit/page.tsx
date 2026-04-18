@@ -721,6 +721,8 @@ export default function ProfileEditPage() {
             ))}
           </div>
 
+          <hr className="border-gray-200" />
+
           <div className="flex gap-2">
             <input
               type="text"
