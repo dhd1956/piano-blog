@@ -723,6 +723,10 @@ export default function ProfileEditPage() {
 
           <hr className="border-gray-200" />
 
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Add an instrument not listed above:
+          </p>
+
           <div className="flex gap-2">
             <input
               type="text"
