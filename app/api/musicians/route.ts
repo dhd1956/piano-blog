@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
 
     // Filter parameters
     const search = searchParams.get('search')?.trim() || ''
-    const collabType = searchParams.get('collabType')?.trim() || ''
+    const collabTypesParam = searchParams.get('collabTypes')?.trim() || ''
+    const collabTypes = collabTypesParam ? collabTypesParam.split(',').map((s) => s.trim()) : []
     const availableForCollab = searchParams.get('availableForCollab') === 'true'
 
     // Advanced search parameters
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     const songs = songsParam ? songsParam.split(',').map((s) => s.trim()) : []
 
     const musicianProfileFilter: any = {}
-    if (collabType) musicianProfileFilter.collaborationTypes = { has: collabType }
+    if (collabTypes.length) musicianProfileFilter.collaborationTypes = { hasEvery: collabTypes }
     if (availableForCollab) musicianProfileFilter.availableForCollab = true
     if (availableForGigs) musicianProfileFilter.availableForGigs = true
     if (experienceLevel) musicianProfileFilter.experienceLevel = experienceLevel

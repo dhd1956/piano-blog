@@ -90,7 +90,7 @@ export default function MusiciansPage() {
   // Filters
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
-  const [activeCollabType, setActiveCollabType] = useState('')
+  const [activeCollabTypes, setActiveCollabTypes] = useState<string[]>([])
   const [availableForCollabOnly, setAvailableForCollabOnly] = useState(false)
 
   // Advanced search
@@ -120,7 +120,7 @@ export default function MusiciansPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [
-    activeCollabType,
+    activeCollabTypes,
     availableForCollabOnly,
     filterInstruments,
     filterExperience,
@@ -131,11 +131,11 @@ export default function MusiciansPage() {
   ])
 
   useEffect(() => {
-    loadMusicians(currentPage, search, activeCollabType, availableForCollabOnly)
+    loadMusicians(currentPage, search, activeCollabTypes, availableForCollabOnly)
   }, [
     currentPage,
     search,
-    activeCollabType,
+    activeCollabTypes,
     availableForCollabOnly,
     filterInstruments,
     filterExperience,
@@ -148,7 +148,7 @@ export default function MusiciansPage() {
   const loadMusicians = async (
     page: number,
     searchTerm: string,
-    collabType: string,
+    collabTypes: string[],
     availForCollab: boolean
   ) => {
     try {
@@ -157,7 +157,7 @@ export default function MusiciansPage() {
 
       const params = new URLSearchParams({ page: String(page), limit: '20' })
       if (searchTerm) params.set('search', searchTerm)
-      if (collabType) params.set('collabType', collabType)
+      if (collabTypes.length) params.set('collabTypes', collabTypes.join(','))
       if (availForCollab) params.set('availableForCollab', 'true')
       if (filterInstruments.length) params.set('instruments', filterInstruments.join(','))
       if (filterExperience) params.set('experienceLevel', filterExperience)
@@ -182,7 +182,7 @@ export default function MusiciansPage() {
 
   const hasActiveFilters =
     search ||
-    activeCollabType ||
+    activeCollabTypes.length > 0 ||
     availableForCollabOnly ||
     filterInstruments.length > 0 ||
     filterExperience ||
@@ -194,7 +194,7 @@ export default function MusiciansPage() {
   const clearFilters = () => {
     setSearchInput('')
     setSearch('')
-    setActiveCollabType('')
+    setActiveCollabTypes([])
     setAvailableForCollabOnly(false)
     setFilterInstruments([])
     setFilterExperience('')
@@ -223,7 +223,7 @@ export default function MusiciansPage() {
           <p className="mb-4 text-red-800">{error}</p>
           <button
             onClick={() =>
-              loadMusicians(currentPage, search, activeCollabType, availableForCollabOnly)
+              loadMusicians(currentPage, search, activeCollabTypes, availableForCollabOnly)
             }
             className="rounded-md bg-red-600 px-6 py-2 text-white hover:bg-red-700"
           >
@@ -257,14 +257,18 @@ export default function MusiciansPage() {
           className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
         />
 
-        {/* Collab type chips */}
+        {/* Collab type chips — multiple selection */}
         <div className="flex flex-wrap gap-2">
           {COLLAB_TYPE_OPTIONS.map(({ value, label }) => (
             <button
               key={value}
-              onClick={() => setActiveCollabType(activeCollabType === value ? '' : value)}
+              onClick={() =>
+                setActiveCollabTypes((prev) =>
+                  prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value]
+                )
+              }
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                activeCollabType === value
+                activeCollabTypes.includes(value)
                   ? 'bg-teal-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
               }`}
