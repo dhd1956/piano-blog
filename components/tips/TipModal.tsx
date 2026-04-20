@@ -176,11 +176,22 @@ export default function TipModal({
         setTimeout(() => onTipSent('', getAmount()), 2000)
         return
       } else if (
-        msg.includes('insufficientbalance') ||
-        msg.includes('insufficient') ||
-        msg.includes('erc20insufficientbalance')
+        msg.includes('erc20insufficientbalance') ||
+        (msg.includes('insufficient') &&
+          !msg.includes('gas') &&
+          !msg.includes('native') &&
+          !msg.includes('funds for'))
       ) {
         setErrorMessage("You don't have enough PXP to send that amount.")
+      } else if (
+        msg.includes('insufficient funds for gas') ||
+        msg.includes('insufficient native') ||
+        msg.includes('insufficient funds') ||
+        msg.includes('gas required exceeds')
+      ) {
+        setErrorMessage(
+          'Your wallet needs a small amount of CELO for gas fees. Please wait a moment and try again — it should arrive automatically.'
+        )
       } else if (
         msg.includes('insufficientallowance') ||
         msg.includes('erc20insufficientallowance') ||
@@ -519,13 +530,19 @@ export default function TipModal({
                   <div className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
                     <p>You have {balanceInPXP.toFixed(2)} PXP — not enough to send a tip.</p>
                     {welcomeEligible === true && (
-                      <button
-                        onClick={handleClaimWelcomeReward}
-                        disabled={isClaiming}
-                        className="mt-2 rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
-                      >
-                        {isClaiming ? 'Claiming… (~5s)' : '🎁 Claim 25 PXP welcome reward'}
-                      </button>
+                      <>
+                        <p className="mt-1 text-xs">
+                          Your welcome PXP may still be arriving. Wait a moment and refresh, or
+                          claim it now:
+                        </p>
+                        <button
+                          onClick={handleClaimWelcomeReward}
+                          disabled={isClaiming}
+                          className="mt-2 rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                        >
+                          {isClaiming ? 'Claiming… (~5s)' : '🎁 Claim 25 PXP welcome reward'}
+                        </button>
+                      </>
                     )}
                     {claimError && (
                       <p className="mt-1 text-xs text-red-600 dark:text-red-400">{claimError}</p>

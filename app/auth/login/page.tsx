@@ -37,9 +37,11 @@ function LoginContent() {
   // fires before React commits isAuthenticated=true, causing useRequireAuth on
   // community pages to see stale false and redirect back to login.
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
+  const [isSettingUp, setIsSettingUp] = useState(false)
 
   const hasCreatedSessionRef = useRef(false)
   const hasTriedCreateWalletRef = useRef(false)
+  const isNewUserRef = useRef(false)
   // Persisted across Google OAuth redirects via sessionStorage
   const userClickedLoginRef = useRef(
     typeof sessionStorage !== 'undefined' && sessionStorage.getItem('login_initiated') === '1'
@@ -97,15 +99,33 @@ function LoginContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ walletAddress: wallet.address, email: userEmail, authProvider }),
     })
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) throw new Error(`Session creation failed (${res.status})`)
+        const data = await res.json()
+        isNewUserRef.current = !!data.isNewUser
         return refreshUser()
       })
-      .then(() =>
-        fetch(
+      .then(async () => {
+        // For new users: auto-claim welcome PXP + CELO gas stipend before redirecting.
+        // This ensures they can tip immediately without manual setup steps.
+        if (isNewUserRef.current) {
+          setIsSettingUp(true)
+          try {
+            await fetch('/api/rewards/claim-welcome', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
+            })
+          } catch {
+            // Non-fatal — continue even if auto-claim fails
+          }
+          setIsSettingUp(false)
+        }
+        return fetch(
           `/api/profile/${wallet.address}?email=${encodeURIComponent(userEmail || '')}&emailVerified=true&authProvider=${authProvider}`
         )
-      )
+      })
       .then((res) => (res.ok ? res.json() : null))
       .then((profileData) => {
         const target =
@@ -205,7 +225,12 @@ function LoginContent() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner className="mx-auto h-10 w-10" />
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Signing you in...</p>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            {isSettingUp ? 'Setting up your account…' : 'Signing you in...'}
+          </p>
+          {isSettingUp && (
+            <p className="mt-1 text-xs text-gray-400">Getting your PXP ready — just a moment</p>
+          )}
         </div>
       </div>
     )
