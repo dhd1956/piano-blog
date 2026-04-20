@@ -81,6 +81,16 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  async function handleClearAll() {
+    try {
+      await fetch('/api/notifications', { method: 'DELETE', credentials: 'include' })
+      setNotifications([])
+      setUnreadCount(0)
+    } catch {
+      // Silent fail
+    }
+  }
+
   async function handleOpen() {
     setOpen((prev) => !prev)
     if (!open && unreadCount > 0) {
@@ -133,7 +143,17 @@ export default function NotificationBell() {
             <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               Notifications
             </span>
-            {loading && <span className="text-xs text-gray-400">Marking read…</span>}
+            <div className="flex items-center gap-3">
+              {loading && <span className="text-xs text-gray-400">Marking read…</span>}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="max-h-96 overflow-y-auto">

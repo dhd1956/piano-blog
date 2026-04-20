@@ -1,7 +1,8 @@
 /**
  * Notifications API
- * GET  /api/notifications        - List user's notifications (unread first)
- * PATCH /api/notifications       - Mark all notifications as read
+ * GET    /api/notifications  - List user's notifications (unread first)
+ * PATCH  /api/notifications  - Mark all notifications as read
+ * DELETE /api/notifications  - Clear (delete) all notifications
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -29,6 +30,26 @@ export async function GET(request: NextRequest) {
     console.error('GET /api/notifications error:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to fetch notifications' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await authenticate(request as any)
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const db = await getDb()
+    await db.notification.deleteMany({ where: { userId: user.id } })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('DELETE /api/notifications error:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to clear notifications' },
       { status: 500 }
     )
   }
