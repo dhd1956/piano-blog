@@ -438,11 +438,16 @@ function EventCard({ event }: { event: Event }) {
         )}
 
         <div className="p-6">
-          {/* Event Type Badge */}
-          <div className="mb-2">
+          {/* Event Type Badge + Cancelled Badge */}
+          <div className="mb-2 flex flex-wrap gap-1.5">
             <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200">
               {eventTypeLabel}
             </span>
+            {event.status === 'CANCELLED' && (
+              <span className="inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700 dark:bg-red-900/50 dark:text-red-300">
+                🚫 Cancelled
+              </span>
+            )}
           </div>
 
           {/* Title */}
