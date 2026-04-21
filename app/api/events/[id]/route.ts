@@ -257,10 +257,16 @@ export async function DELETE(
 
     const db = await getDb()
 
-    // Find event
+    // Find event with RSVPs so we can notify attendees
     const event = await db.event.findUnique({
       where: { id: eventId },
-      include: { organizer: true },
+      include: {
+        organizer: true,
+        rsvps: {
+          where: { status: { in: ['CONFIRMED', 'MAYBE'] } },
+          select: { userId: true },
+        },
+      },
     })
 
     if (!event) {
@@ -282,19 +288,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization (organizer or blog owner can cancel)
-    const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS?.toLowerCase()
-    const isOrganizer = event.organizerId === requester.id
-    const isBlogOwner =
-      requester.role === 'BLOG_OWNER' ||
-      (blogOwnerAddress && requester.walletAddress?.toLowerCase() === blogOwnerAddress)
-
-    if (!isOrganizer && !isBlogOwner) {
+    // Only BLOG_OWNER or CURATOR can cancel events
+    if (requester.role !== 'BLOG_OWNER' && requester.role !== 'CURATOR') {
       return NextResponse.json(
-        { error: 'Only the event organizer or blog owner can cancel this event' },
+        { error: 'Only a blog owner or curator can cancel this event' },
         { status: 403 }
       )
     }
+
+    const reason = cancellationReason || 'No reason provided'
 
     // Cancel event (don't actually delete, just mark as cancelled)
     const cancelledEvent = await db.event.update({
@@ -302,9 +304,25 @@ export async function DELETE(
       data: {
         status: 'CANCELLED',
         cancelledAt: new Date(),
-        cancellationReason: cancellationReason || 'No reason provided',
+        cancellationReason: reason,
+        cancelledByUserId: requester.id,
       },
     })
+
+    // Notify all RSVPed attendees
+    const attendeeUserIds = event.rsvps.map((r) => r.userId)
+    if (attendeeUserIds.length > 0) {
+      await db.notification.createMany({
+        data: attendeeUserIds.map((userId) => ({
+          userId,
+          type: 'EVENT_CANCELLED',
+          title: `"${event.title}" has been cancelled`,
+          message: reason,
+          link: `/events/${eventId}`,
+        })),
+        skipDuplicates: true,
+      })
+    }
 
     return NextResponse.json({ event: cancelledEvent })
   } catch (error) {

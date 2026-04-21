@@ -68,6 +68,12 @@ export default function EditEventPage() {
   const [error, setError] = useState<string | null>(null)
   const [username, setUsername] = useState<string | null>(null)
 
+  // Cancel event state
+  const [cancelReason, setCancelReason] = useState('')
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
+
   // Check for username session
   useEffect(() => {
     const checkSession = async () => {
@@ -255,6 +261,27 @@ export default function EditEventPage() {
       setError(err.message || 'Failed to update event')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleCancelEvent = async () => {
+    const requesterAddress = walletAddress || username
+    if (!requesterAddress) return
+    setIsCancelling(true)
+    setCancelError(null)
+    try {
+      const params = new URLSearchParams({ requesterAddress })
+      if (cancelReason) params.set('reason', cancelReason)
+      const response = await fetch(`/api/events/${eventId}?${params}`, { method: 'DELETE' })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to cancel event')
+      }
+      router.push(`/events/${eventId}`)
+    } catch (err: any) {
+      setCancelError(err.message || 'Failed to cancel event')
+      setIsCancelling(false)
+      setShowCancelConfirm(false)
     }
   }
 
@@ -618,6 +645,66 @@ export default function EditEventPage() {
           </button>
         </div>
       </form>
+
+      {/* Cancel Event — BLOG_OWNER / CURATOR only */}
+      {(currentUserAuth?.role === 'BLOG_OWNER' || currentUserAuth?.role === 'CURATOR') && (
+        <div className="mt-8 rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30">
+          <h2 className="mb-1 text-lg font-semibold text-red-800 dark:text-red-300">
+            Cancel Event
+          </h2>
+          <p className="mb-4 text-sm text-red-700 dark:text-red-400">
+            Cancelling is permanent. All RSVPed attendees will be notified.
+          </p>
+
+          {cancelError && (
+            <p className="mb-3 text-sm text-red-600 dark:text-red-400">{cancelError}</p>
+          )}
+
+          <div className="mb-4">
+            <label className="mb-1 block text-sm font-medium text-red-800 dark:text-red-300">
+              Reason for cancellation (optional)
+            </label>
+            <input
+              type="text"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. Venue unavailable"
+              className="w-full rounded-md border border-red-300 bg-white px-4 py-2 text-sm text-gray-900 focus:border-red-500 focus:outline-none dark:border-red-800 dark:bg-gray-900 dark:text-gray-100"
+            />
+          </div>
+
+          {!showCancelConfirm ? (
+            <button
+              type="button"
+              onClick={() => setShowCancelConfirm(true)}
+              className="rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700"
+            >
+              Cancel Event
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-red-800 dark:text-red-300">
+                Are you sure? This cannot be undone.
+              </span>
+              <button
+                type="button"
+                onClick={handleCancelEvent}
+                disabled={isCancelling}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {isCancelling ? 'Cancelling…' : 'Yes, cancel it'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirm(false)}
+                className="text-sm text-gray-600 hover:underline dark:text-gray-400"
+              >
+                Go back
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

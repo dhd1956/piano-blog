@@ -36,6 +36,8 @@ function notificationIcon(type: string): string {
       return '❌'
     case 'EVENT_REMINDER':
       return '📅'
+    case 'EVENT_CANCELLED':
+      return '🚫'
     default:
       return '🔔'
   }
