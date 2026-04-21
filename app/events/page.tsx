@@ -97,6 +97,7 @@ export default function EventsPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [filterType, setFilterType] = useState<string>('')
+  const [filterStatus, setFilterStatus] = useState<string>('UPCOMING')
   const [venueNameInput, setVenueNameInput] = useState('')
   const [venueName, setVenueName] = useState('')
   const [city, setCity] = useState('')
@@ -119,13 +120,15 @@ export default function EventsPage() {
   }, [venueNameInput, cityInput])
 
   useEffect(() => {
-    loadEvents(currentPage, filterType, venueName, city, dateFrom, dateTo)
-  }, [currentPage, filterType, venueName, city, dateFrom, dateTo])
+    loadEvents(currentPage, filterType, filterStatus, venueName, city, dateFrom, dateTo)
+  }, [currentPage, filterType, filterStatus, venueName, city, dateFrom, dateTo])
 
-  const hasActiveFilters = filterType || venueName || city || dateFrom || dateTo
+  const hasActiveFilters =
+    filterType || filterStatus !== 'UPCOMING' || venueName || city || dateFrom || dateTo
 
   const clearFilters = () => {
     setFilterType('')
+    setFilterStatus('UPCOMING')
     setVenueNameInput('')
     setVenueName('')
     setCityInput('')
@@ -138,6 +141,7 @@ export default function EventsPage() {
   const loadEvents = async (
     page: number,
     eventType: string,
+    status: string,
     venueNameFilter: string,
     cityFilter: string,
     dateFromFilter: string,
@@ -149,6 +153,7 @@ export default function EventsPage() {
 
       const params = new URLSearchParams({ page: String(page), limit: '12' })
       if (eventType) params.set('type', eventType)
+      if (status) params.set('status', status)
       if (venueNameFilter) params.set('venueName', venueNameFilter)
       if (cityFilter) params.set('city', cityFilter)
       if (dateFromFilter) params.set('dateFrom', dateFromFilter)
@@ -184,7 +189,9 @@ export default function EventsPage() {
           </h2>
           <p className="mb-4 text-red-800 dark:text-red-200">{error}</p>
           <button
-            onClick={() => loadEvents(currentPage, filterType, venueName, city, dateFrom, dateTo)}
+            onClick={() =>
+              loadEvents(currentPage, filterType, filterStatus, venueName, city, dateFrom, dateTo)
+            }
             className="rounded-md bg-red-600 px-6 py-2 text-white hover:bg-red-700"
           >
             Try Again
@@ -256,6 +263,33 @@ export default function EventsPage() {
               Clear all filters
             </button>
           )}
+        </div>
+
+        {/* Status filter chips */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'UPCOMING', label: 'Upcoming' },
+            { value: 'ONGOING', label: 'Ongoing' },
+            { value: 'COMPLETED', label: 'Completed' },
+            { value: 'CANCELLED', label: 'Cancelled' },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => {
+                setFilterStatus(value)
+                setCurrentPage(1)
+              }}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+                filterStatus === value
+                  ? value === 'CANCELLED'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Event type chips */}
