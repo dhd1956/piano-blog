@@ -278,10 +278,12 @@ export default function EventDetailPage() {
   }
 
   const handleCancelEvent = async () => {
+    const requesterAddress = walletAddress || username
+    if (!requesterAddress) return
     setIsCancelling(true)
     setCancelError(null)
     try {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams({ requesterAddress })
       if (cancelReason) params.set('reason', cancelReason)
       const res = await fetch(`/api/events/${eventId}?${params.toString()}`, {
         method: 'DELETE',
@@ -293,6 +295,7 @@ export default function EventDetailPage() {
       setShowCancelConfirm(false)
     } catch (err: any) {
       setCancelError(err.message || 'Failed to cancel event')
+      setShowCancelConfirm(false)
     } finally {
       setIsCancelling(false)
     }
