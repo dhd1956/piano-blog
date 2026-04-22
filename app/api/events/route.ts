@@ -39,6 +39,10 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       where.status = status
+      // For upcoming events, only show events that haven't ended yet
+      if (status === 'UPCOMING') {
+        where.endDate = { gte: new Date() }
+      }
     }
 
     if (venueId) {
