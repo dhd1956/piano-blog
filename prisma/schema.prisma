@@ -98,6 +98,7 @@ model Venue {
   events       Event[] // Events hosted at this venue
   eventSeries  EventSeries[] // Recurring event series at this venue
   photos       VenuePhoto[] // Community-uploaded venue photos
+  curators     VenueCurator[] // Curators assigned to this venue by the blog owner
 
   // Indexes for performance
   @@index([city, verified, isActive])
@@ -217,6 +218,8 @@ model User {
   musicianProfile MusicianProfile? // One-to-one relation with musician profile
   organizedEvents Event[]          @relation("OrganizedEvents") // Events created by this user
   cancelledEvents Event[]          @relation("CancelledEvents") // Events cancelled by this user
+  curatedVenues      VenueCurator[] @relation("AssignedVenueCurator") // Venues this user is assigned to curate
+  curatorAssignments VenueCurator[] @relation("VenueCuratorAssignedBy") // Curator assignments made by this user
   organizedSeries EventSeries[]    @relation("OrganizedSeries") // Event series created by this user
   rsvps           EventRSVP[]      @relation("EventRSVPs") // Events this user RSVPed to
   youtubeVideos   YouTubeVideo[]   // Submitted YouTube videos for PXP rewards
@@ -302,6 +305,21 @@ model VenueValidation {
   @@unique([venueId, validatorId]) // Each validator can only vote once per venue
   @@index([venueId, approved])
   @@index([validatorId])
+}
+
+// VenueCurator — blog owner assigns curators to specific venues
+model VenueCurator {
+  venueId    Int
+  userId     Int
+  assignedAt DateTime @default(now())
+  assignedBy Int
+
+  venue          Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  user           User  @relation("AssignedVenueCurator", fields: [userId], references: [id], onDelete: Cascade)
+  assignedByUser User  @relation("VenueCuratorAssignedBy", fields: [assignedBy], references: [id])
+
+  @@id([venueId, userId])
+  @@index([userId])
 }
 
 // Session management for username/password auth

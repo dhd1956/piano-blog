@@ -59,8 +59,27 @@ export default function VenueDetailsPage() {
   const walletAddress = user?.walletAddress || null
   const isConnected = isAuthenticated
 
+  const isBlogOwner = user?.role === 'BLOG_OWNER'
+
   const [venue, setVenue] = useState<Venue | null>(null)
   const [submitterName, setSubmitterName] = useState<string | null>(null)
+
+  // Curator assignment state
+  interface CuratorEntry {
+    user: {
+      id: number
+      displayName: string | null
+      username: string | null
+      avatar: string | null
+      profileSlug: string | null
+      walletAddress: string | null
+    }
+    assignedAt: string
+  }
+  const [curators, setCurators] = useState<CuratorEntry[]>([])
+  const [curatorInput, setCuratorInput] = useState('')
+  const [curatorLoading, setCuratorLoading] = useState(false)
+  const [curatorError, setCuratorError] = useState<string | null>(null)
   const [extendedData, setExtendedData] = useState<VenueMetadata>(() => ({
     venueDetails: {
       fullName: '',
@@ -317,10 +336,61 @@ export default function VenueDetailsPage() {
     }
   }
 
+  const fetchCurators = async () => {
+    if (!venueId) return
+    try {
+      const res = await fetch(`/api/venues/${venueId}/curators`)
+      if (res.ok) {
+        const data = await res.json()
+        setCurators(data.curators ?? [])
+      }
+    } catch {
+      // Non-critical — silently ignore
+    }
+  }
+
+  const handleAssignCurator = async () => {
+    if (!curatorInput.trim() || !venueId) return
+    setCuratorLoading(true)
+    setCuratorError(null)
+    try {
+      const res = await fetch(`/api/venues/${venueId}/curators`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIdentifier: curatorInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to assign curator')
+      setCuratorInput('')
+      await fetchCurators()
+    } catch (err: any) {
+      setCuratorError(err.message)
+    } finally {
+      setCuratorLoading(false)
+    }
+  }
+
+  const handleRemoveCurator = async (userId: number) => {
+    if (!venueId) return
+    try {
+      await fetch(`/api/venues/${venueId}/curators`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+      await fetchCurators()
+    } catch {
+      // Silent fail
+    }
+  }
+
   // Load venue data when venueId changes (auth-independent — venue GET is public)
   useEffect(() => {
     const abortController = new AbortController()
     loadVenueData(abortController.signal)
+    fetchCurators()
     return () => {
       abortController.abort()
     }
@@ -450,6 +520,72 @@ export default function VenueDetailsPage() {
             <div className="mt-8">
               <VenueEvents venueId={venue.id} venueName={venue.name} />
             </div>
+
+            {/* Curators Section */}
+            {(curators.length > 0 || isBlogOwner) && (
+              <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+                  🎯 Assigned Curators
+                </h2>
+
+                {curators.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No curators assigned yet.
+                  </p>
+                ) : (
+                  <ul className="mb-4 space-y-2">
+                    {curators.map((c) => (
+                      <li
+                        key={c.user.id}
+                        className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2 dark:bg-gray-700"
+                      >
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {c.user.displayName || c.user.username || 'Unknown'}
+                          {c.user.username && (
+                            <span className="ml-1 text-gray-400">@{c.user.username}</span>
+                          )}
+                        </span>
+                        {isBlogOwner && (
+                          <button
+                            onClick={() => handleRemoveCurator(c.user.id)}
+                            className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {isBlogOwner && (
+                  <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+                    <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                      Assign a curator by username, email, or wallet address. They must already have
+                      the Curator role.
+                    </p>
+                    {curatorError && <p className="mb-2 text-xs text-red-500">{curatorError}</p>}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={curatorInput}
+                        onChange={(e) => setCuratorInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAssignCurator()}
+                        placeholder="username, email, or 0x…"
+                        className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                      <button
+                        onClick={handleAssignCurator}
+                        disabled={!curatorInput.trim() || curatorLoading}
+                        className="rounded-md bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {curatorLoading ? 'Assigning…' : 'Assign'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Marketing Materials Section */}
             <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">

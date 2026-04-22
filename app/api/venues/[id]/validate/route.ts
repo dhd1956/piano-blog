@@ -125,6 +125,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { user } = authResult
     const db = await getDb()
 
+    // CURATORs must be assigned to this specific venue by the blog owner
+    if (user.role === UserRole.CURATOR) {
+      const assignment = await db.venueCurator.findUnique({
+        where: { venueId_userId: { venueId, userId: user.id } },
+      })
+      if (!assignment) {
+        return NextResponse.json(
+          { error: 'You are not assigned to curate this venue' },
+          { status: 403 }
+        )
+      }
+    }
+
     // Verify venue exists
     const venue = await db.venue.findUnique({
       where: { id: venueId },
