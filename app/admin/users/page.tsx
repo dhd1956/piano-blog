@@ -93,8 +93,15 @@ export default function AdminUsersPage() {
     if (isBlogOwner) {
       fetchUsers()
       fetchAllVenues()
+    } else if (isAuthenticated) {
+      // Non-admins get the public list (name + role only)
+      fetch('/api/community/members')
+        .then((r) => r.json())
+        .then((d) => setUsers(d.users ?? []))
+        .catch(() => {})
+        .finally(() => setLoading(false))
     }
-  }, [isBlogOwner, fetchUsers, fetchAllVenues])
+  }, [isBlogOwner, isAuthenticated, fetchUsers, fetchAllVenues])
 
   const handleRoleChange = async (userId: number, newRole: string) => {
     setUpdatingRoleId(userId)
