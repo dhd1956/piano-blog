@@ -194,10 +194,34 @@ export default function AdminUsersPage() {
     )
   }
 
+  // Non-admin: read-only view showing only usernames
   if (!isBlogOwner) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Access denied — blog owner only.</p>
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Community Members
+        </h1>
+        <p className="mb-8 text-sm text-gray-500 dark:text-gray-400">
+          {users.length} members in the Global Piano Network.
+        </p>
+        {loading && <p className="text-sm text-gray-500">Loading…</p>}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          {users.map((u) => (
+            <div
+              key={u.id}
+              className="rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+            >
+              <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                {u.displayName || u.username || `Member #${u.id}`}
+              </p>
+              <span
+                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLOURS[u.role]}`}
+              >
+                {ROLE_LABELS[u.role]}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
