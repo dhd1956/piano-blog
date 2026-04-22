@@ -296,6 +296,19 @@ export async function DELETE(
       )
     }
 
+    // CURATORs may only cancel events at venues they are assigned to
+    if (requester.role === 'CURATOR') {
+      const assignment = await db.venueCurator.findUnique({
+        where: { venueId_userId: { venueId: event.venueId, userId: requester.id } },
+      })
+      if (!assignment) {
+        return NextResponse.json(
+          { error: 'You are not assigned to curate this venue' },
+          { status: 403 }
+        )
+      }
+    }
+
     const reason = cancellationReason || 'No reason provided'
 
     // Cancel event (don't actually delete, just mark as cancelled)
