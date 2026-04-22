@@ -38,6 +38,7 @@ const headerNavLinks: NavGroup[] = [
     type: 'dropdown',
     title: 'Admin',
     items: [
+      { href: '/admin/users', title: 'Users' },
       { href: '/admin/pxp-config', title: 'PXP Config' },
       { href: '/curator', title: 'Curator' },
     ],
