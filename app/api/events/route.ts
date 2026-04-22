@@ -37,7 +37,11 @@ export async function GET(request: NextRequest) {
       where.eventType = eventType
     }
 
-    if (status) {
+    if (status === 'PAST') {
+      // Past: any non-cancelled event whose end date has passed
+      where.status = { not: 'CANCELLED' }
+      where.endDate = { lt: new Date() }
+    } else if (status) {
       where.status = status
       // For upcoming events, only show events that haven't ended yet
       if (status === 'UPCOMING') {

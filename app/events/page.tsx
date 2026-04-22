@@ -269,8 +269,7 @@ export default function EventsPage() {
         <div className="flex flex-wrap gap-2">
           {[
             { value: 'UPCOMING', label: 'Upcoming' },
-            { value: 'ONGOING', label: 'Ongoing' },
-            { value: 'COMPLETED', label: 'Completed' },
+            { value: 'PAST', label: 'Past' },
             { value: 'CANCELLED', label: 'Cancelled' },
           ].map(({ value, label }) => (
             <button
