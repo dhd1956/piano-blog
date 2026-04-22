@@ -180,11 +180,11 @@ export const can = {
   },
 
   /**
-   * Can validate venues (VALIDATOR, BLOG_OWNER)
+   * Can validate venues (CURATOR, VALIDATOR, BLOG_OWNER)
    */
   validateVenue(user: AuthUser | null): boolean {
     if (!user) return false
-    const allowedRoles: UserRole[] = [UserRole.VALIDATOR, UserRole.BLOG_OWNER]
+    const allowedRoles: UserRole[] = [UserRole.CURATOR, UserRole.VALIDATOR, UserRole.BLOG_OWNER]
     return allowedRoles.includes(user.role)
   },
 

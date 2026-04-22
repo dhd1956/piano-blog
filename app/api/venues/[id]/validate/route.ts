@@ -112,8 +112,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       )
     }
 
-    // Require VALIDATOR or BLOG_OWNER role
-    const authResult = await requireRole(request as any, [UserRole.VALIDATOR, UserRole.BLOG_OWNER])
+    // Require CURATOR, VALIDATOR, or BLOG_OWNER role
+    const authResult = await requireRole(request as any, [
+      UserRole.CURATOR,
+      UserRole.VALIDATOR,
+      UserRole.BLOG_OWNER,
+    ])
     if (authResult instanceof NextResponse) {
       return authResult
     }

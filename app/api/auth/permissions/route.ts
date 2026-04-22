@@ -58,9 +58,15 @@ export async function GET(request: NextRequest) {
       role: user.role,
       isBlogOwner: user.role === UserRole.BLOG_OWNER,
       isCurator: user.role === UserRole.CURATOR || user.role === UserRole.BLOG_OWNER,
-      isValidator: user.role === UserRole.VALIDATOR || user.role === UserRole.BLOG_OWNER,
+      isValidator:
+        user.role === UserRole.CURATOR ||
+        user.role === UserRole.VALIDATOR ||
+        user.role === UserRole.BLOG_OWNER,
       canAccessCurator: user.role === UserRole.CURATOR || user.role === UserRole.BLOG_OWNER,
-      canAccessValidator: user.role === UserRole.VALIDATOR || user.role === UserRole.BLOG_OWNER,
+      canAccessValidator:
+        user.role === UserRole.CURATOR ||
+        user.role === UserRole.VALIDATOR ||
+        user.role === UserRole.BLOG_OWNER,
       canAccessAdmin: user.role === UserRole.BLOG_OWNER,
     }
 
