@@ -647,7 +647,9 @@ export default function EditEventPage() {
       </form>
 
       {/* Cancel Event — BLOG_OWNER / CURATOR only */}
-      {(currentUserAuth?.role === 'BLOG_OWNER' || currentUserAuth?.role === 'CURATOR') && (
+      {(currentUserAuth?.role === 'BLOG_OWNER' ||
+        currentUserAuth?.role === 'CURATOR' ||
+        currentUserAuth?.role === 'VALIDATOR') && (
         <div className="mt-8 rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30">
           <h2 className="mb-1 text-lg font-semibold text-red-800 dark:text-red-300">
             Cancel Event

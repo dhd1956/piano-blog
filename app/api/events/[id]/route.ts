@@ -288,15 +288,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Only BLOG_OWNER or CURATOR can cancel events
-    if (requester.role !== 'BLOG_OWNER' && requester.role !== 'CURATOR') {
+    // Only BLOG_OWNER, CURATOR, or VALIDATOR can cancel events
+    if (
+      requester.role !== 'BLOG_OWNER' &&
+      requester.role !== 'CURATOR' &&
+      requester.role !== 'VALIDATOR'
+    ) {
       return NextResponse.json(
-        { error: 'Only a blog owner or curator can cancel this event' },
+        { error: 'Only a blog owner, curator, or validator can cancel this event' },
         { status: 403 }
       )
     }
 
     // CURATORs may only cancel events at venues they are assigned to
+    // VALIDATORs and BLOG_OWNERs can cancel any event
     if (requester.role === 'CURATOR') {
       const assignment = await db.venueCurator.findUnique({
         where: { venueId_userId: { venueId: event.venueId, userId: requester.id } },
