@@ -40,6 +40,11 @@ export default function EditEventPage() {
   const { user: currentUserAuth, isAuthenticated } = useAuth()
   const walletAddress = currentUserAuth?.walletAddress || null
   const isConnected = isAuthenticated
+  const canCancel =
+    !authLoading &&
+    (currentUserAuth?.role === 'BLOG_OWNER' ||
+      currentUserAuth?.role === 'CURATOR' ||
+      currentUserAuth?.role === 'VALIDATOR')
 
   // Form state
   const [title, setTitle] = useState('')
@@ -646,10 +651,8 @@ export default function EditEventPage() {
         </div>
       </form>
 
-      {/* Cancel Event — BLOG_OWNER / CURATOR only */}
-      {(currentUserAuth?.role === 'BLOG_OWNER' ||
-        currentUserAuth?.role === 'CURATOR' ||
-        currentUserAuth?.role === 'VALIDATOR') && (
+      {/* Cancel Event — BLOG_OWNER / CURATOR / VALIDATOR */}
+      {canCancel && (
         <div className="mt-8 rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30">
           <h2 className="mb-1 text-lg font-semibold text-red-800 dark:text-red-300">
             Cancel Event

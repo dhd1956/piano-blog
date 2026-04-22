@@ -73,7 +73,7 @@ export default async function LeaderboardPage() {
             {stats.venuesDiscovered.toLocaleString()}
           </div>
           <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Venues Discovered
+            Venues Verified
           </div>
         </div>
       </div>

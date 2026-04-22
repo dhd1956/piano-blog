@@ -96,15 +96,6 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
       return { success: false, pxpAwarded: 0 }
     }
 
-    // Check referral cap
-    const maxPerUser = await getPXPConfig('referral_max_per_user')
-    if (user.referredByUser.referralPXPEarned >= maxPerUser) {
-      console.log(
-        `Referral cap reached for ${user.referredByUser.username} (${user.referredByUser.referralPXPEarned}/${maxPerUser} PXP)`
-      )
-      return { success: false, pxpAwarded: 0 }
-    }
-
     // Send on-chain transfer to referrer
     const referrerAddress = user.referredByUser.walletAddress
     if (!referrerAddress) {
@@ -192,15 +183,6 @@ export async function awardReferralFirstEvent(userId: number): Promise<{
     // Get reward amount from config
     const pxpAmount = await getPXPConfig('referral_first_event')
     if (pxpAmount === 0) {
-      return { success: false, pxpAwarded: 0 }
-    }
-
-    // Check referral cap
-    const maxPerUser = await getPXPConfig('referral_max_per_user')
-    if (user.referredByUser.referralPXPEarned >= maxPerUser) {
-      console.log(
-        `Referral cap reached for ${user.referredByUser.username} (${user.referredByUser.referralPXPEarned}/${maxPerUser} PXP)`
-      )
       return { success: false, pxpAwarded: 0 }
     }
 

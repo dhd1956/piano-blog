@@ -35,15 +35,6 @@ const initialPXPConfig = [
     category: 'referral',
     enabled: true,
   },
-  {
-    key: 'referral_max_per_user',
-    value: 250,
-    label: 'Referral: Maximum Per User',
-    description: 'Maximum PXP that can be earned from referrals (cap)',
-    category: 'referral',
-    enabled: true,
-  },
-
   // YouTube Video Rewards
   {
     key: 'youtube_upload',

@@ -54,10 +54,9 @@ export async function GET(request: NextRequest) {
       (acc, item) => {
         if (item.key === 'referral_profile_created') acc.profileCreated = item.value
         if (item.key === 'referral_first_event') acc.firstEvent = item.value
-        if (item.key === 'referral_max_per_user') acc.maxPerUser = item.value
         return acc
       },
-      { profileCreated: 50, firstEvent: 100, maxPerUser: 250 }
+      { profileCreated: 50, firstEvent: 100 }
     )
 
     return NextResponse.json({

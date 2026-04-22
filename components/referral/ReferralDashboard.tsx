@@ -24,7 +24,6 @@ interface ReferredUser {
 interface ReferralConfig {
   profileCreated: number
   firstEvent: number
-  maxPerUser: number
 }
 
 export default function ReferralDashboard() {
@@ -195,15 +194,6 @@ export default function ReferralDashboard() {
               {stats.totalPXPEarned}
             </p>
           </div>
-
-          <div className="rounded-lg border border-gray-300 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <p className="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
-              Remaining to Cap
-            </p>
-            <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-              {config ? Math.max(0, config.maxPerUser - stats.totalPXPEarned) : 0}
-            </p>
-          </div>
         </div>
       )}
 
@@ -220,9 +210,6 @@ export default function ReferralDashboard() {
             </li>
             <li>
               <strong>{config.firstEvent} PXP</strong> when referred user attends their first event
-            </li>
-            <li>
-              <strong>Maximum {config.maxPerUser} PXP</strong> total from all referrals
             </li>
           </ul>
         </div>
