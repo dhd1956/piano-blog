@@ -243,15 +243,6 @@ export default function VenueList() {
                     )}
                     <div>Added: {venue.createdAt.toLocaleDateString()}</div>
                     <div className="font-mono">By: {venue.submittedBy.substring(0, 8)}...</div>
-                    {venue.rating > 0 && (
-                      <div className="flex items-center gap-1">
-                        <span>⭐</span>
-                        <span>{venue.rating.toFixed(1)}</span>
-                        <span className="text-gray-400 dark:text-gray-500">
-                          ({venue.reviewCount} reviews)
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
 

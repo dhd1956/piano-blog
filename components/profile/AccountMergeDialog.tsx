@@ -129,7 +129,7 @@ export default function AccountMergeDialog({
           </h3>
           <ul className="list-inside list-disc space-y-1 text-sm text-yellow-900 dark:text-yellow-100">
             <li>All data from old account will transfer to your new wallet</li>
-            <li>Reviews, events, and PXP will be preserved</li>
+            <li>Events and PXP will be preserved</li>
             <li>Your old embedded wallet will be deleted</li>
             <li>You'll use your external wallet (MetaMask) going forward</li>
           </ul>

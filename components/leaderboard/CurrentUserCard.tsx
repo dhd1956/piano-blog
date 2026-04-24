@@ -74,7 +74,6 @@ export default function CurrentUserCard({ currentUser }: CurrentUserCardProps) {
             </h4>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-600 dark:text-gray-400">
               <span>🗺️ {entry.venuesDiscovered} venues</span>
-              <span>✍️ {entry.reviewCount} reviews</span>
             </div>
           </div>
         </div>

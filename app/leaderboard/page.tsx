@@ -43,8 +43,8 @@ export default async function LeaderboardPage() {
           🏆 PXP Leaderboard
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-          Top contributors ranked by PXP (Piano Experience Points) earned through discovering
-          venues, writing reviews, and engaging with the community
+          Top contributors ranked by PXP (Piano Experience Points) earned through discovering venues
+          and engaging with the community
         </p>
       </div>
 
@@ -86,7 +86,6 @@ export default async function LeaderboardPage() {
             <h3 className="mb-2 font-semibold text-blue-900 dark:text-blue-200">How to Earn PXP</h3>
             <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-300">
               <li>• Discover and submit new piano venues</li>
-              <li>• Write detailed reviews of venues you've visited</li>
               <li>• Get your venue submissions verified by curators</li>
               <li>• Attend and host piano events</li>
               <li>• Refer friends to join the community</li>

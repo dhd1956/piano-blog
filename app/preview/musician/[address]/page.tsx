@@ -40,7 +40,6 @@ const BADGE_LABELS: Record<string, string> = {
   'pxp-earner': '⭐ PXP Earner',
   'community-contributor': '🤝 Contributor',
   'piano-enthusiast': '🎹 Enthusiast',
-  reviewer: '📝 Reviewer',
 }
 
 export default function MusicianPreviewPage() {

@@ -82,10 +82,6 @@ export default function LeaderboardEntry({ user, isCurrentUser = false }: Leader
               <span>🗺️</span>
               <span>{user.venuesDiscovered} venues</span>
             </span>
-            <span className="hidden items-center gap-1 md:flex">
-              <span>✍️</span>
-              <span>{user.reviewCount} reviews</span>
-            </span>
           </div>
         </div>
 

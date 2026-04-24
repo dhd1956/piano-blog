@@ -90,11 +90,6 @@ export default function TopThreeSpotlight({ users }: TopThreeSpotlightProps) {
                     <div className="font-bold text-white">{user.venuesDiscovered}</div>
                     <div>Venues</div>
                   </div>
-                  <div className="h-10 w-px bg-white/30"></div>
-                  <div>
-                    <div className="font-bold text-white">{user.reviewCount}</div>
-                    <div>Reviews</div>
-                  </div>
                 </div>
 
                 {/* Badges */}

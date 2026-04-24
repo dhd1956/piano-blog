@@ -115,13 +115,6 @@ export default function UserProfileQRCard({
           description: 'Visited 10+ piano venues',
           earnedAt: Date.now(),
         },
-        reviewer: {
-          id: 'reviewer',
-          name: 'Reviewer',
-          icon: '📝',
-          description: 'Left 5+ venue reviews',
-          earnedAt: Date.now(),
-        },
       }
 
       return (

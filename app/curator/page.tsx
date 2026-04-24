@@ -681,11 +681,6 @@ export default function CuratorDashboard() {
                         </p>
                         <p className="break-all">By: {venue.submittedBy.substring(0, 8)}...</p>
                         <p>ID: {venue.id}</p>
-                        {venue.rating > 0 && (
-                          <p>
-                            ⭐ {venue.rating.toFixed(1)} ({venue.reviewCount} reviews)
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -1068,12 +1063,6 @@ export default function CuratorDashboard() {
                                 ? 'Rejected'
                                 : 'Pending'}
                           </p>
-                          {selectedVenue.rating > 0 && (
-                            <p>
-                              ⭐ {selectedVenue.rating.toFixed(1)} ({selectedVenue.reviewCount}{' '}
-                              reviews)
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>

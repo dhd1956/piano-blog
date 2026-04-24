@@ -388,14 +388,6 @@ export default function ProfilePage() {
           </div>
           <div className="text-sm text-green-700">Venues Discovered</div>
         </div>
-
-        {/* Reviews */}
-        <div className="rounded-lg border border-purple-200 bg-purple-50 p-6 text-center">
-          <div className="mb-2 text-4xl font-bold text-purple-900">
-            {reviewCount.toLocaleString()}
-          </div>
-          <div className="text-sm text-purple-700">Reviews Written</div>
-        </div>
       </div>
 
       {/* Skills */}
@@ -452,11 +444,6 @@ export default function ProfilePage() {
                     name: 'Piano Enthusiast',
                     icon: '🎹',
                     description: 'Visited 10+ venues',
-                  },
-                  reviewer: {
-                    name: 'Reviewer',
-                    icon: '📝',
-                    description: 'Left 5+ reviews',
                   },
                 }
 
