@@ -40,6 +40,7 @@ const PUBLIC_ROUTES = [
   '/projects',
   '/auth',
   '/api',
+  '/preview',
   '/_next',
   '/static',
   '/favicon',

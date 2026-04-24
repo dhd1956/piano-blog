@@ -61,6 +61,10 @@ export default function EventPreviewPage() {
           setLoading(false)
           return null
         }
+        if (!r.ok) {
+          setLoading(false)
+          return null
+        }
         return r.json()
       })
       .then((data) => {
@@ -70,7 +74,10 @@ export default function EventPreviewPage() {
         }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => {
+        setLoading(false)
+        setNotFound(true)
+      })
   }, [eventId])
 
   if (loading) {
