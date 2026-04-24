@@ -12,6 +12,7 @@ import { useParams } from 'next/navigation'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { useAuth } from '@/context/AuthContext'
 import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
+import EventQRCard from '@/components/qr/EventQRCard'
 
 interface Organizer {
   id: number
@@ -138,6 +139,8 @@ export default function EventDetailPage() {
   const [submittingRSVP, setSubmittingRSVP] = useState(false)
   const [username, setUsername] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+
+  const [showQRModal, setShowQRModal] = useState(false)
 
   // Cancel event state
   const [cancelReason, setCancelReason] = useState('')
@@ -388,14 +391,22 @@ export default function EventDetailPage() {
             All Events
           </Link>
         </div>
-        {isOrganizer && event.status !== 'CANCELLED' && (
-          <Link
-            href={`/events/${eventId}/edit`}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowQRModal(true)}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
-            ⚙️ Edit Event
-          </Link>
-        )}
+            📱 Share QR
+          </button>
+          {isOrganizer && event.status !== 'CANCELLED' && (
+            <Link
+              href={`/events/${eventId}/edit`}
+              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              ⚙️ Edit Event
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Cover Image */}
@@ -830,6 +841,51 @@ export default function EventDetailPage() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white shadow-2xl dark:bg-gray-900">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                QR Code — {event.title}
+              </h3>
+              <button
+                onClick={() => setShowQRModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <EventQRCard
+                eventData={{
+                  id: event.id,
+                  title: event.title,
+                  eventType: event.eventType,
+                  startDate: event.startDate,
+                  endDate: event.endDate,
+                  venueName: event.venue.name,
+                  venueCity: event.venue.city,
+                  organizerName: organizerName,
+                  isFree: event.isFree,
+                  price: event.price,
+                  description: event.description,
+                }}
+              />
+            </div>
+            <div className="border-t border-gray-200 px-6 py-4 dark:border-gray-700">
+              <button
+                onClick={() => setShowQRModal(false)}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

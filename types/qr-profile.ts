@@ -5,7 +5,7 @@
 
 // Base QR code data structure
 export interface BaseQRData {
-  type: 'venue' | 'user' | 'payment'
+  type: 'venue' | 'user' | 'payment' | 'event'
   version: string // Format version for backward compatibility
   url: string // Web fallback URL
   timestamp?: number // Generation timestamp
@@ -66,6 +66,25 @@ export interface UserProfileQRData extends BaseQRData {
     publicProfile: boolean
   }
   payment?: PaymentData
+}
+
+// Event QR Code Data
+export interface EventQRData extends BaseQRData {
+  type: 'event'
+  data: {
+    eventId: number
+    title: string
+    eventType: string
+    startDate: string
+    endDate: string
+    venueName: string
+    venueCity: string
+    organizerName?: string
+    isFree: boolean
+    price?: number | null
+    description?: string
+    appDescription?: string
+  }
 }
 
 // Payment information (optional for any QR code)
