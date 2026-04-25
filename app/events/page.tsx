@@ -207,7 +207,7 @@ export default function EventsPage() {
       <div className="mb-8">
         <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">🎵 Events</h1>
         <p className="text-lg text-gray-600 dark:text-gray-400">
-          Discover jam sessions, concerts, and musical gatherings in the Piano Style community
+          Find and share live music events with musicians and piano lovers around the world
         </p>
         {pagination && (
           <p className="mt-2 text-sm text-gray-500">
