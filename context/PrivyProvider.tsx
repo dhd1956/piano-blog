@@ -114,10 +114,23 @@ class PrivyInitBoundary extends Component<
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const isPreviewPage = !!pathname?.startsWith('/preview/')
 
   useIsomorphicLayoutEffect(() => {
     setMounted(true)
   }, [])
+
+  // On preview pages, warm the Privy chunk in the background (no rendering —
+  // just a fetch so the browser caches it). This way the chunk is ready by the
+  // time the user taps "Sign in", without risking a crash from rendering Privy
+  // SDK cross-origin iframes on a page that doesn't need auth.
+  useEffect(() => {
+    if (!isPreviewPage) return
+    const t = setTimeout(() => {
+      import('./PrivyProviderClient').catch(() => {})
+    }, 2000)
+    return () => clearTimeout(t)
+  }, [isPreviewPage])
 
   // Server render + first client render: children without Privy.
   // PrivyBootBoundary catches any throw from Privy hooks (which require a
@@ -125,10 +138,9 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
 
   // Preview pages are public QR-code landing pages that don't use auth at all.
-  // Skip the heavy Privy bundle so it doesn't crash low-memory Android WebViews.
-  // When the user taps "Sign in" (<Link> to /auth/login), pathname changes and
-  // PrivyContextLayer kicks in — the chunk downloads only when actually needed.
-  if (pathname?.startsWith('/preview/')) return <>{children}</>
+  // Don't render PrivyContextLayer (no iframes, no Privy SDK init) — the chunk
+  // is pre-fetched via useEffect above so login navigation is fast.
+  if (isPreviewPage) return <>{children}</>
 
   // PrivyContextLayer shows its own loading spinner (via the `loading` prop)
   // while the chunk downloads — no blank page.
