@@ -1,9 +1,9 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import {
   Component,
-  ComponentType,
   useState,
   useEffect,
   useLayoutEffect,
@@ -11,9 +11,16 @@ import {
   type ErrorInfo,
 } from 'react'
 
-// useLayoutEffect fires before browser paint (prevents flash).
-// Fall back to useEffect on the server where useLayoutEffect is a no-op.
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+// PrivyProviderClient is excluded from the server bundle via ssr:false.
+// No `loading` prop here — we pre-warm the chunk via useEffect below so that
+// by the time this dynamic component renders, the chunk is already cached and
+// PrivyContextLayer resolves instantly (no spinner blocking children).
+const PrivyContextLayer = dynamic(
+  () => import('./PrivyProviderClient').then((m) => ({ default: m.PrivyProviderClient })),
+  { ssr: false }
+)
 
 // Catches throws from children during the pre-Privy render (mounted=false).
 class PrivyBootBoundary extends Component<{ children: ReactNode }, { caught: boolean }> {
@@ -65,10 +72,10 @@ class PrivyInitBoundary extends Component<
 
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
-  // Holds the PrivyProviderClient component once its chunk has downloaded.
-  const [PrivyClient, setPrivyClient] = useState<ComponentType<{ children: ReactNode }> | null>(
-    null
-  )
+  // True once the Privy chunk has been downloaded into the browser cache.
+  // We flip this via a manual import() so that when PrivyContextLayer renders
+  // (via next/dynamic) it resolves instantly — no loading state, no spinner.
+  const [privyChunkReady, setPrivyChunkReady] = useState(false)
   const pathname = usePathname()
   const isPreviewPage = !!pathname?.startsWith('/preview/')
 
@@ -88,14 +95,16 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
       return () => clearTimeout(t)
     }
 
-    // Auth pages: start downloading the Privy chunk immediately.
-    // Children render right away with usePrivy() returning { ready: false }
-    // defaults. When the chunk loads, PrivyClient is set and children remount
-    // inside PrivyProvider — ready becomes true and buttons enable.
+    // Auth/community pages: download the chunk immediately so PrivyContextLayer
+    // can render without a loading spinner. Children render at once with
+    // usePrivy() returning { ready: false } defaults ("Connecting…" state in
+    // LoginContent). When the chunk resolves, privyChunkReady flips and
+    // PrivyContextLayer renders — children remount inside PrivyProvider and
+    // ready becomes true.
     let cancelled = false
     import('./PrivyProviderClient')
-      .then((m) => {
-        if (!cancelled) setPrivyClient(() => m.PrivyProviderClient)
+      .then(() => {
+        if (!cancelled) setPrivyChunkReady(true)
       })
       .catch(() => {})
     return () => {
@@ -106,14 +115,15 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   // Server render + first client render: children without Privy.
   if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
 
-  // Preview pages and pages where the chunk hasn't loaded yet: render children
-  // without Privy context. usePrivy() returns { ready: false } — LoginContent
-  // shows the form with "Connecting…" disabled buttons rather than a blank spinner.
-  if (isPreviewPage || !PrivyClient) return <>{children}</>
+  // Preview pages and pages where the chunk hasn't downloaded yet: render
+  // children without Privy context. usePrivy() returns { ready: false } so
+  // LoginContent shows the form with "Connecting…" disabled buttons.
+  if (isPreviewPage || !privyChunkReady) return <>{children}</>
 
+  // Chunk is in cache — PrivyContextLayer (next/dynamic) resolves instantly.
   return (
     <PrivyInitBoundary fallback={<>{children}</>}>
-      <PrivyClient>{children}</PrivyClient>
+      <PrivyContextLayer>{children}</PrivyContextLayer>
     </PrivyInitBoundary>
   )
 }
