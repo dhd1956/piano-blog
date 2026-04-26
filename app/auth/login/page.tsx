@@ -32,7 +32,7 @@ function safeSessionRemove(key: string): void {
   }
 }
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useCallback, useRef, useState, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 
 function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
   return (
@@ -40,36 +40,6 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
       className={`animate-spin rounded-full border-b-2 border-blue-600 ${className}`}
       aria-hidden
     />
-  )
-}
-
-function LoginInitSpinner({ ready, isLoading }: { ready: boolean; isLoading: boolean }) {
-  const [slow, setSlow] = useState(false)
-  const reload = useCallback(() => window.location.reload(), [])
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID
-  useEffect(() => {
-    const t = setTimeout(() => setSlow(true), 8000)
-    return () => clearTimeout(t)
-  }, [])
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <Spinner />
-      <p className="text-sm text-gray-500">{slow ? 'Taking longer than expected…' : 'Loading…'}</p>
-      {slow && (
-        <div className="space-y-2 text-center">
-          <p className="font-mono text-xs text-gray-400">
-            ready={String(ready)} | isLoading={String(isLoading)} | appId=
-            {appId ? 'set' : 'MISSING'}
-          </p>
-          <button
-            onClick={reload}
-            className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-          >
-            Reload page
-          </button>
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -107,6 +77,7 @@ function LoginContent() {
   const [walletError, setWalletError] = useState(false)
   const [sessionError, setSessionError] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [privyTimedOut, setPrivyTimedOut] = useState(false)
 
   // If Privy restored a session after logout (via its cross-origin iframe), kill it so
   // the user can choose a different account.
@@ -216,12 +187,12 @@ function LoginContent() {
     return () => clearTimeout(t)
   }, [resendCooldown])
 
-  // Block only on Privy being ready, not on the /api/auth/me check.
-  // The redirect-if-authenticated useEffect handles the already-logged-in case
-  // once isLoading resolves; we don't need to hide the form while that's pending.
-  if (!ready) {
-    return <LoginInitSpinner ready={ready} isLoading={isLoading} />
-  }
+  // After 12 s still waiting for Privy, suggest opening in the system browser
+  useEffect(() => {
+    if (ready) return
+    const t = setTimeout(() => setPrivyTimedOut(true), 12000)
+    return () => clearTimeout(t)
+  }, [ready])
 
   // Only show wallet error if login didn't succeed anyway (wallet may already exist)
   if (authenticated && walletError && !isAuthenticated) {
@@ -347,6 +318,21 @@ function LoginContent() {
         <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">Sign in</h1>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">No password needed</p>
 
+        {!ready && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/20">
+            {privyTimedOut ? (
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Sign-in service is taking a long time. Try opening this page directly in Chrome or
+                your default browser.
+              </p>
+            ) : (
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Connecting to sign-in service…
+              </p>
+            )}
+          </div>
+        )}
+
         {!codeSent ? (
           <div className="space-y-3">
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -364,10 +350,10 @@ function LoginContent() {
             />
             <button
               onClick={handleSendCode}
-              disabled={!email || sending}
+              disabled={!email || sending || !ready}
               className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
-              {sending ? 'Sending…' : 'Continue with email'}
+              {sending ? 'Sending…' : !ready ? 'Connecting…' : 'Continue with email'}
             </button>
 
             <div className="relative flex items-center py-1">
@@ -378,9 +364,10 @@ function LoginContent() {
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              disabled={!ready}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
             >
-              Continue with Google
+              {!ready ? 'Connecting…' : 'Continue with Google'}
             </button>
           </div>
         ) : (
