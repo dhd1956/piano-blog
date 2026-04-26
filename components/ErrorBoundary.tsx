@@ -71,6 +71,12 @@ class ErrorBoundary extends Component<Props, State> {
               An unexpected error occurred. This has been logged and we'll look into it.
             </p>
 
+            {this.state.error && (
+              <p className="mb-4 rounded bg-red-100 p-3 font-mono text-xs break-all text-red-900">
+                {this.state.error.message || this.state.error.toString()}
+              </p>
+            )}
+
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mb-4 rounded bg-white p-4">
                 <summary className="cursor-pointer font-semibold text-red-800">
