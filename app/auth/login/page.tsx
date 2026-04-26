@@ -209,7 +209,10 @@ function LoginContent() {
     return () => clearTimeout(t)
   }, [resendCooldown])
 
-  if (isLoading || !ready) {
+  // Block only on Privy being ready, not on the /api/auth/me check.
+  // The redirect-if-authenticated useEffect handles the already-logged-in case
+  // once isLoading resolves; we don't need to hide the form while that's pending.
+  if (!ready) {
     return <LoginInitSpinner />
   }
 
