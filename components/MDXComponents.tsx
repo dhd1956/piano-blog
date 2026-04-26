@@ -8,6 +8,7 @@ import TableWrapper from './TableWrapper'
 
 export const components: MDXComponents = {
   Image: ZoomableImage,
+  img: (props) => <ZoomableImage {...(props as any)} />,
   TOCInline,
   a: CustomLink,
   pre: Pre,

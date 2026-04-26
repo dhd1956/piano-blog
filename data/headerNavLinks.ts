@@ -39,6 +39,7 @@ const headerNavLinks: NavGroup[] = [
     title: 'Admin',
     items: [
       { href: '/admin/users', title: 'Members' },
+      { href: '/admin/events', title: 'Events' },
       { href: '/admin/pxp-config', title: 'PXP Config' },
       { href: '/curator', title: 'Curator' },
     ],
