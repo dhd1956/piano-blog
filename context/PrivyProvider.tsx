@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { usePathname } from 'next/navigation'
 import {
   Component,
   useState,
@@ -112,6 +113,7 @@ class PrivyInitBoundary extends Component<
 
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
 
   useIsomorphicLayoutEffect(() => {
     setMounted(true)
@@ -121,6 +123,12 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   // PrivyBootBoundary catches any throw from Privy hooks (which require a
   // provider context) and shows a spinner instead of "Something went wrong".
   if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
+
+  // Preview pages are public QR-code landing pages that don't use auth at all.
+  // Skip the heavy Privy bundle so it doesn't crash low-memory Android WebViews.
+  // When the user taps "Sign in" (<Link> to /auth/login), pathname changes and
+  // PrivyContextLayer kicks in — the chunk downloads only when actually needed.
+  if (pathname?.startsWith('/preview/')) return <>{children}</>
 
   // PrivyContextLayer shows its own loading spinner (via the `loading` prop)
   // while the chunk downloads — no blank page.
