@@ -1,7 +1,18 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Component, useState, useEffect, type ReactNode, type ErrorInfo } from 'react'
+import {
+  Component,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  type ReactNode,
+  type ErrorInfo,
+} from 'react'
+
+// useLayoutEffect fires before browser paint (prevents "Something went wrong" flash).
+// Fall back to useEffect on the server where useLayoutEffect is a no-op.
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // PrivyProviderClient is excluded from the server bundle (ssr: false) so that
 // @privy-io/react-auth, @privy-io/wagmi, and their browser-only dependencies
@@ -43,7 +54,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
   const [privyChunkReady, setPrivyChunkReady] = useState(false)
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     setMounted(true)
     // Eagerly load the Privy chunk. When it resolves the browser has it cached,
     // so PrivyContextLayer renders synchronously (no null flash = no blank page).
