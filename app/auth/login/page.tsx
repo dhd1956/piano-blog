@@ -43,9 +43,10 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
   )
 }
 
-function LoginInitSpinner() {
+function LoginInitSpinner({ ready, isLoading }: { ready: boolean; isLoading: boolean }) {
   const [slow, setSlow] = useState(false)
   const reload = useCallback(() => window.location.reload(), [])
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID
   useEffect(() => {
     const t = setTimeout(() => setSlow(true), 8000)
     return () => clearTimeout(t)
@@ -55,12 +56,18 @@ function LoginInitSpinner() {
       <Spinner />
       <p className="text-sm text-gray-500">{slow ? 'Taking longer than expected…' : 'Loading…'}</p>
       {slow && (
-        <button
-          onClick={reload}
-          className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-        >
-          Reload page
-        </button>
+        <div className="space-y-2 text-center">
+          <p className="font-mono text-xs text-gray-400">
+            ready={String(ready)} | isLoading={String(isLoading)} | appId=
+            {appId ? 'set' : 'MISSING'}
+          </p>
+          <button
+            onClick={reload}
+            className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          >
+            Reload page
+          </button>
+        </div>
       )}
     </div>
   )
@@ -213,7 +220,7 @@ function LoginContent() {
   // The redirect-if-authenticated useEffect handles the already-logged-in case
   // once isLoading resolves; we don't need to hide the form while that's pending.
   if (!ready) {
-    return <LoginInitSpinner />
+    return <LoginInitSpinner ready={ready} isLoading={isLoading} />
   }
 
   // Only show wallet error if login didn't succeed anyway (wallet may already exist)
