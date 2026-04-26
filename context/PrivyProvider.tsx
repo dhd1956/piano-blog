@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useLayoutEffect,
+  useCallback,
   type ReactNode,
   type ErrorInfo,
 } from 'react'
@@ -24,13 +25,36 @@ const PrivyContextLayer = dynamic(
     ssr: false,
     // Show a spinner while the Privy chunk downloads instead of rendering null
     // (null = blank page on mobile where the chunk isn't cached yet).
-    loading: () => (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
-      </div>
-    ),
+    loading: () => <PrivyChunkLoader />,
   }
 )
+
+// Shown by PrivyContextLayer while the Privy JS chunk is downloading.
+// After 8 s shows a reload button so users aren't stuck on a blank spinner.
+function PrivyChunkLoader() {
+  const [slow, setSlow] = useState(false)
+  const reload = useCallback(() => window.location.reload(), [])
+
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), 8000)
+    return () => clearTimeout(t)
+  }, [])
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+      <p className="text-sm text-gray-500">{slow ? 'Taking longer than expected…' : 'Loading…'}</p>
+      {slow && (
+        <button
+          onClick={reload}
+          className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+        >
+          Reload page
+        </button>
+      )}
+    </div>
+  )
+}
 
 // Catches throws from children during the pre-Privy render (mounted=false).
 // Privy hooks throw when called without a PrivyProvider context — this boundary

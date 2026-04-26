@@ -32,7 +32,7 @@ function safeSessionRemove(key: string): void {
   }
 }
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState, Suspense } from 'react'
+import { useEffect, useCallback, useRef, useState, Suspense } from 'react'
 
 function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
   return (
@@ -40,6 +40,29 @@ function Spinner({ className = 'h-10 w-10' }: { className?: string }) {
       className={`animate-spin rounded-full border-b-2 border-blue-600 ${className}`}
       aria-hidden
     />
+  )
+}
+
+function LoginInitSpinner() {
+  const [slow, setSlow] = useState(false)
+  const reload = useCallback(() => window.location.reload(), [])
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), 8000)
+    return () => clearTimeout(t)
+  }, [])
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <Spinner />
+      <p className="text-sm text-gray-500">{slow ? 'Taking longer than expected…' : 'Loading…'}</p>
+      {slow && (
+        <button
+          onClick={reload}
+          className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+        >
+          Reload page
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -187,11 +210,7 @@ function LoginContent() {
   }, [resendCooldown])
 
   if (isLoading || !ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Spinner />
-      </div>
-    )
+    return <LoginInitSpinner />
   }
 
   // Only show wallet error if login didn't succeed anyway (wallet may already exist)
