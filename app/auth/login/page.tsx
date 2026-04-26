@@ -8,6 +8,29 @@ import {
   useLoginWithOAuth,
 } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
+
+// sessionStorage throws SecurityError in iOS Private Browsing and some in-app browsers
+function safeSessionGet(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+function safeSessionSet(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value)
+  } catch {
+    // ignore
+  }
+}
+function safeSessionRemove(key: string): void {
+  try {
+    sessionStorage.removeItem(key)
+  } catch {
+    // ignore
+  }
+}
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
 
@@ -43,9 +66,7 @@ function LoginContent() {
   const hasTriedCreateWalletRef = useRef(false)
   const isNewUserRef = useRef(false)
   // Persisted across Google OAuth redirects via sessionStorage
-  const userClickedLoginRef = useRef(
-    typeof sessionStorage !== 'undefined' && sessionStorage.getItem('login_initiated') === '1'
-  )
+  const userClickedLoginRef = useRef(safeSessionGet('login_initiated') === '1')
 
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -88,7 +109,7 @@ function LoginContent() {
     if (!wallet) return
 
     hasCreatedSessionRef.current = true
-    sessionStorage.removeItem('login_initiated')
+    safeSessionRemove('login_initiated')
 
     const userEmail = user.email?.address || (user.google as any)?.email
     const authProvider = user.google ? 'google' : 'email'
@@ -286,7 +307,7 @@ function LoginContent() {
   }
 
   const handleGoogleLogin = () => {
-    sessionStorage.setItem('login_initiated', '1')
+    safeSessionSet('login_initiated', '1')
     userClickedLoginRef.current = true
     initOAuth({ provider: 'google' })
   }

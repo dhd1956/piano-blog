@@ -336,7 +336,14 @@ export default function EventDetailPage() {
   }
 
   if (!event) {
-    return null
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
+        <p className="text-gray-600 dark:text-gray-400">Event not found.</p>
+        <Link href="/events" className="text-blue-600 hover:underline dark:text-blue-400">
+          Browse events →
+        </Link>
+      </div>
+    )
   }
 
   const eventTypeLabel = EVENT_TYPE_LABELS[event.eventType] || '📌 Event'
