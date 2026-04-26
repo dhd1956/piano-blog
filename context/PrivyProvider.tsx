@@ -41,14 +41,24 @@ class PrivyInitBoundary extends Component<
 
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const [privyChunkReady, setPrivyChunkReady] = useState(false)
 
-  // Server render + first client render: children without any Privy/Wagmi
-  // context. Matches server output exactly — no hydration mismatch.
+  useEffect(() => {
+    setMounted(true)
+    // Eagerly load the Privy chunk. When it resolves the browser has it cached,
+    // so PrivyContextLayer renders synchronously (no null flash = no blank page).
+    import('./PrivyProviderClient').then(() => setPrivyChunkReady(true))
+  }, [])
+
+  // Server render + first client render: children without Privy.
+  // Matches server output exactly — no hydration mismatch.
   if (!mounted) return <>{children}</>
 
-  // After client mount: wrap children in the full provider tree.
-  // PrivyInitBoundary prevents a Privy init error from crashing the whole page.
+  // Chunk still downloading: keep rendering children without Privy so the page
+  // stays visible instead of going blank while the JS bundle loads on mobile.
+  if (!privyChunkReady) return <>{children}</>
+
+  // Chunk is cached — PrivyContextLayer renders synchronously, no blank flash.
   return (
     <PrivyInitBoundary fallback={<>{children}</>}>
       <PrivyContextLayer>{children}</PrivyContextLayer>
