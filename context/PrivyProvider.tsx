@@ -20,7 +20,16 @@ const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : us
 // generation or SSR.
 const PrivyContextLayer = dynamic(
   () => import('./PrivyProviderClient').then((m) => ({ default: m.PrivyProviderClient })),
-  { ssr: false }
+  {
+    ssr: false,
+    // Show a spinner while the Privy chunk downloads instead of rendering null
+    // (null = blank page on mobile where the chunk isn't cached yet).
+    loading: () => (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+      </div>
+    ),
+  }
 )
 
 // Catches throws from children during the pre-Privy render (mounted=false).
@@ -79,13 +88,9 @@ class PrivyInitBoundary extends Component<
 
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
-  const [privyChunkReady, setPrivyChunkReady] = useState(false)
 
   useIsomorphicLayoutEffect(() => {
     setMounted(true)
-    // Eagerly load the Privy chunk. When it resolves the browser has it cached,
-    // so PrivyContextLayer renders synchronously (no null flash = no blank page).
-    import('./PrivyProviderClient').then(() => setPrivyChunkReady(true))
   }, [])
 
   // Server render + first client render: children without Privy.
@@ -93,16 +98,8 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   // provider context) and shows a spinner instead of "Something went wrong".
   if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
 
-  // Chunk still downloading: show a spinner rather than rendering children
-  // (children would throw — Privy hooks require the provider) or null (blank page).
-  if (!privyChunkReady)
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
-      </div>
-    )
-
-  // Chunk is cached — PrivyContextLayer renders synchronously, no blank flash.
+  // PrivyContextLayer shows its own loading spinner (via the `loading` prop)
+  // while the chunk downloads — no blank page.
   return (
     <PrivyInitBoundary fallback={<>{children}</>}>
       <PrivyContextLayer>{children}</PrivyContextLayer>
