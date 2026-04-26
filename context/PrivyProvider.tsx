@@ -54,9 +54,14 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   // Matches server output exactly — no hydration mismatch.
   if (!mounted) return <>{children}</>
 
-  // Chunk still downloading: keep rendering children without Privy so the page
-  // stays visible instead of going blank while the JS bundle loads on mobile.
-  if (!privyChunkReady) return <>{children}</>
+  // Chunk still downloading: show a spinner rather than rendering children
+  // (children would throw — Privy hooks require the provider) or null (blank page).
+  if (!privyChunkReady)
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+      </div>
+    )
 
   // Chunk is cached — PrivyContextLayer renders synchronously, no blank flash.
   return (
