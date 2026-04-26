@@ -23,6 +23,33 @@ const PrivyContextLayer = dynamic(
   { ssr: false }
 )
 
+// Catches throws from children during the pre-Privy render (mounted=false).
+// Privy hooks throw when called without a PrivyProvider context — this boundary
+// intercepts that throw and shows a spinner instead of propagating to the root
+// ErrorBoundary ("Something went wrong"). Once useLayoutEffect fires and
+// mounted becomes true, this boundary is replaced by PrivyContextLayer.
+class PrivyBootBoundary extends Component<{ children: ReactNode }, { caught: boolean }> {
+  state = { caught: false }
+
+  static getDerivedStateFromError() {
+    return { caught: true }
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn('[PrivyProvider] Pre-init throw caught (Privy not yet ready):', error.message)
+  }
+
+  render() {
+    if (this.state.caught)
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+        </div>
+      )
+    return this.props.children
+  }
+}
+
 // Catches errors from PrivyProvider / WagmiProvider initialization so a bad
 // Privy config doesn't crash the whole app. Falls back to rendering children
 // without auth context, and logs the specific error to the console.
@@ -62,8 +89,9 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Server render + first client render: children without Privy.
-  // Matches server output exactly — no hydration mismatch.
-  if (!mounted) return <>{children}</>
+  // PrivyBootBoundary catches any throw from Privy hooks (which require a
+  // provider context) and shows a spinner instead of "Something went wrong".
+  if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
 
   // Chunk still downloading: show a spinner rather than rendering children
   // (children would throw — Privy hooks require the provider) or null (blank page).

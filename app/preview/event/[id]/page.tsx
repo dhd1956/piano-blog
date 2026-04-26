@@ -233,12 +233,12 @@ export default function EventPreviewPage() {
           {/* Footer CTAs */}
           <div className="border-t border-gray-100 px-6 py-4 dark:border-gray-700">
             {!isCancelled && (
-              <a
+              <Link
                 href={`/auth/login?redirect=/events/${event.id}`}
                 className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white hover:bg-blue-700"
               >
                 Sign in to RSVP
-              </a>
+              </Link>
             )}
             <Link
               href="/"
