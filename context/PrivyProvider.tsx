@@ -22,7 +22,9 @@ const PrivyContextLayer = dynamic(
   { ssr: false }
 )
 
-// Catches throws from children during the pre-Privy render (mounted=false).
+// Catches throws from Privy hooks called without a PrivyProvider in the tree.
+// Shows a spinner while the Privy chunk finishes downloading, then PrivyAppProvider
+// re-renders with PrivyContextLayer and children remount inside the real provider.
 class PrivyBootBoundary extends Component<{ children: ReactNode }, { caught: boolean }> {
   state = { caught: false }
 
@@ -31,14 +33,15 @@ class PrivyBootBoundary extends Component<{ children: ReactNode }, { caught: boo
   }
 
   componentDidCatch(error: Error) {
-    console.warn('[PrivyProvider] Pre-init throw caught:', error.message)
+    console.warn('[PrivyProvider] Pre-init throw caught (Privy not yet ready):', error.message)
   }
 
   render() {
     if (this.state.caught)
       return (
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-3">
           <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+          <p className="text-sm text-gray-500">Connecting to sign-in service…</p>
         </div>
       )
     return this.props.children
@@ -115,10 +118,13 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   // Server render + first client render: children without Privy.
   if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
 
-  // Preview pages and pages where the chunk hasn't downloaded yet: render
-  // children without Privy context. usePrivy() returns { ready: false } so
-  // LoginContent shows the form with "Connecting…" disabled buttons.
-  if (isPreviewPage || !privyChunkReady) return <>{children}</>
+  // Preview pages have no Privy hooks — render bare (fast, no provider needed).
+  if (isPreviewPage) return <>{children}</>
+
+  // Chunk still downloading: wrap in PrivyBootBoundary so that Privy hook throws
+  // (hooks require a provider) are caught and shown as a spinner instead of
+  // propagating to the root ErrorBoundary as "Something went wrong".
+  if (!privyChunkReady) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
 
   // Chunk is in cache — PrivyContextLayer (next/dynamic) resolves instantly.
   return (
