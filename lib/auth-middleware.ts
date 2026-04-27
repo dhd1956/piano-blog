@@ -41,14 +41,10 @@ export async function authenticate(request: AuthenticatedRequest): Promise<AuthU
   if (token) {
     const payload = await verifyToken(token)
     if (payload && payload.userId) {
-      return {
-        id: payload.userId,
-        username: payload.username,
-        walletAddress: payload.walletAddress,
-        role: payload.role,
-        email: null,
-        displayName: null,
-      }
+      // Re-read from DB so role changes (e.g. admin promoting a user) take
+      // effect immediately without requiring the user to log out and back in.
+      const dbUser = await getUserById(payload.userId)
+      if (dbUser) return dbUser
     }
   }
 
