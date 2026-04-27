@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
     nominatimUrl.searchParams.set('addressdetails', '1')
     nominatimUrl.searchParams.set('extratags', '1') // Get phone, website, email, etc.
     nominatimUrl.searchParams.set('limit', '1')
+    nominatimUrl.searchParams.set('countrycodes', 'ca')
 
     const response = await fetch(nominatimUrl.toString(), {
       headers: {
