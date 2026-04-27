@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UserRole } from '@prisma/client'
-import { requireRole } from '@/lib/auth-middleware'
+import { requireAuth, requireRole } from '@/lib/auth-middleware'
 import { getDb } from '@/lib/get-db'
 
 /**
@@ -181,15 +181,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Only CURATOR and BLOG_OWNER can create events
-    const authResult = await requireRole(request, [UserRole.CURATOR, UserRole.BLOG_OWNER])
+    // Require authentication; venue-curator check happens after body is parsed
+    const authResult = await requireAuth(request)
 
-    // If authentication failed, return the error response
     if (authResult instanceof NextResponse) {
       return authResult
     }
 
-    // User is authenticated as CURATOR or BLOG_OWNER
     const { user: authUser } = authResult
 
     const body = await request.json()
@@ -239,6 +237,21 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDb()
+
+    // Allow BLOG_OWNER/CURATOR (global role) or a user assigned as curator for this venue
+    const isGloballyAuthorized =
+      authUser.role === UserRole.BLOG_OWNER || authUser.role === UserRole.CURATOR
+    if (!isGloballyAuthorized) {
+      const venueAssignment = await db.venueCurator.findUnique({
+        where: { venueId_userId: { venueId, userId: authUser.id } },
+      })
+      if (!venueAssignment) {
+        return NextResponse.json(
+          { error: 'Forbidden', message: 'You must be a curator for this venue to create events' },
+          { status: 403 }
+        )
+      }
+    }
 
     // Find or create organizer
     const organizer = await db.user.findFirst({
