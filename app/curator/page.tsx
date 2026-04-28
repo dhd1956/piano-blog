@@ -537,15 +537,16 @@ export default function CuratorDashboard() {
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-8 text-3xl font-bold text-gray-900">🚫 Not Authorized</h1>
           <p className="mb-8 text-gray-600">
-            Your account ({currentUser?.username}) does not have curator or blog owner permissions.
+            Your account ({currentUser?.displayName || currentUser?.username}) does not have curator
+            or blog owner permissions.
           </p>
 
           <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-sm">
             <h3 className="mb-4 font-semibold">Account Details:</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span>Username:</span>
-                <code className="text-xs">{currentUser?.username}</code>
+                <span>Display Name:</span>
+                <code className="text-xs">{currentUser?.displayName || currentUser?.username}</code>
               </div>
               <div className="flex justify-between">
                 <span>Role:</span>
@@ -591,7 +592,9 @@ export default function CuratorDashboard() {
           <div className="flex items-center gap-4">
             <div className="rounded-lg bg-white px-4 py-2 text-sm shadow-sm">
               <span className="text-gray-600">Logged in as:</span>{' '}
-              <span className="font-semibold">{currentUser?.username}</span>
+              <span className="font-semibold">
+                {currentUser?.displayName || currentUser?.username}
+              </span>
               <span className="ml-2 rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
                 {currentUser?.role}
               </span>
