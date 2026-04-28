@@ -7,13 +7,25 @@ import { useAuth } from '@/context/AuthContext'
 
 const PXP_TOKEN_ADDRESS = '0x04eAE71832147D75D4B69B3FFB5d9514e8471c75'
 
-const EARN_WAYS = [
-  { icon: '📍', label: 'Submit a venue', href: '/venues/submit', pxp: '+50 PXP' },
-  { icon: '🎵', label: 'Attend an event', href: '/events', pxp: '+10 PXP' },
-  { icon: '👤', label: 'Complete your profile', href: '/profile', pxp: '+25 PXP' },
-  { icon: '🤝', label: 'Connect with musicians', href: '/musicians', pxp: '+5 PXP' },
-  { icon: '🎬', label: 'Submit a YouTube video', href: '/profile', pxp: '+15 PXP' },
-]
+// Display metadata keyed by PXPConfig.key — values (PXP amounts) come from the DB
+const EARN_WAY_META: Record<string, { icon: string; href: string }> = {
+  venue_verified: { icon: '📍', href: '/submit' },
+  cav_rewards: { icon: '🎵', href: '/events' },
+  wallet_connection: { icon: '👤', href: '/profile' },
+  venue_photo: { icon: '📸', href: '/venues' },
+  youtube_upload: { icon: '🎬', href: '/profile' },
+  youtube_upload_organizer: { icon: '🎬', href: '/profile' },
+  curator_verification: { icon: '✅', href: '/curator' },
+}
+
+interface EarnWay {
+  key: string
+  icon: string
+  label: string
+  href: string
+  value: number
+  enabled: boolean
+}
 
 interface LeaderboardEntry {
   rank: number
@@ -28,6 +40,7 @@ export default function CommunityDashboard() {
   const [pxpBalance, setPxpBalance] = useState<number | null>(null)
   const [leaderboardRank, setLeaderboardRank] = useState<number | null>(null)
   const [topMembers, setTopMembers] = useState<LeaderboardEntry[]>([])
+  const [earnWays, setEarnWays] = useState<EarnWay[]>([])
   const [loading, setLoading] = useState(true)
   const [showQR, setShowQR] = useState(false)
 
@@ -39,9 +52,10 @@ export default function CommunityDashboard() {
 
     const fetchData = async () => {
       try {
-        const [profileRes, leaderboardRes] = await Promise.all([
+        const [profileRes, leaderboardRes, pxpRes] = await Promise.all([
           fetch(`/api/profile/${user.walletAddress || user.username}`, { credentials: 'include' }),
           fetch('/api/leaderboard?limit=10'),
+          fetch('/api/admin/pxp-config-db', { credentials: 'include' }),
         ])
 
         if (profileRes.ok) {
@@ -52,7 +66,6 @@ export default function CommunityDashboard() {
         if (leaderboardRes.ok) {
           const lbData = await leaderboardRes.json()
           setTopMembers(lbData.entries || [])
-          // Find current user's rank
           const myEntry = lbData.entries?.find(
             (e: any) =>
               e.username === user.username ||
@@ -60,6 +73,22 @@ export default function CommunityDashboard() {
           )
           if (myEntry) setLeaderboardRank(myEntry.rank)
           else if (lbData.currentUser) setLeaderboardRank(lbData.currentUser.rank)
+        }
+
+        if (pxpRes.ok) {
+          const pxpData = await pxpRes.json()
+          const ways: EarnWay[] = (pxpData.configs as any[])
+            .filter((c) => c.enabled && EARN_WAY_META[c.key])
+            .map((c) => ({
+              key: c.key,
+              icon: EARN_WAY_META[c.key].icon,
+              label: c.label,
+              href: EARN_WAY_META[c.key].href,
+              value: c.value,
+              enabled: c.enabled,
+            }))
+            .sort((a, b) => b.value - a.value)
+          setEarnWays(ways)
         }
       } catch (err) {
         console.error('Dashboard fetch error:', err)
@@ -133,23 +162,27 @@ export default function CommunityDashboard() {
               Ways to Earn PXP
             </h2>
             <div className="space-y-3">
-              {EARN_WAYS.map((way) => (
-                <Link
-                  key={way.label}
-                  href={way.href}
-                  className="flex items-center justify-between rounded-lg p-3 transition hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{way.icon}</span>
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                      {way.label}
+              {earnWays.length === 0 ? (
+                <p className="text-sm text-gray-400">Loading…</p>
+              ) : (
+                earnWays.map((way) => (
+                  <Link
+                    key={way.key}
+                    href={way.href}
+                    className="flex items-center justify-between rounded-lg p-3 transition hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{way.icon}</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {way.label}
+                      </span>
+                    </div>
+                    <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                      +{way.value} PXP
                     </span>
-                  </div>
-                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
-                    {way.pxp}
-                  </span>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              )}
             </div>
           </div>
 
