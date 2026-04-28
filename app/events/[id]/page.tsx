@@ -488,12 +488,26 @@ export default function EventDetailPage() {
               {event.venue && event.venue.city && <p>{event.venue.city}</p>}
               {event.address && <p className="text-sm">{event.address}</p>}
               {event.venue && (
-                <Link
-                  href={`/venueDetails/${event.venue.id}`}
-                  className="inline-block text-sm text-blue-600 hover:underline dark:text-blue-400"
-                >
-                  View Venue Details →
-                </Link>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href={`/venueDetails/${event.venue.id}`}
+                    className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    View Venue Details →
+                  </Link>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      [event.venue.name, event.venue.address, event.venue.city]
+                        .filter(Boolean)
+                        .join(', ')
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
+                  >
+                    🗺️ Visit Venue
+                  </a>
+                </div>
               )}
             </div>
           </div>

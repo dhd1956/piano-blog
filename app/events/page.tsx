@@ -467,9 +467,22 @@ function EventCard({ event }: { event: Event }) {
           </div>
 
           {/* Location */}
-          <div className="mb-3 flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-            <span>📍</span>
-            <span className="truncate">{location}</span>
+          <div className="mb-3 flex items-center justify-between gap-1 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex min-w-0 items-center gap-1">
+              <span>📍</span>
+              <span className="truncate">{location}</span>
+            </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                [event.venue.name, event.venue.address, event.venue.city].filter(Boolean).join(', ')
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="ml-2 shrink-0 rounded bg-green-600 px-2 py-0.5 text-xs text-white hover:bg-green-700"
+            >
+              🗺️ Map
+            </a>
           </div>
 
           {/* Organizer */}
