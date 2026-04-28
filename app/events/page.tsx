@@ -422,8 +422,9 @@ function EventCard({ event }: { event: Event }) {
   const location = event.venue.name // Venue is always required now
 
   return (
-    <Link href={`/events/${event.id}`}>
-      <div className="group h-full rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+    <div className="group h-full rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+      {/* Card body — clicking navigates to event detail */}
+      <Link href={`/events/${event.id}`} className="block">
         {/* Cover Image */}
         {event.coverImage && (
           <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
@@ -467,22 +468,9 @@ function EventCard({ event }: { event: Event }) {
           </div>
 
           {/* Location */}
-          <div className="mb-3 flex items-center justify-between gap-1 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex min-w-0 items-center gap-1">
-              <span>📍</span>
-              <span className="truncate">{location}</span>
-            </div>
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                [event.venue.name, event.venue.address, event.venue.city].filter(Boolean).join(', ')
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="ml-2 shrink-0 rounded bg-green-600 px-2 py-0.5 text-xs text-white hover:bg-green-700"
-            >
-              🗺️ Map
-            </a>
+          <div className="mb-3 flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+            <span>📍</span>
+            <span className="truncate">{location}</span>
           </div>
 
           {/* Organizer */}
@@ -535,8 +523,30 @@ function EventCard({ event }: { event: Event }) {
             )}
           </div>
         </div>
+      </Link>
+
+      {/* Action footer — matches venues page style */}
+      <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+        <div className="flex items-center justify-between">
+          <Link
+            href={`/events/${event.id}`}
+            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium underline"
+          >
+            View Details
+          </Link>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              [event.venue.name, event.venue.address, event.venue.city].filter(Boolean).join(', ')
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+          >
+            🗺️ Visit Venue
+          </a>
+        </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
