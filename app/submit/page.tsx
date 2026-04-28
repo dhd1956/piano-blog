@@ -364,9 +364,11 @@ export default function SubmitVenue() {
     <div className="min-h-screen bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-2xl rounded-lg bg-white p-8 shadow-md">
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">🎹 Submit a Piano Venue</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">🎹 Add a Music Venue</h1>
           <p className="text-gray-600">
-            Found a venue with a piano? Help build our community by submitting it for verification.
+            Know a café, bar, hall, or any space that has a piano, hosts live music, or welcomes
+            musicians who bring their own? Add it to the map and help fellow players find their next
+            place to play.
           </p>
           <p className="mt-2 text-sm text-blue-600">
             Current venues in database: {venueCount} | Reward: Community recognition
