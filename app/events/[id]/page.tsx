@@ -755,7 +755,15 @@ export default function EventDetailPage() {
                         type="number"
                         min="1"
                         value={attendeeCount}
-                        onChange={(e) => setAttendeeCount(parseInt(e.target.value) || 1)}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value)
+                          if (!isNaN(val)) setAttendeeCount(val)
+                          else if (e.target.value === '') setAttendeeCount('' as any)
+                        }}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value)
+                          setAttendeeCount(isNaN(val) || val < 1 ? 1 : val)
+                        }}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       />
                     </div>
