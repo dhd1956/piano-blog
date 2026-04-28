@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { TimePicker } from '@/components/events/TimePicker'
 import { useAuth } from '@/context/AuthContext'
 
 interface Venue {
@@ -443,13 +444,7 @@ export default function EditEventPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Start Time *
               </label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-                className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-              />
+              <TimePicker value={startTime} onChange={setStartTime} required />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -467,13 +462,7 @@ export default function EditEventPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 End Time *
               </label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-                className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
-              />
+              <TimePicker value={endTime} onChange={setEndTime} required />
             </div>
           </div>
         </div>
