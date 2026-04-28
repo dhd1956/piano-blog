@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { VENUE_TYPES } from '@/types/venue'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,22 +28,6 @@ interface Venue {
   rejectedBy?: string | null
   rejectionReason?: string | null
 }
-
-const VENUE_TYPES = [
-  'Cafe',
-  'Restaurant',
-  'Bar',
-  'Club',
-  'Community Center',
-  'Hotel/Resort',
-  'Music School',
-  'Church/Religious',
-  'Library',
-  'Senior Centre',
-  'Retirement Home',
-  'Legion',
-  'Other',
-]
 
 export default function CuratorDashboard() {
   const router = useRouter()

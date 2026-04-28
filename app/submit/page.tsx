@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { VENUE_TYPES } from '@/types/venue'
 
 interface VenueFormData {
   name: string
@@ -16,22 +17,6 @@ interface VenueFormData {
   description: string
   address: string
 }
-
-const VENUE_TYPES = [
-  'Cafe',
-  'Restaurant',
-  'Bar',
-  'Club',
-  'Community Center',
-  'Hotel/Resort',
-  'Music School',
-  'Church/Religious',
-  'Library',
-  'Senior Centre',
-  'Retirement Home',
-  'Legion',
-  'Other',
-]
 
 export default function SubmitVenue() {
   // Require authentication to access this page
