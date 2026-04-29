@@ -110,7 +110,11 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     console.error('Error fetching musicians:', error)
-    return NextResponse.json({ error: 'Failed to fetch musicians' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch musicians', details: message },
+      { status: 500 }
+    )
   }
 }

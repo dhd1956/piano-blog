@@ -167,7 +167,10 @@ export default function MusiciansPage() {
       if (filterSongs.trim()) params.set('songs', filterSongs.trim())
 
       const response = await fetch(`/api/musicians?${params}`)
-      if (!response.ok) throw new Error('Failed to load musicians')
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.details || errData.error || 'Failed to load musicians')
+      }
 
       const data = await response.json()
       setMusicians(data.musicians)
