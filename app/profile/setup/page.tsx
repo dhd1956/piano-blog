@@ -72,6 +72,7 @@ export default function ProfileSetupPage() {
     collaborationTypes: [] as string[],
     instruments: [] as string[],
     experienceLevel: '',
+    yearsPlaying: '',
   })
 
   useEffect(() => {
@@ -144,10 +145,12 @@ export default function ProfileSetupPage() {
       }
 
       if (includeMusicianProfile && hasMusicianData) {
+        const years = parseInt(musicianData.yearsPlaying)
         body.musicianProfile = {
           collaborationTypes: musicianData.collaborationTypes,
           instruments: musicianData.instruments,
           experienceLevel: musicianData.experienceLevel || undefined,
+          yearsPlaying: !isNaN(years) && years >= 0 ? years : undefined,
         }
       }
 
@@ -410,26 +413,45 @@ export default function ProfileSetupPage() {
                 </div>
               </div>
 
-              {/* Experience level */}
-              <div>
-                <label htmlFor="experienceLevel" className={labelClass}>
-                  Experience level <span className="font-normal text-gray-500">(optional)</span>
-                </label>
-                <select
-                  id="experienceLevel"
-                  value={musicianData.experienceLevel}
-                  onChange={(e) =>
-                    setMusicianData((prev) => ({ ...prev, experienceLevel: e.target.value }))
-                  }
-                  className={inputClass}
-                >
-                  <option value="">Select level</option>
-                  {EXPERIENCE_LEVELS.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
-                </select>
+              {/* Experience level + Years playing */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="experienceLevel" className={labelClass}>
+                    Experience level <span className="font-normal text-gray-500">(optional)</span>
+                  </label>
+                  <select
+                    id="experienceLevel"
+                    value={musicianData.experienceLevel}
+                    onChange={(e) =>
+                      setMusicianData((prev) => ({ ...prev, experienceLevel: e.target.value }))
+                    }
+                    className={inputClass}
+                  >
+                    <option value="">Select level</option>
+                    {EXPERIENCE_LEVELS.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="yearsPlaying" className={labelClass}>
+                    Years playing <span className="font-normal text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="yearsPlaying"
+                    min={0}
+                    max={80}
+                    value={musicianData.yearsPlaying}
+                    onChange={(e) =>
+                      setMusicianData((prev) => ({ ...prev, yearsPlaying: e.target.value }))
+                    }
+                    placeholder="e.g. 10"
+                    className={inputClass}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-between gap-3">
