@@ -44,18 +44,25 @@ const inputClass =
   'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
 const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-300'
 
+function emailToUsername(email: string | null): string {
+  if (!email) return ''
+  const local = email.split('@')[0]
+  // Keep only allowed chars, clamp to 20
+  return local.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 20)
+}
+
 export default function ProfileSetupPage() {
   const router = useRouter()
   const { wallets } = useWallets()
   const address = wallets[0]?.address
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
 
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
-    username: '',
+    username: emailToUsername(user?.email ?? null),
     displayName: '',
     bio: '',
     location: '',
@@ -72,6 +79,13 @@ export default function ProfileSetupPage() {
       router.push('/auth/login')
     }
   }, [isAuthenticated, isLoading, router])
+
+  // Pre-fill username from email once user data loads, but only if still empty
+  useEffect(() => {
+    if (user?.email && !formData.username) {
+      setFormData((prev) => ({ ...prev, username: emailToUsername(user.email) }))
+    }
+  }, [user?.email]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
