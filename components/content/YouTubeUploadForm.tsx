@@ -201,34 +201,52 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
         </p>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Event Selection */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Which Event? *
-          </label>
-          {loadingEvents ? (
-            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-              <svg className="h-4 w-4 animate-spin text-gray-500" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Loading events...</span>
-            </div>
-          ) : events.length > 0 ? (
+      {/* No events: show info only, no form fields */}
+      {!loadingEvents && events.length === 0 && (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
+          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+            To submit a performance video, first RSVP to or create an event.
+          </p>
+          <Link
+            href="/events"
+            className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            Browse Events →
+          </Link>
+        </div>
+      )}
+
+      {/* Loading spinner */}
+      {loadingEvents && (
+        <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+          <svg className="h-4 w-4 animate-spin text-gray-500" viewBox="0 0 24 24">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Loading events...</span>
+        </div>
+      )}
+
+      {/* Form — only shown when user has events */}
+      {!loadingEvents && events.length > 0 && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Event Selection */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Which Event?
+            </label>
             <div className="space-y-2">
               <div className="flex gap-2">
                 <input
@@ -273,98 +291,85 @@ export default function YouTubeUploadForm({ onSuccess, onError }: YouTubeUploadF
                 </p>
               )}
             </div>
-          ) : (
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
-              <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                No events found. Please RSVP to or create an event first to submit performance
-                videos.
-              </p>
-              <Link
-                href="/events"
-                className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-              >
-                Browse Events →
-              </Link>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Select the event where this performance took place
+            </p>
+          </div>
+
+          {/* YouTube URL Input */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              YouTube Video URL
+            </label>
+            <input
+              type="text"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+              className={`w-full rounded-lg border px-3 py-2 text-gray-900 transition-colors focus:ring-2 dark:bg-gray-700 dark:text-gray-100 ${
+                error
+                  ? 'border-red-500 focus:ring-red-500 dark:border-red-600'
+                  : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600 dark:focus:ring-blue-400'
+              }`}
+              disabled={isSubmitting}
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Accepted formats: youtube.com/watch?v=... or youtu.be/...
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+              <p className="text-sm text-red-800 dark:text-red-300">❌ {error}</p>
             </div>
           )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Select the event where this performance took place
-          </p>
-        </div>
 
-        {/* YouTube URL Input */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            YouTube Video URL *
-          </label>
-          <input
-            type="text"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
-            className={`w-full rounded-lg border px-3 py-2 text-gray-900 transition-colors focus:ring-2 dark:bg-gray-700 dark:text-gray-100 ${
-              error
-                ? 'border-red-500 focus:ring-red-500 dark:border-red-600'
-                : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600 dark:focus:ring-blue-400'
-            }`}
-            disabled={isSubmitting}
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Accepted formats: youtube.com/watch?v=... or youtu.be/...
-          </p>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-            <p className="text-sm text-red-800 dark:text-red-300">❌ {error}</p>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {success && (
-          <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
-            <p className="text-sm text-green-800 dark:text-green-300">✅ {success}</p>
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting || !isAuthenticated || events.length === 0}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400 dark:bg-blue-500 dark:hover:bg-blue-600"
-        >
-          {isSubmitting ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Submitting...
-            </span>
-          ) : (
-            'Submit Performance Video'
+          {/* Success Message */}
+          {success && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+              <p className="text-sm text-green-800 dark:text-green-300">✅ {success}</p>
+            </div>
           )}
-        </button>
 
-        {!isAuthenticated && (
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Please sign in to submit videos
-          </p>
-        )}
-      </form>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting || !isAuthenticated}
+            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400 dark:bg-blue-500 dark:hover:bg-blue-600"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Submitting...
+              </span>
+            ) : (
+              'Submit Performance Video'
+            )}
+          </button>
+
+          {!isAuthenticated && (
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              Please sign in to submit videos
+            </p>
+          )}
+        </form>
+      )}
 
       {/* Guidelines */}
       <div className="mt-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
