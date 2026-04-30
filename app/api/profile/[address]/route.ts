@@ -324,6 +324,24 @@ export async function PATCH(
       }
     }
 
+    // Display name uniqueness validation
+    if (body.displayName) {
+      const existingUserWithDisplayName = await db.user.findFirst({
+        where: {
+          displayName: { equals: body.displayName, mode: 'insensitive' },
+          id: { not: user.id },
+        },
+        select: { id: true },
+      })
+
+      if (existingUserWithDisplayName) {
+        return NextResponse.json(
+          { error: 'Display name already taken. Please choose a different display name.' },
+          { status: 409 }
+        )
+      }
+    }
+
     // Email uniqueness validation
     if (body.email) {
       const existingUserWithEmail = await db.user.findFirst({

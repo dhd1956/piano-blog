@@ -123,7 +123,7 @@ model User {
   isActive       Boolean  @default(true) // Account active status
 
   // Profile information
-  displayName    String?
+  displayName    String?  @unique
   email          String?  @unique
   bio            String?  @db.Text
   avatar         String?  // IPFS hash or URL
