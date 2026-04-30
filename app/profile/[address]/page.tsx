@@ -78,6 +78,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
+  const [showYouTubeSection, setShowYouTubeSection] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [venuesDiscovered, setVenuesDiscovered] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
@@ -697,43 +698,51 @@ export default function ProfilePage() {
       )}
 
       {/* YouTube Videos Section */}
-      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="mb-2 flex items-center gap-2 text-2xl font-bold text-gray-900">
-            <span className="text-3xl">🎹</span>
-            YouTube Videos
-          </h2>
-          <p className="text-sm text-gray-600">
-            Share your piano performances and earn PXP rewards
-          </p>
-        </div>
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white shadow-sm">
+        <button
+          onClick={() => setShowYouTubeSection((v) => !v)}
+          className="flex w-full items-center justify-between p-6 text-left"
+          aria-expanded={showYouTubeSection}
+        >
+          <div>
+            <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+              <span className="text-3xl">🎬</span>
+              YouTube Videos
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Share your piano performances and earn PXP rewards
+            </p>
+          </div>
+          <span className="ml-4 text-xl text-gray-400">{showYouTubeSection ? '▲' : '▼'}</span>
+        </button>
 
-        {/* Channel Verification - Only show on own profile */}
-        {isOwnProfile && (
-          <div className="mb-6">
-            <YouTubeChannelVerification />
+        {showYouTubeSection && (
+          <div className="border-t border-gray-200 p-6">
+            {/* Channel Verification - Only show on own profile */}
+            {isOwnProfile && (
+              <div className="mb-6">
+                <YouTubeChannelVerification />
+              </div>
+            )}
+
+            {/* Upload Form - Only show on own profile */}
+            {isOwnProfile && (
+              <div className="mb-8">
+                <YouTubeUploadForm
+                  onSuccess={(video) => {
+                    console.log('Video submitted:', video)
+                  }}
+                  onError={(error) => {
+                    console.error('Video submission error:', error)
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Video Gallery */}
+            <YouTubeVideoGallery userId={profile.id} limit={20} />
           </div>
         )}
-
-        {/* Upload Form - Only show on own profile */}
-        {isOwnProfile && (
-          <div className="mb-8">
-            <YouTubeUploadForm
-              onSuccess={(video) => {
-                console.log('Video submitted:', video)
-                // The gallery will refresh automatically when refetched
-              }}
-              onError={(error) => {
-                console.error('Video submission error:', error)
-              }}
-            />
-          </div>
-        )}
-
-        {/* Video Gallery */}
-        <div>
-          <YouTubeVideoGallery userId={profile.id} limit={20} />
-        </div>
       </div>
 
       {/* QR Code Modal */}
