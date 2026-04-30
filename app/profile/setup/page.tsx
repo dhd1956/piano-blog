@@ -5,6 +5,45 @@ import { useRouter } from 'next/navigation'
 import { useWallets } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 
+const TOTAL_STEPS = 4
+
+const COLLAB_TYPES = [
+  { value: 'LYRICS', label: 'Lyrics' },
+  { value: 'MELODY', label: 'Melody' },
+  { value: 'CHORDS', label: 'Chords' },
+  { value: 'ARRANGEMENTS', label: 'Arrangements' },
+  { value: 'CHARTS_SCORES', label: 'Charts & Scores' },
+  { value: 'INSTRUMENT_PARTS', label: 'Instrument Parts' },
+  { value: 'VOCALS', label: 'Vocals' },
+  { value: 'PRODUCTION', label: 'Production' },
+  { value: 'MIXING', label: 'Mixing' },
+]
+
+const SETUP_INSTRUMENTS = [
+  'Piano (acoustic)',
+  'Digital Piano / Keyboard',
+  'Guitar',
+  'Bass Guitar',
+  'Violin / Strings',
+  'Vocals',
+  'Drums / Percussion',
+  'Wind / Brass',
+  'Other',
+]
+
+const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Professional']
+
+const btnBase =
+  'rounded-md px-6 py-2 text-sm font-semibold focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800'
+const btnPrimary = `${btnBase} bg-purple-600 text-white shadow-sm hover:bg-purple-700 disabled:opacity-50`
+const btnSecondary = `${btnBase} border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600`
+const chipBase = 'rounded-full px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer'
+const chipActive = `${chipBase} bg-purple-600 text-white`
+const chipInactive = `${chipBase} bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600`
+const inputClass =
+  'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
+const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-300'
+
 export default function ProfileSetupPage() {
   const router = useRouter()
   const { wallets } = useWallets()
@@ -15,7 +54,6 @@ export default function ProfileSetupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Form data
   const [formData, setFormData] = useState({
     username: '',
     displayName: '',
@@ -23,10 +61,12 @@ export default function ProfileSetupPage() {
     location: '',
   })
 
-  // Redirect to login only when auth is resolved and user is definitively not authenticated.
-  // Using isAuthenticated (backend session) rather than isConnected (AppKit wallet state)
-  // because AppKit takes 1-3 seconds to reconnect after login, and checking isConnected
-  // would cause a false redirect to /auth/login for users who just logged in via OTP.
+  const [musicianData, setMusicianData] = useState({
+    collaborationTypes: [] as string[],
+    instruments: [] as string[],
+    experienceLevel: '',
+  })
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/auth/login')
@@ -34,65 +74,73 @@ export default function ProfileSetupPage() {
   }, [isAuthenticated, isLoading, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+    setFormData({ ...formData, [e.target.name]: e.target.value })
     setError('')
   }
 
-  const validateStep = (currentStep: number): boolean => {
-    if (currentStep === 1) {
-      if (!formData.username.trim()) {
-        setError('Username is required')
-        return false
-      }
-      if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
-        setError('Username must be 3-20 characters (letters, numbers, underscore only)')
-        return false
-      }
+  const toggleCollabType = (value: string) => {
+    setMusicianData((prev) => ({
+      ...prev,
+      collaborationTypes: prev.collaborationTypes.includes(value)
+        ? prev.collaborationTypes.filter((t) => t !== value)
+        : [...prev.collaborationTypes, value],
+    }))
+  }
+
+  const toggleInstrument = (instrument: string) => {
+    setMusicianData((prev) => ({
+      ...prev,
+      instruments: prev.instruments.includes(instrument)
+        ? prev.instruments.filter((i) => i !== instrument)
+        : [...prev.instruments, instrument],
+    }))
+  }
+
+  const validateUsername = (): boolean => {
+    if (!formData.username.trim()) {
+      setError('Username is required')
+      return false
+    }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
+      setError('Username must be 3-20 characters (letters, numbers, underscore only)')
+      return false
     }
     return true
   }
 
-  const handleNext = () => {
-    if (validateStep(step)) {
-      setStep(step + 1)
-    }
-  }
-
-  const handleBack = () => {
-    setStep(step - 1)
+  const advance = () => {
     setError('')
+    setStep((s) => s + 1)
   }
 
-  const handleSkip = () => {
-    if (step < 3) {
-      setStep(step + 1)
-    } else {
-      handleSubmit(true) // Skip and finish
-    }
-  }
-
-  const handleSubmit = async (skipOptional = false) => {
-    if (!validateStep(step) && !skipOptional) {
-      return
-    }
-
+  const handleSubmit = async (includeMusicianProfile: boolean) => {
     setLoading(true)
     setError('')
 
     try {
+      const hasMusicianData =
+        musicianData.collaborationTypes.length > 0 ||
+        musicianData.instruments.length > 0 ||
+        !!musicianData.experienceLevel
+
+      const body: Record<string, unknown> = {
+        requesterAddress: address,
+        ...formData,
+        profileCompleted: true,
+      }
+
+      if (includeMusicianProfile && hasMusicianData) {
+        body.musicianProfile = {
+          collaborationTypes: musicianData.collaborationTypes,
+          instruments: musicianData.instruments,
+          experienceLevel: musicianData.experienceLevel || undefined,
+        }
+      }
+
       const response = await fetch(`/api/profile/${address}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          requesterAddress: address,
-          ...formData,
-          profileCompleted: true,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -100,18 +148,15 @@ export default function ProfileSetupPage() {
         throw new Error(data.error || 'Failed to update profile')
       }
 
-      // Redirect to profile page
       router.push('/profile')
-    } catch (err: any) {
-      setError(err.message || 'An error occurred')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
   }
 
-  if (!isAuthenticated && !isLoading) {
-    return null // Will redirect
-  }
+  if (!isAuthenticated && !isLoading) return null
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
@@ -119,24 +164,22 @@ export default function ProfileSetupPage() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-            🎵 Welcome to Piano Blog!
+            🎵 Welcome to Global Piano Network!
           </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Let's set up your profile (Step {step} of 3)
+            Let&apos;s set up your profile (Step {step} of {TOTAL_STEPS})
           </p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="relative">
-          <div className="overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-            <div
-              className="h-2 rounded-full bg-purple-600 transition-all duration-300"
-              style={{ width: `${(step / 3) * 100}%` }}
-            />
-          </div>
+        {/* Progress bar */}
+        <div className="overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+          <div
+            className="h-2 rounded-full bg-purple-600 transition-all duration-300"
+            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+          />
         </div>
 
-        {/* Form Card */}
+        {/* Card */}
         <div className="rounded-lg bg-white p-8 shadow-sm dark:bg-gray-800">
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
@@ -155,12 +198,8 @@ export default function ProfileSetupPage() {
                   This is how other musicians will find you
                 </p>
               </div>
-
               <div>
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
+                <label htmlFor="username" className={labelClass}>
                   Username *
                 </label>
                 <input
@@ -170,19 +209,18 @@ export default function ProfileSetupPage() {
                   value={formData.username}
                   onChange={handleInputChange}
                   placeholder="pianoplayer123"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  className={inputClass}
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   3-20 characters, letters, numbers, and underscore only
                 </p>
               </div>
-
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end">
                 <button
-                  onClick={handleNext}
+                  onClick={() => validateUsername() && advance()}
                   disabled={!formData.username.trim()}
-                  className="rounded-md bg-purple-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:focus:ring-offset-gray-800"
+                  className={btnPrimary}
                 >
                   Continue
                 </button>
@@ -201,12 +239,8 @@ export default function ProfileSetupPage() {
                   Help other musicians get to know you
                 </p>
               </div>
-
               <div>
-                <label
-                  htmlFor="displayName"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
+                <label htmlFor="displayName" className={labelClass}>
                   Display Name (optional)
                 </label>
                 <input
@@ -216,15 +250,11 @@ export default function ProfileSetupPage() {
                   value={formData.displayName}
                   onChange={handleInputChange}
                   placeholder="John Smith"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  className={inputClass}
                 />
               </div>
-
               <div>
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
+                <label htmlFor="location" className={labelClass}>
                   Location (optional)
                 </label>
                 <input
@@ -233,29 +263,25 @@ export default function ProfileSetupPage() {
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="New York, NY"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  placeholder="Aurora, ON"
+                  className={inputClass}
                 />
               </div>
-
               <div className="flex justify-between gap-3">
                 <button
-                  onClick={handleBack}
-                  className="rounded-md border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
+                  onClick={() => {
+                    setStep(1)
+                    setError('')
+                  }}
+                  className={btnSecondary}
                 >
                   Back
                 </button>
                 <div className="flex gap-3">
-                  <button
-                    onClick={handleSkip}
-                    className="rounded-md border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
-                  >
+                  <button onClick={advance} className={btnSecondary}>
                     Skip
                   </button>
-                  <button
-                    onClick={handleNext}
-                    className="rounded-md bg-purple-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
-                  >
+                  <button onClick={advance} className={btnPrimary}>
                     Continue
                   </button>
                 </div>
@@ -274,12 +300,8 @@ export default function ProfileSetupPage() {
                   Share your musical journey or interests (optional)
                 </p>
               </div>
-
               <div>
-                <label
-                  htmlFor="bio"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
+                <label htmlFor="bio" className={labelClass}>
                   Bio (optional)
                 </label>
                 <textarea
@@ -289,34 +311,137 @@ export default function ProfileSetupPage() {
                   value={formData.bio}
                   onChange={handleInputChange}
                   placeholder="Jazz pianist with 10 years of experience. Love collaborating on new projects!"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  className={inputClass}
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {formData.bio.length}/500 characters
                 </p>
               </div>
+              <div className="flex justify-between gap-3">
+                <button
+                  onClick={() => {
+                    setStep(2)
+                    setError('')
+                  }}
+                  className={btnSecondary}
+                >
+                  Back
+                </button>
+                <div className="flex gap-3">
+                  <button onClick={advance} className={btnSecondary}>
+                    Skip
+                  </button>
+                  <button onClick={advance} className={btnPrimary}>
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Musician profile */}
+          {step === 4 && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Your musical role
+                </h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  What do you do? Selecting anything here adds you to the Musicians Directory and
+                  earns you <span className="font-semibold text-purple-600">+25 PXP</span>. You can
+                  fill in more detail from your profile later.
+                </p>
+              </div>
+
+              {/* Collaboration types */}
+              <div>
+                <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  What do you do?{' '}
+                  <span className="font-normal text-gray-500">(select all that apply)</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {COLLAB_TYPES.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggleCollabType(value)}
+                      className={
+                        musicianData.collaborationTypes.includes(value) ? chipActive : chipInactive
+                      }
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Instruments */}
+              <div>
+                <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Instruments <span className="font-normal text-gray-500">(optional)</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {SETUP_INSTRUMENTS.map((inst) => (
+                    <button
+                      key={inst}
+                      type="button"
+                      onClick={() => toggleInstrument(inst)}
+                      className={
+                        musicianData.instruments.includes(inst) ? chipActive : chipInactive
+                      }
+                    >
+                      {inst}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Experience level */}
+              <div>
+                <label htmlFor="experienceLevel" className={labelClass}>
+                  Experience level <span className="font-normal text-gray-500">(optional)</span>
+                </label>
+                <select
+                  id="experienceLevel"
+                  value={musicianData.experienceLevel}
+                  onChange={(e) =>
+                    setMusicianData((prev) => ({ ...prev, experienceLevel: e.target.value }))
+                  }
+                  className={inputClass}
+                >
+                  <option value="">Select level</option>
+                  {EXPERIENCE_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="flex justify-between gap-3">
                 <button
-                  onClick={handleBack}
-                  className="rounded-md border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
+                  onClick={() => {
+                    setStep(3)
+                    setError('')
+                  }}
+                  className={btnSecondary}
                 >
                   Back
                 </button>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => handleSubmit(true)}
-                    disabled={loading}
-                    className="rounded-md border border-gray-300 bg-white px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
-                  >
-                    Skip & Finish
-                  </button>
-                  <button
                     onClick={() => handleSubmit(false)}
                     disabled={loading}
-                    className="rounded-md bg-purple-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:focus:ring-offset-gray-800"
+                    className={btnSecondary}
                   >
-                    {loading ? 'Saving...' : 'Complete Setup'}
+                    Skip
+                  </button>
+                  <button
+                    onClick={() => handleSubmit(true)}
+                    disabled={loading}
+                    className={btnPrimary}
+                  >
+                    {loading ? 'Saving...' : 'Finish Setup'}
                   </button>
                 </div>
               </div>

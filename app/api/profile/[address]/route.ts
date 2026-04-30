@@ -444,8 +444,9 @@ export async function PATCH(
       // Criteria: at least one instrument + experience level set
       if (
         !wasMusicianProfileCompleted &&
-        body.musicianProfile.instruments?.length > 0 &&
-        body.musicianProfile.experienceLevel
+        (body.musicianProfile.collaborationTypes?.length > 0 ||
+          body.musicianProfile.instruments?.length > 0 ||
+          !!body.musicianProfile.experienceLevel)
       ) {
         try {
           const { awardMusicianProfileCompletion } = await import('@/lib/pxp-rewards')
