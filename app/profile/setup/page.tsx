@@ -165,6 +165,13 @@ export default function ProfileSetupPage() {
         throw new Error(data.error || 'Failed to update profile')
       }
 
+      // Auto-claim welcome reward so the banner doesn't appear on first profile view
+      await fetch('/api/rewards/claim-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+      }).catch(() => {}) // Non-blocking — banner is fallback if this fails
+
       router.push('/profile')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
