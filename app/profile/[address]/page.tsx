@@ -79,6 +79,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
   const [showYouTubeSection, setShowYouTubeSection] = useState(false)
+  const [hasYouTubeContent, setHasYouTubeContent] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [venuesDiscovered, setVenuesDiscovered] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
@@ -138,6 +139,16 @@ export default function ProfilePage() {
       setMusicianProfile(data.musicianProfile || null)
       setVenuesDiscovered(data.venuesDiscovered || 0)
       setReviewCount(data.reviewCount || 0)
+
+      // Check whether this profile has any YouTube videos
+      if (data.profile?.id) {
+        fetch(`/api/content/youtube/submit?userId=${data.profile.id}&limit=1`, {
+          credentials: 'include',
+        })
+          .then((r) => r.json())
+          .then((d) => setHasYouTubeContent((d.videos?.length ?? 0) > 0))
+          .catch(() => {})
+      }
 
       // Check if this is the user's own profile OR if user is blog owner (admin)
       // Support both session-based auth (username/email) and wallet-based auth
@@ -697,53 +708,67 @@ export default function ProfilePage() {
         </>
       )}
 
-      {/* YouTube Videos Section */}
-      <div className="mb-8 rounded-lg border border-gray-200 bg-white shadow-sm">
-        <button
-          onClick={() => setShowYouTubeSection((v) => !v)}
-          className="flex w-full items-center justify-between p-6 text-left"
-          aria-expanded={showYouTubeSection}
-        >
-          <div>
-            <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-              <span className="text-3xl">🎬</span>
-              YouTube Videos
-            </h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Share your piano performances and earn PXP rewards
-            </p>
-          </div>
-          <span className="ml-4 text-xl text-gray-400">{showYouTubeSection ? '▲' : '▼'}</span>
-        </button>
+      {/* YouTube Videos Section — only shown when there are videos, or own profile with content */}
+      {hasYouTubeContent && (
+        <div className="mb-8 rounded-lg border border-gray-200 bg-white shadow-sm">
+          <button
+            onClick={() => setShowYouTubeSection((v) => !v)}
+            className="flex w-full items-center justify-between p-6 text-left"
+            aria-expanded={showYouTubeSection}
+          >
+            <div>
+              <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+                <span className="text-3xl">🎬</span>
+                YouTube Videos
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">Piano performances and PXP rewards</p>
+            </div>
+            <span className="ml-4 text-xl text-gray-400">{showYouTubeSection ? '▲' : '▼'}</span>
+          </button>
 
-        {showYouTubeSection && (
-          <div className="border-t border-gray-200 p-6">
-            {/* Channel Verification - Only show on own profile */}
-            {isOwnProfile && (
-              <div className="mb-6">
-                <YouTubeChannelVerification />
-              </div>
-            )}
+          {showYouTubeSection && (
+            <div className="border-t border-gray-200 p-6">
+              {isOwnProfile && (
+                <div className="mb-6">
+                  <YouTubeChannelVerification />
+                </div>
+              )}
+              {isOwnProfile && (
+                <div className="mb-8">
+                  <YouTubeUploadForm
+                    onSuccess={(video) => {
+                      console.log('Video submitted:', video)
+                    }}
+                    onError={(error) => {
+                      console.error('Video submission error:', error)
+                    }}
+                  />
+                </div>
+              )}
+              <YouTubeVideoGallery userId={profile.id} limit={20} />
+            </div>
+          )}
+        </div>
+      )}
 
-            {/* Upload Form - Only show on own profile */}
-            {isOwnProfile && (
-              <div className="mb-8">
-                <YouTubeUploadForm
-                  onSuccess={(video) => {
-                    console.log('Video submitted:', video)
-                  }}
-                  onError={(error) => {
-                    console.error('Video submission error:', error)
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Video Gallery */}
-            <YouTubeVideoGallery userId={profile.id} limit={20} />
-          </div>
-        )}
-      </div>
+      {/* Own profile with no videos yet — small discoverable prompt */}
+      {!hasYouTubeContent && isOwnProfile && (
+        <div className="mb-8 rounded-lg border border-dashed border-gray-300 bg-white p-4 text-center">
+          <p className="text-sm text-gray-500">
+            🎬{' '}
+            <button
+              onClick={() => {
+                setHasYouTubeContent(true)
+                setShowYouTubeSection(true)
+              }}
+              className="text-blue-600 underline hover:text-blue-700"
+            >
+              Submit a YouTube performance video
+            </button>{' '}
+            to earn PXP rewards
+          </p>
+        </div>
+      )}
 
       {/* QR Code Modal */}
       {showQRModal && (
