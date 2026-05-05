@@ -381,10 +381,10 @@ function LoginContent() {
             />
             <button
               onClick={handleSendCode}
-              disabled={!email || sending}
+              disabled={!email || sending || !ready}
               className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
-              {sending ? 'Sending…' : 'Continue with email'}
+              {sending ? 'Sending…' : !ready ? 'Connecting…' : 'Continue with email'}
             </button>
 
             <div className="relative flex items-center py-1">

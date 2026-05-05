@@ -3,14 +3,12 @@
 import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { useRouter } from 'next/navigation'
 import Link from './Link'
 
 export default function ConnectButton() {
-  const { logout, authenticated } = usePrivy()
+  const { login, logout, authenticated } = usePrivy()
   const { wallets } = useWallets()
   const { user, isAuthenticated, logout: authLogout } = useAuth()
-  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [displayName, setDisplayName] = useState<string>('')
   const [profileUrl, setProfileUrl] = useState<string>('/profile')
@@ -53,7 +51,7 @@ export default function ConnectButton() {
   if (!isConnected) {
     return (
       <button
-        onClick={() => router.push('/auth/login')}
+        onClick={() => login()}
         className="hover:text-primary-500 dark:hover:text-primary-400 font-medium text-gray-900 dark:text-gray-100"
       >
         Sign In
