@@ -37,8 +37,9 @@ export function useRequireAuth(options: UseRequireAuthOptions = {}) {
         return
       }
 
-      // Default: redirect to home with login modal trigger
-      const redirectPath = redirectTo || '/?login=true'
+      // Default: redirect straight to login, preserving the intended destination
+      const redirectPath =
+        redirectTo || `/auth/login?redirect=${encodeURIComponent(pathname || '/')}`
       router.push(redirectPath)
     }
   }, [isAuthenticated, isLoading, pathname, router, redirectTo, onUnauthenticated])
