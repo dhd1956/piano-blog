@@ -14,10 +14,32 @@ import {
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 function LoadingSpinner() {
+  const [timedOut, setTimedOut] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 6000)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-3">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4">
       <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
       <p className="text-sm text-gray-500">Connecting to sign-in service…</p>
+      {timedOut && (
+        <div className="mt-2 max-w-xs rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center">
+          <p className="mb-2 text-xs text-amber-800">
+            Taking too long? This may not work inside a QR scanner or app browser.
+          </p>
+          <a
+            href={typeof window !== 'undefined' ? window.location.href : '/'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+          >
+            Open in your browser →
+          </a>
+        </div>
+      )}
     </div>
   )
 }
