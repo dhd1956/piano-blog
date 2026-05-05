@@ -8,7 +8,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 interface Organizer {
   id: number
@@ -88,9 +87,6 @@ const formatTime = (dateString: string) => {
 }
 
 export default function EventsPage() {
-  // Require authentication to access this page
-  const { isLoading: authLoading } = useRequireAuth()
-
   const [events, setEvents] = useState<Event[]>([])
   const [pagination, setPagination] = useState<PaginationMeta | null>(null)
   const [loading, setLoading] = useState(true)
@@ -176,7 +172,7 @@ export default function EventsPage() {
     }
   }
 
-  if (authLoading || (loading && events.length === 0)) {
+  if (loading && events.length === 0) {
     return <EventsLoadingSkeleton />
   }
 
