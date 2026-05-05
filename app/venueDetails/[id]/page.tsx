@@ -7,6 +7,7 @@ import VenueEditForm from '@/components/VenueEditForm'
 import VenueQRCard from '@/components/qr/VenueQRCard'
 import VenueEvents from '@/components/venue/VenueEvents'
 import TipButton from '@/components/tips/TipButton'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { useAuth } from '@/context/AuthContext'
 import { Venue, VenueMetadata, VenueUpdateForm } from '@/types/venue'
 
@@ -48,6 +49,9 @@ async function checkVenuePermissions(
 }
 
 export default function VenueDetailsPage() {
+  // Require authentication to access this page
+  const { isLoading: authLoading } = useRequireAuth()
+
   const params = useParams()
   const router = useRouter()
   const venueId = params.id ? parseInt(params.id as string, 10) : null
@@ -409,6 +413,17 @@ export default function VenueDetailsPage() {
   }, [isConnected, walletAddress, venueId])
 
   // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-900">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="border-primary-600 dark:border-primary-400 mx-auto h-12 w-12 animate-spin rounded-full border-b-2"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-900">
