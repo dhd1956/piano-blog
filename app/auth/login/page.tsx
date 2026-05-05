@@ -78,6 +78,20 @@ function LoginContent() {
   const [sessionError, setSessionError] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [privyTimedOut, setPrivyTimedOut] = useState(false)
+  const [isRestrictedBrowser, setIsRestrictedBrowser] = useState(false)
+
+  // Detect in-app browsers and WebViews that block Privy's cross-origin iframe.
+  // These environments (QR scanner shells, Instagram, Facebook, etc.) cause Privy
+  // to hang for minutes before giving up. Detect immediately so the user gets a
+  // usable "open in browser" link right away.
+  useEffect(() => {
+    const ua = window.navigator.userAgent
+    const inApp =
+      /Instagram|FBAN|FBAV|Twitter|Line|WeChat|Snapchat/i.test(ua) ||
+      (/Android/.test(ua) && /wv/.test(ua)) || // Android WebView flag
+      (/iPhone|iPad|iPod/.test(ua) && !/Safari/.test(ua)) // iOS WebView (no Safari token)
+    setIsRestrictedBrowser(inApp)
+  }, [])
 
   // If Privy restored a session after logout (via its cross-origin iframe), kill it so
   // the user can choose a different account.
@@ -318,13 +332,38 @@ function LoginContent() {
         <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">Sign in</h1>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">No password needed</p>
 
-        {!ready && (
+        {isRestrictedBrowser && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20">
+            <p className="mb-2 text-xs font-medium text-amber-800 dark:text-amber-300">
+              Sign-in doesn&apos;t work inside QR scanner or app browsers.
+            </p>
+            <a
+              href={typeof window !== 'undefined' ? window.location.href : '/auth/login'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+            >
+              Open in your browser →
+            </a>
+          </div>
+        )}
+
+        {!ready && !isRestrictedBrowser && (
           <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/20">
             {privyTimedOut ? (
-              <p className="text-xs text-amber-700 dark:text-amber-400">
-                Sign-in service is taking a long time. Try opening this page directly in Chrome or
-                your default browser.
-              </p>
+              <div>
+                <p className="mb-2 text-xs text-amber-700 dark:text-amber-400">
+                  Sign-in is taking too long. Try opening this page in Chrome or Safari.
+                </p>
+                <a
+                  href={typeof window !== 'undefined' ? window.location.href : '/auth/login'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                >
+                  Open in browser →
+                </a>
+              </div>
             ) : (
               <p className="text-xs text-amber-700 dark:text-amber-400">
                 Connecting to sign-in service…
