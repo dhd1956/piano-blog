@@ -348,27 +348,19 @@ function LoginContent() {
           </div>
         )}
 
-        {!ready && !isRestrictedBrowser && (
+        {!ready && !isRestrictedBrowser && privyTimedOut && (
           <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/20">
-            {privyTimedOut ? (
-              <div>
-                <p className="mb-2 text-xs text-amber-700 dark:text-amber-400">
-                  Sign-in is taking too long. Try opening this page in Chrome or Safari.
-                </p>
-                <a
-                  href={typeof window !== 'undefined' ? window.location.href : '/auth/login'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
-                >
-                  Open in browser →
-                </a>
-              </div>
-            ) : (
-              <p className="text-xs text-amber-700 dark:text-amber-400">
-                Connecting to sign-in service…
-              </p>
-            )}
+            <p className="mb-2 text-xs text-amber-700 dark:text-amber-400">
+              If the button isn&apos;t working, try opening this page in Chrome or Safari.
+            </p>
+            <a
+              href={typeof window !== 'undefined' ? window.location.href : '/auth/login'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+            >
+              Open in browser →
+            </a>
           </div>
         )}
 
@@ -389,10 +381,10 @@ function LoginContent() {
             />
             <button
               onClick={handleSendCode}
-              disabled={!email || sending || !ready}
+              disabled={!email || sending}
               className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
-              {sending ? 'Sending…' : !ready ? 'Connecting…' : 'Continue with email'}
+              {sending ? 'Sending…' : 'Continue with email'}
             </button>
 
             <div className="relative flex items-center py-1">
