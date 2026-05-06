@@ -4,12 +4,18 @@ import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import {
   Component,
+  createContext,
   useState,
   useEffect,
   useLayoutEffect,
   type ReactNode,
   type ErrorInfo,
 } from 'react'
+
+// Pages that call Privy hooks (e.g. login page) read this to know whether the
+// Privy chunk has loaded. When false they skip rendering hook-dependent children,
+// preventing the throw that would cause PrivyBootBoundary to blank the page.
+export const PrivyChunkReadyContext = createContext(false)
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
@@ -50,7 +56,18 @@ function LoadingSpinner() {
 // so the loading prop shows for at most one async tick in practice).
 const PrivyContextLayer = dynamic(
   () => import('./PrivyProviderClient').then((m) => ({ default: m.PrivyProviderClient })),
-  { ssr: false, loading: () => <LoadingSpinner /> }
+  {
+    ssr: false,
+    // The chunk is already cached when this renders (privyChunkReady was set after
+    // the same import resolved), so this loading state is at most one async tick.
+    // Plain spinner — no text — avoids showing "Connecting to sign-in service"
+    // during the imperceptible transition.
+    loading: () => (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+      </div>
+    ),
+  }
 )
 
 // Catches throws from Privy hooks called without a PrivyProvider in the tree.
@@ -128,18 +145,28 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
     }
   }, [mounted, isPreviewPage])
 
-  if (!mounted) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
+  // Wrap every render path so pages can read privyChunkReady via context
+  // and skip rendering Privy-hook-dependent children until the chunk is ready.
+  // This prevents hook throws from triggering PrivyBootBoundary's full-page spinner.
+  let content: ReactNode
 
-  // Preview pages have no Privy hooks — render bare, no download triggered.
-  if (isPreviewPage) return <>{children}</>
-
-  // Chunk still downloading: PrivyBootBoundary catches hook throws and shows
-  // the spinner instead of propagating to the root ErrorBoundary.
-  if (!privyChunkReady) return <PrivyBootBoundary>{children}</PrivyBootBoundary>
+  if (!mounted) {
+    content = <PrivyBootBoundary>{children}</PrivyBootBoundary>
+  } else if (isPreviewPage) {
+    content = <>{children}</>
+  } else if (!privyChunkReady) {
+    content = <PrivyBootBoundary>{children}</PrivyBootBoundary>
+  } else {
+    content = (
+      <PrivyInitBoundary fallback={<>{children}</>}>
+        <PrivyContextLayer>{children}</PrivyContextLayer>
+      </PrivyInitBoundary>
+    )
+  }
 
   return (
-    <PrivyInitBoundary fallback={<>{children}</>}>
-      <PrivyContextLayer>{children}</PrivyContextLayer>
-    </PrivyInitBoundary>
+    <PrivyChunkReadyContext.Provider value={privyChunkReady}>
+      {content}
+    </PrivyChunkReadyContext.Provider>
   )
 }

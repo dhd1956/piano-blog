@@ -32,7 +32,8 @@ function safeSessionRemove(key: string): void {
   }
 }
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Component, useEffect, useRef, useState, Suspense, type ReactNode } from 'react'
+import { Component, useContext, useEffect, useRef, useState, Suspense, type ReactNode } from 'react'
+import { PrivyChunkReadyContext } from '@/context/PrivyProvider'
 
 // Catches Privy hook throws that happen before PrivyProvider is in the tree.
 // Sits INSIDE the page so it intercepts before the generic PrivyBootBoundary does,
@@ -625,6 +626,15 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
+  // Primary gate: don't render LoginContent (which calls Privy hooks) until the
+  // Privy chunk has downloaded. This prevents the hook throw that would cause
+  // PrivyBootBoundary to replace the entire page with its "Connecting" spinner.
+  const privyChunkReady = useContext(PrivyChunkReadyContext)
+
+  if (!privyChunkReady) {
+    return <StaticEmailForm />
+  }
+
   return (
     <Suspense
       fallback={
@@ -633,6 +643,8 @@ export default function LoginPage() {
         </div>
       }
     >
+      {/* PrivyNotReadyBoundary is a safety net in case Privy context is somehow
+          unavailable even after privyChunkReady=true (e.g. PrivyInitBoundary fired) */}
       <PrivyNotReadyBoundary fallback={<StaticEmailForm />}>
         <LoginContent />
       </PrivyNotReadyBoundary>
