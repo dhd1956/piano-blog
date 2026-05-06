@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import {
   Component,
@@ -8,16 +7,17 @@ import {
   useState,
   useEffect,
   useLayoutEffect,
+  type ComponentType,
   type ReactNode,
   type ErrorInfo,
 } from 'react'
+
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // Pages that call Privy hooks (e.g. login page) read this to know whether the
 // Privy chunk has loaded. When false they skip rendering hook-dependent children,
 // preventing the throw that would cause PrivyBootBoundary to blank the page.
 export const PrivyChunkReadyContext = createContext(false)
-
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 function LoadingSpinner() {
   const [timedOut, setTimedOut] = useState(false)
@@ -50,29 +50,8 @@ function LoadingSpinner() {
   )
 }
 
-// PrivyProviderClient is excluded from the server bundle via ssr:false.
-// The loading prop shows a spinner for the brief moment before the cached
-// chunk resolves (privyChunkReady is only set true after the import resolves,
-// so the loading prop shows for at most one async tick in practice).
-const PrivyContextLayer = dynamic(
-  () => import('./PrivyProviderClient').then((m) => ({ default: m.PrivyProviderClient })),
-  {
-    ssr: false,
-    // The chunk is already cached when this renders (privyChunkReady was set after
-    // the same import resolved), so this loading state is at most one async tick.
-    // Plain spinner — no text — avoids showing "Connecting to sign-in service"
-    // during the imperceptible transition.
-    loading: () => (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
-      </div>
-    ),
-  }
-)
-
-// Catches throws from Privy hooks called without a PrivyProvider in the tree.
-// While the Privy chunk downloads the hooks throw; this boundary catches them
-// and shows a spinner instead of crashing to "Something went wrong".
+// Safety net: catches stray Privy hook throws from pages other than the login
+// page (which uses PrivyChunkReadyContext to avoid rendering hooks too early).
 class PrivyBootBoundary extends Component<{ children: ReactNode }, { caught: boolean }> {
   state = { caught: false }
 
@@ -117,7 +96,14 @@ class PrivyInitBoundary extends Component<
 
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
-  const [privyChunkReady, setPrivyChunkReady] = useState(false)
+  // Store the PrivyProviderClient component class after the chunk downloads.
+  // Using state instead of dynamic() avoids the dynamic() loading-prop spinner:
+  // dynamic() shows its fallback even when the module is already in the ESM cache,
+  // because it has its own async resolution path. Storing the class in state and
+  // rendering it directly bypasses that entirely — no spinner, instant transition.
+  const [PrivyClient, setPrivyClient] = useState<ComponentType<{ children: ReactNode }> | null>(
+    null
+  )
   const pathname = usePathname()
   const isPreviewPage = !!pathname?.startsWith('/preview/')
 
@@ -128,16 +114,15 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!mounted || isPreviewPage) return
 
-    // Download the Privy chunk on auth/community pages. Children render inside
-    // PrivyBootBoundary (which catches hook throws) while this downloads.
-    // When done, privyChunkReady flips → PrivyContextLayer renders with the
-    // chunk already cached so its loading prop resolves instantly.
-    // No pre-warm on preview pages: downloading Privy while the preview is
-    // still in memory causes OOM on low-RAM Android devices ("Aw, Snap!").
+    // Download on non-preview pages only. No pre-warm on preview pages:
+    // downloading Privy while the preview is in memory causes OOM crashes
+    // ("Aw, Snap!") on low-RAM Android devices.
     let cancelled = false
     import('./PrivyProviderClient')
-      .then(() => {
-        if (!cancelled) setPrivyChunkReady(true)
+      .then((m) => {
+        // Functional setState: prevents React from treating the component
+        // as an updater function (setState(fn) calls fn(prevState)).
+        if (!cancelled) setPrivyClient(() => m.PrivyProviderClient)
       })
       .catch(() => {})
     return () => {
@@ -145,28 +130,30 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
     }
   }, [mounted, isPreviewPage])
 
-  // Wrap every render path so pages can read privyChunkReady via context
-  // and skip rendering Privy-hook-dependent children until the chunk is ready.
-  // This prevents hook throws from triggering PrivyBootBoundary's full-page spinner.
+  const privyReady = mounted && !!PrivyClient
+
   let content: ReactNode
 
-  if (!mounted) {
-    content = <PrivyBootBoundary>{children}</PrivyBootBoundary>
+  if (!mounted || (!isPreviewPage && !PrivyClient)) {
+    // Server render, or client before the Privy chunk has loaded.
+    // PrivyBootBoundary catches any stray hook throws from non-login pages.
+    // The login page avoids throwing entirely by reading PrivyChunkReadyContext.
+    content = isPreviewPage ? <>{children}</> : <PrivyBootBoundary>{children}</PrivyBootBoundary>
   } else if (isPreviewPage) {
+    // Preview/flash pages have no Privy hooks — render bare, no download triggered.
     content = <>{children}</>
-  } else if (!privyChunkReady) {
-    content = <PrivyBootBoundary>{children}</PrivyBootBoundary>
   } else {
+    // Chunk downloaded and evaluated. Render PrivyProviderClient directly so
+    // there is zero loading phase — children see Privy context immediately.
+    const PC = PrivyClient as ComponentType<{ children: ReactNode }>
     content = (
       <PrivyInitBoundary fallback={<>{children}</>}>
-        <PrivyContextLayer>{children}</PrivyContextLayer>
+        <PC>{children}</PC>
       </PrivyInitBoundary>
     )
   }
 
   return (
-    <PrivyChunkReadyContext.Provider value={privyChunkReady}>
-      {content}
-    </PrivyChunkReadyContext.Provider>
+    <PrivyChunkReadyContext.Provider value={privyReady}>{content}</PrivyChunkReadyContext.Provider>
   )
 }
