@@ -626,11 +626,28 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
-  // Primary gate: don't render LoginContent (which calls Privy hooks) until the
-  // Privy chunk has downloaded. This prevents the hook throw that would cause
-  // PrivyBootBoundary to replace the entire page with its "Connecting" spinner.
   const privyChunkReady = useContext(PrivyChunkReadyContext)
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
 
+  // If already logged in, redirect immediately — no need to wait for Privy at all.
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      const params = new URLSearchParams(window.location.search)
+      window.location.href = params.get('redirect') || '/'
+    }
+  }, [authLoading, isAuthenticated])
+
+  // Auth check in progress (brief /api/auth/me call) or redirect imminent
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner />
+      </div>
+    )
+  }
+
+  // Not logged in. Don't render LoginContent (Privy hooks) until the chunk is
+  // ready — prevents the throw that triggers PrivyBootBoundary's full-page spinner.
   if (!privyChunkReady) {
     return <StaticEmailForm />
   }
@@ -643,8 +660,6 @@ export default function LoginPage() {
         </div>
       }
     >
-      {/* PrivyNotReadyBoundary is a safety net in case Privy context is somehow
-          unavailable even after privyChunkReady=true (e.g. PrivyInitBoundary fired) */}
       <PrivyNotReadyBoundary fallback={<StaticEmailForm />}>
         <LoginContent />
       </PrivyNotReadyBoundary>
