@@ -63,11 +63,9 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!mounted || isPreviewPage) return
+    if (!mounted || isPreviewPage || isPrivyFree) return
 
-    // Download on non-preview pages only. No pre-warm on preview pages:
-    // downloading Privy while the preview is in memory causes OOM crashes
-    // ("Aw, Snap!") on low-RAM Android devices.
+    // Download on non-preview, non-privyFree pages only.
     let cancelled = false
     import('./PrivyProviderClient')
       .then((m) => {
@@ -77,7 +75,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [mounted, isPreviewPage])
+  }, [mounted, isPreviewPage, isPrivyFree])
 
   // PrivyChunkReadyContext=true only when Privy is downloaded AND rendered.
   // On isPrivyFree pages the chunk may be downloaded but we don't render the
