@@ -6,8 +6,8 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 interface VenueSnapshot {
   id: number
@@ -140,12 +140,12 @@ export default function VenuePreviewPage() {
 
           {/* Footer CTAs */}
           <div className="border-t border-gray-100 px-6 py-4 dark:border-gray-700">
-            <Link
+            <a
               href={`/auth/login?redirect=/venueDetails/${venue.id}`}
               className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white hover:bg-blue-700"
             >
               Sign in to see full details &amp; events
-            </Link>
+            </a>
             <Link
               href="/"
               className="mt-3 block text-center text-sm text-gray-500 hover:underline dark:text-gray-400"

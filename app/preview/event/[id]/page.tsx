@@ -6,8 +6,8 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 interface EventSnapshot {
   id: number
@@ -233,12 +233,12 @@ export default function EventPreviewPage() {
           {/* Footer CTAs */}
           <div className="border-t border-gray-100 px-6 py-4 dark:border-gray-700">
             {!isCancelled && (
-              <Link
+              <a
                 href={`/auth/login?redirect=/events/${event.id}`}
                 className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white hover:bg-blue-700"
               >
                 Sign in to RSVP
-              </Link>
+              </a>
             )}
             <Link
               href="/"

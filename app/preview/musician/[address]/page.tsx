@@ -6,8 +6,8 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import Image from 'next/image'
 
 interface MusicianSnapshot {
@@ -232,14 +232,16 @@ export default function MusicianPreviewPage() {
             )}
           </div>
 
-          {/* Footer CTAs */}
+          {/* Footer CTAs — use plain <a> so clicking triggers a full page load.
+              Client-side navigation from preview pages carries stale no-Privy
+              state, causing a blank spinner on the login page. */}
           <div className="border-t border-gray-100 px-6 py-4 dark:border-gray-700">
-            <Link
+            <a
               href={`/auth/login?redirect=/profile/${profileRef}`}
               className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white hover:bg-blue-700"
             >
               Sign in to view full profile
-            </Link>
+            </a>
             <Link
               href="/"
               className="mt-3 block text-center text-sm text-gray-500 hover:underline dark:text-gray-400"
