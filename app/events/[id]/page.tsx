@@ -5,13 +5,14 @@
  * Shows event details with RSVP functionality
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
-import EventQRCard from '@/components/qr/EventQRCard'
+
+const EventQRCard = lazy(() => import('@/components/qr/EventQRCard'))
 
 interface Organizer {
   id: number
@@ -886,21 +887,29 @@ export default function EventDetailPage() {
               </button>
             </div>
             <div className="p-6">
-              <EventQRCard
-                eventData={{
-                  id: event.id,
-                  title: event.title,
-                  eventType: event.eventType,
-                  startDate: event.startDate,
-                  endDate: event.endDate,
-                  venueName: event.venue.name,
-                  venueCity: event.venue.city,
-                  organizerName: organizerName,
-                  isFree: event.isFree,
-                  price: event.price,
-                  description: event.description,
-                }}
-              />
+              <Suspense
+                fallback={
+                  <div className="flex justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+                  </div>
+                }
+              >
+                <EventQRCard
+                  eventData={{
+                    id: event.id,
+                    title: event.title,
+                    eventType: event.eventType,
+                    startDate: event.startDate,
+                    endDate: event.endDate,
+                    venueName: event.venue.name,
+                    venueCity: event.venue.city,
+                    organizerName: organizerName,
+                    isFree: event.isFree,
+                    price: event.price,
+                    description: event.description,
+                  }}
+                />
+              </Suspense>
             </div>
             <div className="border-t border-gray-200 px-6 py-4 dark:border-gray-700">
               <button
