@@ -10,9 +10,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 
 const EventQRCard = lazy(() => import('@/components/qr/EventQRCard'))
+const YouTubeVideoGallery = lazy(() => import('@/components/content/YouTubeVideoGallery'))
 
 interface Organizer {
   id: number
@@ -932,12 +932,14 @@ export default function EventDetailPage() {
             </svg>
             Performance Videos
           </h2>
-          <YouTubeVideoGallery
-            eventId={event.id}
-            limit={20}
-            showEventContext={false}
-            showUploadForm={true}
-          />
+          <Suspense fallback={null}>
+            <YouTubeVideoGallery
+              eventId={event.id}
+              limit={20}
+              showEventContext={false}
+              showUploadForm={true}
+            />
+          </Suspense>
         </div>
       )}
     </div>
