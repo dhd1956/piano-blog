@@ -52,6 +52,11 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   )
   const pathname = usePathname()
   const isPreviewPage = !!pathname?.startsWith('/preview/')
+  // Pages that don't use any Privy hooks. We still download the chunk on
+  // these pages (so it's cached when the user navigates elsewhere), but we
+  // don't render PrivyProvider — which prevents Privy's internal
+  // authenticated-state effects from firing and triggering a circular-dep TDZ.
+  const isPrivyFree = !!pathname?.startsWith('/events/')
 
   useIsomorphicLayoutEffect(() => {
     setMounted(true)
@@ -74,18 +79,19 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
     }
   }, [mounted, isPreviewPage])
 
-  const privyReady = mounted && !!PrivyClient
+  // PrivyChunkReadyContext=true only when Privy is downloaded AND rendered.
+  // On isPrivyFree pages the chunk may be downloaded but we don't render the
+  // provider, so hooks like usePrivy() are not available — keep it false there.
+  const privyReady = mounted && !!PrivyClient && !isPrivyFree
 
   let content: ReactNode
 
-  if (!PrivyClient) {
-    // Server render, or client before the Privy chunk has loaded.
-    // Render children bare — PrivyChunkReadyContext=false gates any Privy
-    // hook usage in child components (e.g. login page skips LoginContent).
+  if (!PrivyClient || isPrivyFree) {
+    // Server render, client before chunk loads, or a page that doesn't need
+    // Privy. Render children bare so Privy effects never fire here.
     content = <>{children}</>
   } else {
-    // Chunk downloaded. Render PrivyProviderClient directly so children see
-    // Privy context immediately with no loading phase.
+    // Chunk downloaded and this page uses Privy. Wrap children.
     const PC = PrivyClient as ComponentType<{ children: ReactNode }>
     content = (
       <PrivyInitBoundary fallback={<>{children}</>}>
