@@ -145,45 +145,8 @@ export default function EventDetailPage() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
 
-  // Sync auth user into local state
-  useEffect(() => {
-    if (currentUserAuth) {
-      setUsername(currentUserAuth.username || null)
-      setCurrentUserId(currentUserAuth.id)
-    }
-  }, [currentUserAuth])
-
-  useEffect(() => {
-    if (eventId) {
-      loadEvent()
-    }
-  }, [eventId])
-
-  useEffect(() => {
-    // Find user's RSVP
-    if (event && currentUserId) {
-      const myRSVP = event.rsvps.find((rsvp) => rsvp.user.id === currentUserId)
-      setUserRSVP(myRSVP || null)
-      if (myRSVP) {
-        setRsvpStatus(myRSVP.status)
-        setAttendeeCount(myRSVP.attendeeCount)
-        setRsvpNotes(myRSVP.notes || '')
-      }
-    }
-  }, [event, currentUserId])
-
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
+  // Define all async handlers before any early returns so they are always
+  // initialized when useEffect callbacks fire (avoids TDZ for let-declared fns).
   const loadEvent = async () => {
     try {
       setLoading(true)
@@ -299,6 +262,45 @@ export default function EventDetailPage() {
     } finally {
       setIsCancelling(false)
     }
+  }
+
+  // Sync auth user into local state
+  useEffect(() => {
+    if (currentUserAuth) {
+      setUsername(currentUserAuth.username || null)
+      setCurrentUserId(currentUserAuth.id)
+    }
+  }, [currentUserAuth])
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent()
+    }
+  }, [eventId])
+
+  useEffect(() => {
+    // Find user's RSVP
+    if (event && currentUserId) {
+      const myRSVP = event.rsvps.find((rsvp) => rsvp.user.id === currentUserId)
+      setUserRSVP(myRSVP || null)
+      if (myRSVP) {
+        setRsvpStatus(myRSVP.status)
+        setAttendeeCount(myRSVP.attendeeCount)
+        setRsvpNotes(myRSVP.notes || '')
+      }
+    }
+  }, [event, currentUserId])
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
