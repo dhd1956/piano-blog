@@ -20,12 +20,25 @@ export async function GET(request: NextRequest) {
 
   const db = await getDb()
 
+  const now = new Date()
+
+  // When filtering by UPCOMING/COMPLETED, also constrain the date so that
+  // stale rows (status never updated after the event passed) don't bleed
+  // through. Events are not automatically transitioned in the DB.
+  const impliedDateFilter =
+    status === 'UPCOMING'
+      ? { startDate: { gte: now } }
+      : status === 'COMPLETED'
+        ? { startDate: { lt: now } }
+        : {}
+
   const where: any = {
     ...(search && {
       title: { contains: search, mode: 'insensitive' },
     }),
     ...(venueId && { venueId }),
     ...(status && { status }),
+    ...impliedDateFilter,
     ...(from || to
       ? {
           startDate: {
