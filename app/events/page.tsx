@@ -176,7 +176,7 @@ export default function EventsPage() {
     }
   }
 
-  if (authLoading || (loading && events.length === 0)) {
+  if (authLoading || (loading && pagination === null)) {
     return <EventsLoadingSkeleton />
   }
 
