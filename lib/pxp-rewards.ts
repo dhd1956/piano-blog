@@ -85,8 +85,11 @@ export async function awardReferralProfileCompleted(userId: number): Promise<{
       },
     })
 
-    // Check if user was referred and hasn't already received this reward
-    if (!user?.referredBy || !user.referredByUser || user.profileCompleted) {
+    // Check if user was referred. profileCompleted is intentionally NOT checked
+    // here — by the time this function runs, the DB update has already set it
+    // to true, so checking it would always block the award. The caller
+    // (profile PATCH route) already gates on !wasProfileCompleted.
+    if (!user?.referredBy || !user.referredByUser) {
       return { success: false, pxpAwarded: 0 }
     }
 
