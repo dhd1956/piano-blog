@@ -38,6 +38,10 @@ function notificationIcon(type: string): string {
       return '📅'
     case 'EVENT_CANCELLED':
       return '🚫'
+    case 'COLLABORATION_REQUEST':
+      return '🤝'
+    case 'COLLABORATION_MESSAGE':
+      return '💬'
     default:
       return '🔔'
   }

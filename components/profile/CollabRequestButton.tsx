@@ -5,12 +5,14 @@ import { useAuth } from '@/context/AuthContext'
 
 interface CollabRequestButtonProps {
   recipientAddress: string
+  recipientId?: number
   recipientName?: string
   className?: string
 }
 
 export default function CollabRequestButton({
   recipientAddress,
+  recipientId,
   recipientName,
   className = '',
 }: CollabRequestButtonProps) {
@@ -19,6 +21,7 @@ export default function CollabRequestButton({
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [alreadySent, setAlreadySent] = useState(false)
+  const [sessionId, setSessionId] = useState<number | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
 
   // Don't render if not authenticated or viewing own profile
@@ -33,7 +36,11 @@ export default function CollabRequestButton({
       const res = await fetch('/api/collaborate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientAddress, message: message.trim() }),
+        body: JSON.stringify({
+          recipientAddress,
+          ...(recipientId && { recipientId }),
+          message: message.trim(),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -42,6 +49,7 @@ export default function CollabRequestButton({
         return
       }
       setAlreadySent(!!data.alreadySent)
+      setSessionId(data.sessionId ?? null)
       setStatus('sent')
     } catch {
       setErrorMsg('Network error — please try again')
@@ -55,6 +63,7 @@ export default function CollabRequestButton({
     setStatus('idle')
     setErrorMsg('')
     setAlreadySent(false)
+    setSessionId(null)
   }
 
   return (
@@ -82,12 +91,19 @@ export default function CollabRequestButton({
                 <div className="mb-2 text-3xl">✅</div>
                 <p className="font-medium text-teal-800 dark:text-teal-300">Request sent!</p>
                 <p className="mt-1 text-sm text-teal-700 dark:text-teal-400">
-                  {recipientName || 'They'} will see your notification and can visit your profile to
-                  get in touch.
+                  {recipientName || 'They'} will receive a notification and can reply in the thread.
                 </p>
+                {sessionId && (
+                  <a
+                    href={`/messages/${sessionId}`}
+                    className="mt-3 inline-block rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+                  >
+                    Open conversation →
+                  </a>
+                )}
                 {alreadySent && (
                   <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                    Note: you've already sent a request today — allow some time for a response.
+                    Note: a conversation with this musician already exists.
                   </p>
                 )}
               </div>

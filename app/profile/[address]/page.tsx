@@ -344,6 +344,7 @@ export default function ProfilePage() {
               {profile.walletAddress && (
                 <CollabRequestButton
                   recipientAddress={profile.walletAddress}
+                  recipientId={profile.id}
                   recipientName={profile.displayName || profile.username}
                 />
               )}
