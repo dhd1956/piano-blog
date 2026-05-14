@@ -264,6 +264,7 @@ export default function SeriesDetailPage() {
   const formatEventDateTime = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
+      timeZone: 'UTC',
       weekday: 'short',
       month: 'short',
       day: 'numeric',

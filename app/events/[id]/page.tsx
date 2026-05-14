@@ -366,6 +366,7 @@ export default function EventDetailPage() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
+      timeZone: 'UTC',
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -376,6 +377,7 @@ export default function EventDetailPage() {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleTimeString('en-US', {
+      timeZone: 'UTC',
       hour: 'numeric',
       minute: '2-digit',
     })
