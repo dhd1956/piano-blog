@@ -242,7 +242,9 @@ export default function SeriesDetailPage() {
     series.organizer.displayName || series.organizer.username || 'Anonymous Organizer'
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    // Parse only the date part to avoid UTC midnight shifting the day backward in local timezones
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number)
+    const date = new Date(year, month - 1, day)
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',

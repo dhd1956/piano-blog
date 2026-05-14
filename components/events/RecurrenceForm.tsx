@@ -125,14 +125,15 @@ export default function RecurrenceForm({
               Create a series of repeating events
             </p>
           </div>
-          <label className="relative inline-flex cursor-pointer items-center">
+          <label className="relative inline-flex cursor-pointer items-center gap-2">
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Off</span>
             <input
               type="checkbox"
               checked={isRecurring}
               onChange={(e) => onRecurringChange(e.target.checked)}
               className="peer sr-only"
             />
-            <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
+            <div className="peer relative h-6 w-11 rounded-full bg-gray-200 ring-1 ring-gray-400 peer-checked:bg-blue-600 peer-checked:ring-0 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-gray-700 dark:ring-gray-500 dark:peer-focus:ring-blue-800"></div>
           </label>
         </div>
       </div>
@@ -148,14 +149,15 @@ export default function RecurrenceForm({
             This event will repeat based on your settings
           </p>
         </div>
-        <label className="relative inline-flex cursor-pointer items-center">
+        <label className="relative inline-flex cursor-pointer items-center gap-2">
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">On</span>
           <input
             type="checkbox"
             checked={isRecurring}
             onChange={(e) => onRecurringChange(e.target.checked)}
             className="peer sr-only"
           />
-          <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
+          <div className="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-checked:ring-0 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
         </label>
       </div>
 
