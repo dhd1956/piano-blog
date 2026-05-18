@@ -29,6 +29,8 @@ export interface Venue {
   id: number
   name: string
   city: string
+  province?: string | null
+  country?: string | null
   fullAddress: string
   hasPiano: boolean
   hasJamSession: boolean
@@ -150,6 +152,8 @@ export interface VenueSubmissionForm {
   // Basic information
   name: string
   city: string
+  province?: string
+  country?: string
   fullAddress: string
   venueType: number
   contactType: string

@@ -17,6 +17,8 @@ model Venue {
   // Basic venue information
   name         String
   city         String
+  province     String?          // Province or state (e.g. "Ontario", "New York")
+  country      String?          // Country (e.g. "Canada", "United States")
   contactInfo  String
   contactType  String   @default("email")
   submittedBy  String   // Wallet address of scout

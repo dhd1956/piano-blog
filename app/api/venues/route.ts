@@ -92,6 +92,8 @@ export async function POST(request: NextRequest) {
     const venue = await VenueService.createVenue({
       name: body.name.trim(),
       city: body.city.trim(),
+      province: body.province?.trim() || undefined,
+      country: body.country?.trim() || undefined,
       contactInfo: body.contactInfo,
       contactType: body.contactType || 'email',
       submittedBy: body.submittedBy.toLowerCase(),

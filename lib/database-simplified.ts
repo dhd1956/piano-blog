@@ -293,6 +293,8 @@ export const VenueService = {
   async createVenue(data: {
     name: string
     city: string
+    province?: string
+    country?: string
     contactInfo: string
     contactType?: string
     submittedBy: string

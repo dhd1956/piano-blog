@@ -29,6 +29,8 @@ export default function VenueEditForm({
   const [formData, setFormData] = useState<VenueUpdateForm>({
     name: venue.name,
     city: venue.city,
+    province: venue.province || '',
+    country: venue.country || 'Canada',
     fullAddress: venue.fullAddress,
     venueType: venue.venueType,
     contactType: venue.contactType,
@@ -67,6 +69,8 @@ export default function VenueEditForm({
     setFormData({
       name: venue.name,
       city: venue.city,
+      province: venue.province || '',
+      country: venue.country || 'Canada',
       fullAddress: venue.fullAddress,
       venueType: venue.venueType,
       contactType: venue.contactType,
@@ -133,6 +137,8 @@ export default function VenueEditForm({
         body: JSON.stringify({
           venueName: formData.name,
           city: formData.city,
+          province: formData.province,
+          country: formData.country,
         }),
       })
 
@@ -234,6 +240,33 @@ export default function VenueEditForm({
               maxLength={32}
               placeholder="Toronto"
             />
+          </FormField>
+        </div>
+
+        {/* Province / State and Country */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField label="Province / State">
+            <input
+              type="text"
+              value={formData.province || ''}
+              onChange={(e) => handleInputChange('province', e.target.value)}
+              className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              placeholder="e.g., Ontario"
+            />
+          </FormField>
+          <FormField label="Country">
+            <select
+              value={formData.country || 'Canada'}
+              onChange={(e) => handleInputChange('country', e.target.value)}
+              className="focus:ring-primary-500 focus:border-primary-500 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="Canada">Canada</option>
+              <option value="United States">United States</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="Ireland">Ireland</option>
+              <option value="Australia">Australia</option>
+              <option value="Other">Other</option>
+            </select>
           </FormField>
         </div>
 

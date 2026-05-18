@@ -8,6 +8,8 @@ import { VENUE_TYPES } from '@/types/venue'
 interface VenueFormData {
   name: string
   city: string
+  province: string
+  country: string
   email: string
   phone: string
   website: string
@@ -26,6 +28,8 @@ export default function SubmitVenue() {
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
     city: '',
+    province: 'Ontario',
+    country: 'Canada',
     email: '',
     phone: '',
     website: '',
@@ -91,6 +95,8 @@ export default function SubmitVenue() {
         body: JSON.stringify({
           venueName: formData.name,
           city: formData.city,
+          province: formData.province,
+          country: formData.country,
         }),
       })
 
@@ -250,6 +256,8 @@ export default function SubmitVenue() {
         body: JSON.stringify({
           name: formData.name,
           city: formData.city,
+          province: formData.province,
+          country: formData.country,
           contactInfo: formData.email || formData.phone || websiteUrl || '',
           email: formData.email,
           phone: formData.phone,
@@ -279,6 +287,8 @@ export default function SubmitVenue() {
         setFormData({
           name: '',
           city: '',
+          province: 'Ontario',
+          country: 'Canada',
           email: '',
           phone: '',
           website: '',
@@ -448,6 +458,37 @@ export default function SubmitVenue() {
               {fieldErrors.city && (
                 <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.city}</p>
               )}
+            </div>
+          </div>
+
+          {/* Province / State and Country */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Province / State
+              </label>
+              <input
+                type="text"
+                value={formData.province}
+                onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Ontario"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
+              <select
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Canada">Canada</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Ireland">Ireland</option>
+                <option value="Australia">Australia</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
           </div>
 

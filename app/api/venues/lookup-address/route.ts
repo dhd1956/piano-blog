@@ -51,7 +51,7 @@ interface NominatimResult {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { venueName, city } = body
+    const { venueName, city, province, country } = body
 
     // Validation
     if (!venueName || !city) {
@@ -61,15 +61,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Query OpenStreetMap Nominatim API
-    const searchQuery = `${venueName}, ${city}`
+    // Build search query including province/country for disambiguation
+    const searchParts = [venueName, city]
+    if (province) searchParts.push(province)
+    if (country) searchParts.push(country)
+    const searchQuery = searchParts.join(', ')
+
+    // Map country name to ISO 3166-1 alpha-2 code for Nominatim
+    const countryCodeMap: Record<string, string> = {
+      canada: 'ca',
+      'united states': 'us',
+      usa: 'us',
+      'united kingdom': 'gb',
+      uk: 'gb',
+      ireland: 'ie',
+      australia: 'au',
+    }
+    const countryCode = country ? countryCodeMap[country.toLowerCase()] : 'ca'
+
     const nominatimUrl = new URL('https://nominatim.openstreetmap.org/search')
     nominatimUrl.searchParams.set('q', searchQuery)
     nominatimUrl.searchParams.set('format', 'json')
     nominatimUrl.searchParams.set('addressdetails', '1')
     nominatimUrl.searchParams.set('extratags', '1') // Get phone, website, email, etc.
     nominatimUrl.searchParams.set('limit', '1')
-    nominatimUrl.searchParams.set('countrycodes', 'ca')
+    if (countryCode) nominatimUrl.searchParams.set('countrycodes', countryCode)
 
     const response = await fetch(nominatimUrl.toString(), {
       headers: {
