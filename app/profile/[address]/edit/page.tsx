@@ -52,6 +52,8 @@ export default function ProfileEditPage() {
   const [email, setEmail] = useState('')
   const [bio, setBio] = useState('')
   const [location, setLocation] = useState('')
+  const [province, setProvince] = useState('')
+  const [country, setCountry] = useState('Canada')
   const [title, setTitle] = useState('')
 
   // Musician profile fields (WPB-109 through WPB-114)
@@ -97,6 +99,8 @@ export default function ProfileEditPage() {
       email,
       bio,
       location,
+      province,
+      country,
       title,
       instruments,
       musicalStyles,
@@ -120,6 +124,8 @@ export default function ProfileEditPage() {
     email,
     bio,
     location,
+    province,
+    country,
     title,
     instruments,
     musicalStyles,
@@ -149,6 +155,8 @@ export default function ProfileEditPage() {
       if (d.email !== undefined) setEmail(d.email)
       if (d.bio !== undefined) setBio(d.bio)
       if (d.location !== undefined) setLocation(d.location)
+      if (d.province !== undefined) setProvince(d.province)
+      if (d.country !== undefined) setCountry(d.country)
       if (d.title !== undefined) setTitle(d.title)
       if (d.instruments) setInstruments(d.instruments)
       if (d.musicalStyles) setMusicalStyles(d.musicalStyles)
@@ -201,6 +209,8 @@ export default function ProfileEditPage() {
       setEmail(data.profile.email || '')
       setBio(data.profile.bio || '')
       setLocation(data.profile.location || '')
+      setProvince(data.profile.province || '')
+      setCountry(data.profile.country || 'Canada')
       setTitle(data.profile.title || '')
       setAlreadyEarnedPXP(data.profile.profileCompleted || false)
 
@@ -298,6 +308,8 @@ export default function ProfileEditPage() {
           email,
           bio,
           location,
+          province,
+          country,
           title,
           profileCompleted: isProfileComplete, // Trigger PXP rewards if newly complete
           // Musician profile fields
@@ -687,14 +699,131 @@ export default function ProfileEditPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Location</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">City</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-                placeholder="City, Country"
+                placeholder="Aurora"
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Country</label>
+                <select
+                  value={country}
+                  onChange={(e) => {
+                    setCountry(e.target.value)
+                    setProvince('')
+                  }}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">Select country…</option>
+                  <option value="Canada">Canada</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Ireland">Ireland</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {country === 'United States' ? 'State' : 'Province'}
+                </label>
+                {country === 'Canada' && (
+                  <select
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">Select province…</option>
+                    <option value="Alberta">Alberta</option>
+                    <option value="British Columbia">British Columbia</option>
+                    <option value="Manitoba">Manitoba</option>
+                    <option value="New Brunswick">New Brunswick</option>
+                    <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                    <option value="Northwest Territories">Northwest Territories</option>
+                    <option value="Nova Scotia">Nova Scotia</option>
+                    <option value="Nunavut">Nunavut</option>
+                    <option value="Ontario">Ontario</option>
+                    <option value="Prince Edward Island">Prince Edward Island</option>
+                    <option value="Quebec">Quebec</option>
+                    <option value="Saskatchewan">Saskatchewan</option>
+                    <option value="Yukon">Yukon</option>
+                  </select>
+                )}
+                {country === 'United States' && (
+                  <select
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">Select state…</option>
+                    <option value="Alabama">Alabama</option>
+                    <option value="Alaska">Alaska</option>
+                    <option value="Arizona">Arizona</option>
+                    <option value="Arkansas">Arkansas</option>
+                    <option value="California">California</option>
+                    <option value="Colorado">Colorado</option>
+                    <option value="Connecticut">Connecticut</option>
+                    <option value="Delaware">Delaware</option>
+                    <option value="Florida">Florida</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Hawaii">Hawaii</option>
+                    <option value="Idaho">Idaho</option>
+                    <option value="Illinois">Illinois</option>
+                    <option value="Indiana">Indiana</option>
+                    <option value="Iowa">Iowa</option>
+                    <option value="Kansas">Kansas</option>
+                    <option value="Kentucky">Kentucky</option>
+                    <option value="Louisiana">Louisiana</option>
+                    <option value="Maine">Maine</option>
+                    <option value="Maryland">Maryland</option>
+                    <option value="Massachusetts">Massachusetts</option>
+                    <option value="Michigan">Michigan</option>
+                    <option value="Minnesota">Minnesota</option>
+                    <option value="Mississippi">Mississippi</option>
+                    <option value="Missouri">Missouri</option>
+                    <option value="Montana">Montana</option>
+                    <option value="Nebraska">Nebraska</option>
+                    <option value="Nevada">Nevada</option>
+                    <option value="New Hampshire">New Hampshire</option>
+                    <option value="New Jersey">New Jersey</option>
+                    <option value="New Mexico">New Mexico</option>
+                    <option value="New York">New York</option>
+                    <option value="North Carolina">North Carolina</option>
+                    <option value="North Dakota">North Dakota</option>
+                    <option value="Ohio">Ohio</option>
+                    <option value="Oklahoma">Oklahoma</option>
+                    <option value="Oregon">Oregon</option>
+                    <option value="Pennsylvania">Pennsylvania</option>
+                    <option value="Rhode Island">Rhode Island</option>
+                    <option value="South Carolina">South Carolina</option>
+                    <option value="South Dakota">South Dakota</option>
+                    <option value="Tennessee">Tennessee</option>
+                    <option value="Texas">Texas</option>
+                    <option value="Utah">Utah</option>
+                    <option value="Vermont">Vermont</option>
+                    <option value="Virginia">Virginia</option>
+                    <option value="Washington">Washington</option>
+                    <option value="West Virginia">West Virginia</option>
+                    <option value="Wisconsin">Wisconsin</option>
+                    <option value="Wyoming">Wyoming</option>
+                  </select>
+                )}
+                {country !== 'Canada' && country !== 'United States' && (
+                  <input
+                    type="text"
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
+                    placeholder="Province / State"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>

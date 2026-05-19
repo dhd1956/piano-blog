@@ -24,6 +24,8 @@ interface UserProfile {
   bio?: string
   avatar?: string
   location?: string
+  province?: string
+  country?: string
   profileSlug?: string
   title?: string
   skills?: string[]
@@ -282,8 +284,11 @@ export default function ProfilePage() {
 
             {profile.title && <p className="mb-2 text-lg text-gray-600">{profile.title}</p>}
 
-            {profile.location && (
-              <p className="mb-3 text-sm text-gray-500">📍 {profile.location}</p>
+            {(profile.location || profile.province || profile.country) && (
+              <p className="mb-3 text-sm text-gray-500">
+                📍{' '}
+                {[profile.location, profile.province, profile.country].filter(Boolean).join(', ')}
+              </p>
             )}
 
             {profile.ensName && (

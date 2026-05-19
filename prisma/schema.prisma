@@ -129,7 +129,9 @@ model User {
   email          String?  @unique
   bio            String?  @db.Text
   avatar         String?  // IPFS hash or URL
-  location       String?
+  location       String?  // City
+  province       String?  // Province or state (e.g. "Ontario", "New York")
+  country        String?  // Country (e.g. "Canada", "United States")
   profileSlug    String?  @unique // Custom URL slug for profile
 
   // Professional info

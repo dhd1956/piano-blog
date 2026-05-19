@@ -22,7 +22,19 @@ export async function PATCH(request: NextRequest) {
     // Get the authenticated user (if using auth middleware)
     // For now, we'll accept userId in the body or from session
     const body = await request.json()
-    const { userId, displayName, location, bio, email, avatar, title, skills, socialLinks } = body
+    const {
+      userId,
+      displayName,
+      location,
+      province,
+      country,
+      bio,
+      email,
+      avatar,
+      title,
+      skills,
+      socialLinks,
+    } = body
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
@@ -32,6 +44,8 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {}
     if (displayName !== undefined) updateData.displayName = displayName
     if (location !== undefined) updateData.location = location
+    if (province !== undefined) updateData.province = province
+    if (country !== undefined) updateData.country = country
     if (bio !== undefined) updateData.bio = bio
     if (email !== undefined) updateData.email = email
     if (avatar !== undefined) updateData.avatar = avatar
