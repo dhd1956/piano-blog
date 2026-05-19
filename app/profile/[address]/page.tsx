@@ -81,6 +81,7 @@ export default function ProfilePage() {
   const [showYouTubeSection, setShowYouTubeSection] = useState(false)
   const [hasYouTubeContent, setHasYouTubeContent] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
+  const [canEditProfile, setCanEditProfile] = useState(false)
   const [venuesDiscovered, setVenuesDiscovered] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
   const [showMergeDialog, setShowMergeDialog] = useState(false)
@@ -173,8 +174,8 @@ export default function ProfilePage() {
           currentUser.walletAddress?.toLowerCase() === blogOwner ||
           connectedAddress?.toLowerCase() === blogOwner
 
-        // Allow editing if it's own profile OR if user is blog owner
-        setIsOwnProfile(isProfileOwner || isBlogOwner)
+        setIsOwnProfile(isProfileOwner)
+        setCanEditProfile(isProfileOwner || isBlogOwner)
 
         // Check for potential account merge
         // Only check if viewing own profile and user has email
@@ -219,7 +220,7 @@ export default function ProfilePage() {
   }
 
   // Check privacy settings
-  if (!profile.publicProfile && !isOwnProfile) {
+  if (!profile.publicProfile && !canEditProfile) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-16">
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-8 text-center">
@@ -348,7 +349,7 @@ export default function ProfilePage() {
                   recipientName={profile.displayName || profile.username}
                 />
               )}
-              {isOwnProfile && (
+              {canEditProfile && (
                 <button
                   onClick={() => (window.location.href = `/profile/${address}/edit`)}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
@@ -374,7 +375,7 @@ export default function ProfilePage() {
       {/* Stats Grid */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* PXP Earned */}
-        {(profile.showPXPBalance || isOwnProfile) && (
+        {(profile.showPXPBalance || canEditProfile) && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 text-center">
             <div className="mb-2 text-4xl font-bold text-blue-900">
               {profile.totalPXPEarned.toLocaleString()}
