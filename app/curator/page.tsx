@@ -12,6 +12,8 @@ interface Venue {
   slug: string
   name: string
   city: string
+  province?: string
+  country?: string
   contactInfo: string
   hasPiano: boolean
   verified: boolean
@@ -653,7 +655,10 @@ export default function CuratorDashboard() {
                       </div>
 
                       <div className="space-y-1 text-gray-600">
-                        <p className="break-words">📍 {venue.city}</p>
+                        <p className="break-words">
+                          📍{' '}
+                          {[venue.city, venue.province, venue.country].filter(Boolean).join(', ')}
+                        </p>
                         <p className="break-words">📞 {venue.contactInfo}</p>
                         {venue.hasPiano && <p>🎹 Has Piano Available</p>}
                         {venue.description && (
@@ -1024,7 +1029,12 @@ export default function CuratorDashboard() {
                     <div className="rounded-lg bg-gray-50 p-4">
                       <h3 className="text-lg font-semibold">{selectedVenue.name}</h3>
                       <div className="mt-2 space-y-2">
-                        <p className="text-gray-600">📍 {selectedVenue.city}</p>
+                        <p className="text-gray-600">
+                          📍{' '}
+                          {[selectedVenue.city, selectedVenue.province, selectedVenue.country]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
                         <p className="text-gray-600">📞 {selectedVenue.contactInfo}</p>
                         {selectedVenue.hasPiano && (
                           <p className="text-blue-600">🎹 Has Piano Available</p>
