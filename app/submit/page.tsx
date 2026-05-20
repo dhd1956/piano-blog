@@ -163,13 +163,27 @@ export default function SubmitVenue() {
     const submittedBy = user.walletAddress || user.username || `user_${user.id}`
 
     // Validate required fields with specific error messages
-    const errors: { name?: string; city?: string; address?: string } = {}
+    const errors: {
+      name?: string
+      city?: string
+      country?: string
+      province?: string
+      address?: string
+    } = {}
 
     if (!formData.name || !formData.name.trim()) {
       errors.name = 'Venue name is required'
     }
     if (!formData.city || !formData.city.trim()) {
       errors.city = 'City is required'
+    }
+    if (!formData.country || !formData.country.trim()) {
+      errors.country = 'Country is required'
+    }
+    if (formData.country === 'Canada' || formData.country === 'United States') {
+      if (!formData.province || !formData.province.trim()) {
+        errors.province = 'Province / State is required'
+      }
     }
     if (!formData.address || !formData.address.trim()) {
       errors.address = 'Full address is required'
@@ -480,6 +494,9 @@ export default function SubmitVenue() {
                 <option value="Australia">Australia</option>
                 <option value="Other">Other</option>
               </select>
+              {fieldErrors.country && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.country}</p>
+              )}
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -574,6 +591,9 @@ export default function SubmitVenue() {
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
                   placeholder="Province / State / Region"
                 />
+              )}
+              {fieldErrors.province && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.province}</p>
               )}
             </div>
           </div>
