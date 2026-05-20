@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
     const ext = file.type.split('/')[1].replace('jpeg', 'jpg')
     const path = `${requester.id}/${Date.now()}.${ext}`
 
-    console.log('🪣 Uploading to bucket:', BUCKET, 'at URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
     const arrayBuffer = await file.arrayBuffer()
     const { error: uploadError } = await supabaseAdmin.storage
       .from(BUCKET)
@@ -59,12 +58,7 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError)
-      return NextResponse.json(
-        {
-          error: `Upload failed: ${uploadError.message} (url: ${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'NOT SET'})`,
-        },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 })
     }
 
     const { data: urlData } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path)
