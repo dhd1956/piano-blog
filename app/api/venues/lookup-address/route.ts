@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       ireland: 'ie',
       australia: 'au',
     }
-    const countryCode = country ? countryCodeMap[country.toLowerCase()] : 'ca'
+    const countryCode = country ? countryCodeMap[country.toLowerCase()] : undefined
 
     const nominatimUrl = new URL('https://nominatim.openstreetmap.org/search')
     nominatimUrl.searchParams.set('q', searchQuery)

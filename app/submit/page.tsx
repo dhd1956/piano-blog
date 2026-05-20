@@ -28,8 +28,8 @@ export default function SubmitVenue() {
   const [formData, setFormData] = useState<VenueFormData>({
     name: '',
     city: '',
-    province: 'Ontario',
-    country: 'Canada',
+    province: '',
+    country: '',
     email: '',
     phone: '',
     website: '',
@@ -287,8 +287,8 @@ export default function SubmitVenue() {
         setFormData({
           name: '',
           city: '',
-          province: 'Ontario',
-          country: 'Canada',
+          province: '',
+          country: '',
           email: '',
           phone: '',
           website: '',
@@ -472,6 +472,7 @@ export default function SubmitVenue() {
                 }
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
               >
+                <option value="">Select country…</option>
                 <option value="Canada">Canada</option>
                 <option value="United States">United States</option>
                 <option value="United Kingdom">United Kingdom</option>
