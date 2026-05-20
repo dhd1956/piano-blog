@@ -49,6 +49,8 @@ export default function SubmitVenue() {
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string
     city?: string
+    country?: string
+    province?: string
     address?: string
   }>({})
   const [isLookingUpAddress, setIsLookingUpAddress] = useState(false)
