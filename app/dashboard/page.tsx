@@ -236,6 +236,7 @@ export default async function DashboardPage() {
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {new Date(rsvp.event.startDate).toLocaleDateString('en-US', {
+                        timeZone: 'UTC',
                         weekday: 'long',
                         month: 'long',
                         day: 'numeric',

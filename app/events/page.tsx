@@ -72,6 +72,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -82,6 +83,7 @@ const formatDate = (dateString: string) => {
 const formatTime = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleTimeString('en-US', {
+    timeZone: 'UTC',
     hour: 'numeric',
     minute: '2-digit',
   })

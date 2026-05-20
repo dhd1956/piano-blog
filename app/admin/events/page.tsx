@@ -33,6 +33,7 @@ const STATUS_COLOURS: Record<EventStatus, string> = {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-CA', {
+    timeZone: 'UTC',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
