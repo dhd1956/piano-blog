@@ -327,9 +327,10 @@ export default function ProfileEditPage() {
       // Upload avatar if a new file was selected
       if (avatarFile) {
         const uploadedUrl = await uploadAvatar(requesterAddress)
-        if (uploadedUrl) setAvatarUrl(uploadedUrl)
-        else {
-          setError('Avatar upload failed — profile not saved')
+        if (uploadedUrl) {
+          setAvatarUrl(uploadedUrl)
+        } else {
+          setError(`Avatar upload failed — profile not saved`)
           setSaving(false)
           return
         }
