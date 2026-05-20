@@ -47,6 +47,13 @@ export default function ProfileEditPage() {
     }
   }, [error, success])
 
+  // Avatar upload
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+
   // User profile fields
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -208,6 +215,7 @@ export default function ProfileEditPage() {
       setDisplayName(data.profile.displayName || '')
       setEmail(data.profile.email || '')
       setBio(data.profile.bio || '')
+      setAvatarUrl(data.profile.avatar || '')
       setLocation(data.profile.location || '')
       setProvince(data.profile.province || '')
       setCountry(data.profile.country || 'Canada')
@@ -267,6 +275,38 @@ export default function ProfileEditPage() {
     }
   }
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarError('')
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setAvatarError('Only JPEG, PNG, WebP, or GIF images are allowed')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Image must be under 2 MB')
+      return
+    }
+    setAvatarFile(file)
+    setAvatarPreview(URL.createObjectURL(file))
+  }
+
+  const uploadAvatar = async (requesterAddress: string): Promise<string | null> => {
+    if (!avatarFile) return null
+    setAvatarUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', avatarFile)
+      fd.append('requesterAddress', requesterAddress)
+      const res = await fetch('/api/profile/avatar', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      return data.url as string
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
   const handleSave = async () => {
     try {
       setSaving(true)
@@ -283,6 +323,17 @@ export default function ProfileEditPage() {
       // Use wallet address if available, otherwise use username or user ID
       const requesterAddress =
         currentUser.walletAddress || currentUser.username || String(currentUser.id)
+
+      // Upload avatar if a new file was selected
+      if (avatarFile) {
+        const uploadedUrl = await uploadAvatar(requesterAddress)
+        if (uploadedUrl) setAvatarUrl(uploadedUrl)
+        else {
+          setError('Avatar upload failed — profile not saved')
+          setSaving(false)
+          return
+        }
+      }
 
       // Determine if profile is complete (for PXP rewards)
       // Base requirements for all users:
@@ -307,6 +358,7 @@ export default function ProfileEditPage() {
           displayName,
           email,
           bio,
+          avatar: avatarUrl || undefined,
           location,
           province,
           country,
@@ -639,6 +691,41 @@ export default function ProfileEditPage() {
           <h2 className="mb-4 text-xl font-bold text-gray-900">Basic Information</h2>
 
           <div className="space-y-4">
+            {/* Avatar upload */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Profile Photo</label>
+              <div className="flex items-center gap-4">
+                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-gray-300 bg-gray-100">
+                  {avatarPreview || avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarPreview || avatarUrl}
+                      alt="Avatar preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-3xl text-gray-400">
+                      👤
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="cursor-pointer rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    {avatarUploading ? 'Uploading…' : 'Choose Photo'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={avatarUploading}
+                    />
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">JPEG, PNG, WebP or GIF — max 2 MB</p>
+                  {avatarError && <p className="mt-1 text-xs text-red-600">{avatarError}</p>}
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Display Name</label>
               <input
