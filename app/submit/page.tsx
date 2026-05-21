@@ -480,7 +480,7 @@ export default function SubmitVenue() {
           {/* Province / State and Country */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Country *</label>
               <select
                 value={formData.country}
                 onChange={(e) =>
@@ -502,7 +502,7 @@ export default function SubmitVenue() {
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                {formData.country === 'United States' ? 'State' : 'Province'}
+                {formData.country === 'United States' ? 'State *' : 'Province *'}
               </label>
               {formData.country === 'Canada' && (
                 <select
