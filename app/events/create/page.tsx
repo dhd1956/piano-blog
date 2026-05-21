@@ -141,8 +141,8 @@ export default function CreateEventPage() {
       }
 
       // Combine date and time
-      const startDateTime = new Date(`${startDate}T${startTime}`)
-      const endDateTime = new Date(`${endDate}T${endTime}`)
+      const startDateTime = new Date(`${startDate}T${startTime}:00Z`)
+      const endDateTime = new Date(`${endDate}T${endTime}:00Z`)
 
       if (startDateTime >= endDateTime) {
         setError('End date/time must be after start date/time')
