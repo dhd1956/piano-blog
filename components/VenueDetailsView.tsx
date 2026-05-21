@@ -71,9 +71,8 @@ function VenueHeader({ venue }: { venue: Venue }) {
       </div>
 
       <div className="mb-4 text-lg text-gray-600 dark:text-gray-300">
-        📍 {venue.city}
-        {venue.province ? `, ${venue.province}` : ''}
-        {venue.country ? ` • ${venue.country}` : ''} • {VENUE_TYPES[venue.venueType] || 'Cafe'}
+        📍 {[venue.city, venue.province, venue.country].filter(Boolean).join(', ')} •{' '}
+        {VENUE_TYPES[venue.venueType] || 'Cafe'}
       </div>
 
       {/* Features */}
@@ -101,9 +100,10 @@ function VenueInformation({ venue }: { venue: Venue }) {
       </h3>
       <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         <InfoRow label="Type" value={VENUE_TYPES[venue.venueType] || 'Cafe'} />
-        <InfoRow label="City" value={venue.city} />
-        {venue.province && <InfoRow label="Province / State" value={venue.province} />}
-        {venue.country && <InfoRow label="Country" value={venue.country} />}
+        <InfoRow
+          label="Location"
+          value={[venue.city, venue.province, venue.country].filter(Boolean).join(', ')}
+        />
       </div>
     </div>
   )
