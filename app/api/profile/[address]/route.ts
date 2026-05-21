@@ -283,6 +283,8 @@ export async function PATCH(
       select: {
         id: true,
         walletAddress: true,
+        email: true,
+        username: true,
         profileCompleted: true,
         musicianProfileCompleted: true,
         role: true,
@@ -376,6 +378,32 @@ export async function PATCH(
       }
     }
 
+    // Auto-generate a username if the user doesn't have one and none was provided
+    let resolvedUsername: string | undefined = body.username || undefined
+    if (!resolvedUsername && !user.username) {
+      const base = user.email
+        ? user.email
+            .split('@')[0]
+            .replace(/[^a-zA-Z0-9_]/g, '_')
+            .slice(0, 18)
+            .padEnd(3, '0')
+        : `user_${(user.walletAddress ?? '').slice(2, 8).toLowerCase()}`
+      let candidate = base
+      let suffix = 2
+      while (true) {
+        const taken = await db.user.findFirst({
+          where: { username: { equals: candidate, mode: 'insensitive' }, id: { not: user.id } },
+          select: { id: true },
+        })
+        if (!taken) {
+          resolvedUsername = candidate
+          break
+        }
+        candidate =
+          suffix <= 99 ? `${base}_${suffix++}` : `${base}_${Math.floor(Math.random() * 9999)}`
+      }
+    }
+
     // Update user profile using the user's primary key (id)
     const wasProfileCompleted = user.profileCompleted
     const wasMusicianProfileCompleted = user.musicianProfileCompleted
@@ -384,7 +412,7 @@ export async function PATCH(
         id: user.id,
       },
       data: {
-        username: body.username,
+        username: resolvedUsername,
         displayName: body.displayName,
         email: body.email,
         bio: body.bio,

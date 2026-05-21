@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useWallets } from '@privy-io/react-auth'
 import { useAuth } from '@/context/AuthContext'
 
-const TOTAL_STEPS = 4
+const TOTAL_STEPS = 3
 
 const COLLAB_TYPES = [
   { value: 'LYRICS', label: 'Lyrics' },
@@ -44,25 +44,17 @@ const inputClass =
   'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:ring-purple-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
 const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-300'
 
-function emailToUsername(email: string | null): string {
-  if (!email) return ''
-  const local = email.split('@')[0]
-  // Keep only allowed chars, clamp to 20
-  return local.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 20)
-}
-
 export default function ProfileSetupPage() {
   const router = useRouter()
   const { wallets } = useWallets()
   const address = wallets[0]?.address
-  const { isAuthenticated, isLoading, user } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
-    username: emailToUsername(user?.email ?? null),
     displayName: '',
     bio: '',
     location: '',
@@ -82,13 +74,6 @@ export default function ProfileSetupPage() {
       router.push('/auth/login')
     }
   }, [isAuthenticated, isLoading, router])
-
-  // Pre-fill username from email once user data loads, but only if still empty
-  useEffect(() => {
-    if (user?.email && !formData.username) {
-      setFormData((prev) => ({ ...prev, username: emailToUsername(user.email) }))
-    }
-  }, [user?.email]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -111,18 +96,6 @@ export default function ProfileSetupPage() {
         ? prev.instruments.filter((i) => i !== instrument)
         : [...prev.instruments, instrument],
     }))
-  }
-
-  const validateUsername = (): boolean => {
-    if (!formData.username.trim()) {
-      setError('Username is required')
-      return false
-    }
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
-      setError('Username must be 3-20 characters (letters, numbers, underscore only)')
-      return false
-    }
-    return true
   }
 
   const advance = () => {
@@ -213,49 +186,8 @@ export default function ProfileSetupPage() {
             </div>
           )}
 
-          {/* Step 1: Username */}
+          {/* Step 1: Display Name & Location */}
           {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Choose your username
-                </h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  This is how other musicians will find you
-                </p>
-              </div>
-              <div>
-                <label htmlFor="username" className={labelClass}>
-                  Username *
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="pianoplayer123"
-                  className={inputClass}
-                  required
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  3-20 characters, letters, numbers, and underscore only
-                </p>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => validateUsername() && advance()}
-                  disabled={!formData.username.trim()}
-                  className={btnPrimary}
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Display Name & Location */}
-          {step === 2 && (
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -408,30 +340,19 @@ export default function ProfileSetupPage() {
                   )}
                 </div>
               </div>
-              <div className="flex justify-between gap-3">
-                <button
-                  onClick={() => {
-                    setStep(1)
-                    setError('')
-                  }}
-                  className={btnSecondary}
-                >
-                  Back
+              <div className="flex justify-end gap-3">
+                <button onClick={advance} className={btnSecondary}>
+                  Skip
                 </button>
-                <div className="flex gap-3">
-                  <button onClick={advance} className={btnSecondary}>
-                    Skip
-                  </button>
-                  <button onClick={advance} className={btnPrimary}>
-                    Continue
-                  </button>
-                </div>
+                <button onClick={advance} className={btnPrimary}>
+                  Continue
+                </button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Bio */}
-          {step === 3 && (
+          {/* Step 2: Bio */}
+          {step === 2 && (
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -461,7 +382,7 @@ export default function ProfileSetupPage() {
               <div className="flex justify-between gap-3">
                 <button
                   onClick={() => {
-                    setStep(2)
+                    setStep(1)
                     setError('')
                   }}
                   className={btnSecondary}
@@ -480,8 +401,8 @@ export default function ProfileSetupPage() {
             </div>
           )}
 
-          {/* Step 4: Musician profile */}
-          {step === 4 && (
+          {/* Step 3: Musician profile */}
+          {step === 3 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -581,7 +502,7 @@ export default function ProfileSetupPage() {
               <div className="flex justify-between gap-3">
                 <button
                   onClick={() => {
-                    setStep(3)
+                    setStep(2)
                     setError('')
                   }}
                   className={btnSecondary}
