@@ -258,11 +258,7 @@ export default function ProfilePage() {
             {profile.avatar ? (
               <Image
                 src={profile.avatar}
-                alt={
-                  profile.displayName ||
-                  profile.username ||
-                  `User ${profile.walletAddress?.slice(2, 8)}`
-                }
+                alt={profile.displayName || `User ${profile.walletAddress?.slice(2, 8)}`}
                 width={128}
                 height={128}
                 className="h-32 w-32 rounded-full border-4 border-blue-600 object-cover"
@@ -344,14 +340,18 @@ export default function ProfilePage() {
               {profile.walletAddress && (
                 <TipButton
                   recipientAddress={profile.walletAddress}
-                  recipientName={profile.displayName || profile.username}
+                  recipientName={
+                    profile.displayName || `User ${profile.walletAddress?.slice(2, 8)}`
+                  }
                 />
               )}
               {profile.walletAddress && (
                 <CollabRequestButton
                   recipientAddress={profile.walletAddress}
                   recipientId={profile.id}
-                  recipientName={profile.displayName || profile.username}
+                  recipientName={
+                    profile.displayName || `User ${profile.walletAddress?.slice(2, 8)}`
+                  }
                 />
               )}
               {canEditProfile && (
@@ -372,7 +372,6 @@ export default function ProfilePage() {
         <ProfileSetupBanner
           walletAddress={profile.walletAddress}
           hasDisplayName={!!profile.displayName}
-          hasUsername={!!profile.username}
           hasEmail={!!profile.email}
         />
       )}

@@ -6,14 +6,12 @@ import Link from 'next/link'
 interface ProfileSetupBannerProps {
   walletAddress: string
   hasDisplayName: boolean
-  hasUsername: boolean
   hasEmail: boolean
 }
 
 export default function ProfileSetupBanner({
   walletAddress,
   hasDisplayName,
-  hasUsername,
   hasEmail,
 }: ProfileSetupBannerProps) {
   const [isDismissed, setIsDismissed] = useState(false)
@@ -32,13 +30,12 @@ export default function ProfileSetupBanner({
   }
 
   // Don't show if all fields are complete or if dismissed
-  if ((hasDisplayName && hasUsername && hasEmail) || isDismissed) {
+  if ((hasDisplayName && hasEmail) || isDismissed) {
     return null
   }
 
   const missingFields: string[] = []
   if (!hasDisplayName) missingFields.push('Display Name')
-  if (!hasUsername) missingFields.push('Username')
   if (!hasEmail) missingFields.push('Email')
 
   return (
