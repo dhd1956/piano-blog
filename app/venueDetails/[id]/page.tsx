@@ -153,6 +153,8 @@ export default function VenueDetailsPage() {
           id: venueData.id,
           name: venueData.name,
           city: venueData.city,
+          province: venueData.province || null,
+          country: venueData.country || null,
           fullAddress: venueData.fullAddress || venueData.address || '',
           hasPiano: venueData.hasPiano,
           hasJamSession: venueData.hasJamSession || false,
