@@ -473,10 +473,10 @@ export default function EventDetailPage() {
             <div className="space-y-2 text-gray-700 dark:text-gray-300">
               <p>
                 <strong>Start:</strong> {formatDate(event.startDate)} at{' '}
-                {formatTime(event.startDate)}
+                {formatTime(event.startDate)} ET
               </p>
               <p>
-                <strong>End:</strong> {formatDate(event.endDate)} at {formatTime(event.endDate)}
+                <strong>End:</strong> {formatDate(event.endDate)} at {formatTime(event.endDate)} ET
               </p>
             </div>
           </div>

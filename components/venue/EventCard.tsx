@@ -9,13 +9,20 @@ interface EventCardProps {
 
 export default function EventCard({ event }: EventCardProps) {
   const eventDate = new Date(event.startDate)
-  const formattedDate = eventDate.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+  const formattedDate =
+    eventDate.toLocaleDateString('en-US', {
+      timeZone: 'UTC',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }) +
+    ', ' +
+    eventDate.toLocaleTimeString('en-US', {
+      timeZone: 'UTC',
+      hour: 'numeric',
+      minute: '2-digit',
+    }) +
+    ' ET'
 
   const getEventTypeColor = (type: string) => {
     const colors: Record<string, string> = {
