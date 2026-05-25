@@ -160,16 +160,16 @@ export default function EditEventPage() {
       setIsFree(event.isFree || true)
       setPrice(event.price || null)
 
-      // Parse dates
+      // Parse dates — use UTC to match how times are stored and displayed
       if (event.startDate) {
         const start = new Date(event.startDate)
         setStartDate(start.toISOString().split('T')[0])
-        setStartTime(start.toTimeString().slice(0, 5))
+        setStartTime(start.toISOString().split('T')[1].slice(0, 5))
       }
       if (event.endDate) {
         const end = new Date(event.endDate)
         setEndDate(end.toISOString().split('T')[0])
-        setEndTime(end.toTimeString().slice(0, 5))
+        setEndTime(end.toISOString().split('T')[1].slice(0, 5))
       }
     } catch (err: any) {
       console.error('Error loading event:', err)
@@ -212,8 +212,8 @@ export default function EditEventPage() {
       }
 
       // Combine date and time
-      const startDateTime = new Date(`${startDate}T${startTime}`)
-      const endDateTime = new Date(`${endDate}T${endTime}`)
+      const startDateTime = new Date(`${startDate}T${startTime}:00Z`)
+      const endDateTime = new Date(`${endDate}T${endTime}:00Z`)
 
       if (startDateTime >= endDateTime) {
         setError('End date/time must be after start date/time')
