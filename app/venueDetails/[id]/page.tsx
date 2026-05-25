@@ -520,7 +520,12 @@ export default function VenueDetailsPage() {
 
             {/* Events Section */}
             <div className="mt-8">
-              <VenueEvents venueId={venue.id} venueName={venue.name} />
+              <VenueEvents
+                venueId={venue.id}
+                venueName={venue.name}
+                venueProvince={venue.province}
+                venueCountry={venue.country}
+              />
             </div>
 
             {/* Curators Section */}

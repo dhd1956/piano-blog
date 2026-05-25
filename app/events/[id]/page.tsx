@@ -10,6 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { tzLabel } from '@/lib/timezone-label'
 
 const EventQRCard = lazy(() => import('@/components/qr/EventQRCard'))
 const YouTubeVideoGallery = lazy(() => import('@/components/content/YouTubeVideoGallery'))
@@ -27,6 +28,8 @@ interface Venue {
   id: number
   name: string
   city: string
+  province: string | null
+  country: string | null
   address: string | null
   slug: string
   latitude: number | null
@@ -473,10 +476,12 @@ export default function EventDetailPage() {
             <div className="space-y-2 text-gray-700 dark:text-gray-300">
               <p>
                 <strong>Start:</strong> {formatDate(event.startDate)} at{' '}
-                {formatTime(event.startDate)} ET
+                {formatTime(event.startDate)}
+                {tzLabel(event.venue) ? ` ${tzLabel(event.venue)}` : ''}
               </p>
               <p>
-                <strong>End:</strong> {formatDate(event.endDate)} at {formatTime(event.endDate)} ET
+                <strong>End:</strong> {formatDate(event.endDate)} at {formatTime(event.endDate)}
+                {tzLabel(event.venue) ? ` ${tzLabel(event.venue)}` : ''}
               </p>
             </div>
           </div>

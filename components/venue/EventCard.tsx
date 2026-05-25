@@ -2,13 +2,17 @@
 
 import Link from 'next/link'
 import { EventSummary } from '@/types/event'
+import { tzLabel } from '@/lib/timezone-label'
 
 interface EventCardProps {
   event: EventSummary
+  venueProvince?: string | null
+  venueCountry?: string | null
 }
 
-export default function EventCard({ event }: EventCardProps) {
+export default function EventCard({ event, venueProvince, venueCountry }: EventCardProps) {
   const eventDate = new Date(event.startDate)
+  const tz = tzLabel({ province: venueProvince, country: venueCountry })
   const formattedDate =
     eventDate.toLocaleDateString('en-US', {
       timeZone: 'UTC',
@@ -22,7 +26,7 @@ export default function EventCard({ event }: EventCardProps) {
       hour: 'numeric',
       minute: '2-digit',
     }) +
-    ' ET'
+    (tz ? ` ${tz}` : '')
 
   const getEventTypeColor = (type: string) => {
     const colors: Record<string, string> = {

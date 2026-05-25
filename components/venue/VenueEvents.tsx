@@ -7,9 +7,16 @@ import { EventSummary } from '@/types/event'
 interface VenueEventsProps {
   venueId: number
   venueName: string
+  venueProvince?: string | null
+  venueCountry?: string | null
 }
 
-export default function VenueEvents({ venueId, venueName }: VenueEventsProps) {
+export default function VenueEvents({
+  venueId,
+  venueName,
+  venueProvince,
+  venueCountry,
+}: VenueEventsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [events, setEvents] = useState<EventSummary[]>([])
   const [loading, setLoading] = useState(false)
@@ -130,7 +137,12 @@ export default function VenueEvents({ venueId, venueName }: VenueEventsProps) {
           {!loading && !error && events.length > 0 && (
             <>
               {events.map((event) => (
-                <EventCard key={event.id} event={event} />
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  venueProvince={venueProvince}
+                  venueCountry={venueCountry}
+                />
               ))}
             </>
           )}

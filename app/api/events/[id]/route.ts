@@ -35,6 +35,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             id: true,
             name: true,
             city: true,
+            province: true,
+            country: true,
             address: true,
             slug: true,
             latitude: true,

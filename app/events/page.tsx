@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { tzLabel } from '@/lib/timezone-label'
 
 interface Organizer {
   id: number
@@ -68,82 +69,6 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   REHEARSAL: '🎼 Rehearsal',
   MEETUP: '👥 Meetup',
   OTHER: '📌 Event',
-}
-
-// Helper functions for date formatting
-const tzLabel = (venue: Venue | null): string => {
-  if (!venue) return ''
-  const province = venue.province?.toLowerCase() ?? ''
-  const country = venue.country?.toLowerCase() ?? ''
-  if (country === 'canada') {
-    if (['ontario', 'quebec'].includes(province)) return ' ET'
-    if (['nova scotia', 'new brunswick', 'prince edward island'].includes(province)) return ' AT'
-    if (['newfoundland and labrador'].includes(province)) return ' NT'
-    if (['manitoba'].includes(province)) return ' CT'
-    if (['alberta'].includes(province)) return ' MT'
-    if (['british columbia'].includes(province)) return ' PT'
-    if (['saskatchewan'].includes(province)) return ' CT'
-    return ''
-  }
-  if (country === 'united states') {
-    if (
-      [
-        'new york',
-        'florida',
-        'georgia',
-        'ohio',
-        'pennsylvania',
-        'michigan',
-        'north carolina',
-        'south carolina',
-        'virginia',
-        'tennessee',
-        'indiana',
-        'kentucky',
-        'west virginia',
-        'connecticut',
-        'new jersey',
-        'massachusetts',
-        'maryland',
-        'delaware',
-        'rhode island',
-        'new hampshire',
-        'vermont',
-        'maine',
-      ].includes(province.toLowerCase())
-    )
-      return ' ET'
-    if (
-      [
-        'illinois',
-        'texas',
-        'minnesota',
-        'wisconsin',
-        'iowa',
-        'missouri',
-        'arkansas',
-        'louisiana',
-        'mississippi',
-        'alabama',
-        'oklahoma',
-        'kansas',
-        'nebraska',
-        'north dakota',
-        'south dakota',
-      ].includes(province.toLowerCase())
-    )
-      return ' CT'
-    if (
-      ['colorado', 'utah', 'new mexico', 'arizona', 'wyoming', 'montana', 'idaho'].includes(
-        province.toLowerCase()
-      )
-    )
-      return ' MT'
-    if (['california', 'oregon', 'washington', 'nevada'].includes(province.toLowerCase()))
-      return ' PT'
-    return ''
-  }
-  return ''
 }
 
 const formatDate = (dateString: string) => {
@@ -544,7 +469,7 @@ function EventCard({ event }: { event: Event }) {
               <span>🕐</span>
               <span>
                 {formatTime(event.startDate)}
-                {tzLabel(event.venue)}
+                {tzLabel(event.venue) ? ` ${tzLabel(event.venue)}` : ''}
               </span>
             </div>
           </div>
