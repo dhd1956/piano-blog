@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticate } from '@/lib/auth-middleware'
 import { getDb } from '@/lib/get-db'
+import { sendCollabMessageEmail } from '@/lib/email'
 import { z } from 'zod'
 
 const schema = z
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       where: recipientIdParam
         ? { id: recipientIdParam }
         : { walletAddress: recipientAddress!.toLowerCase() },
-      select: { id: true, displayName: true, username: true },
+      select: { id: true, displayName: true, username: true, email: true },
     })
 
     if (!recipient) {
@@ -96,6 +97,16 @@ export async function POST(request: NextRequest) {
         }),
       ])
 
+      if (recipient.email) {
+        sendCollabMessageEmail({
+          recipientEmail: recipient.email,
+          recipientName: recipient.displayName || recipient.username || 'there',
+          senderName,
+          message,
+          sessionId: existingSession.id,
+        }).catch((e) => console.error('[collaborate] email error:', e))
+      }
+
       return NextResponse.json({ success: true, sessionId: existingSession.id, alreadySent: true })
     }
 
@@ -120,6 +131,16 @@ export async function POST(request: NextRequest) {
         },
       }),
     ])
+
+    if (recipient.email) {
+      sendCollabMessageEmail({
+        recipientEmail: recipient.email,
+        recipientName: recipient.displayName || recipient.username || 'there',
+        senderName,
+        message,
+        sessionId: session.id,
+      }).catch((e) => console.error('[collaborate] email error:', e))
+    }
 
     console.log(
       `[collaborate] session ${session.id}: sender ${sender.id} → recipient ${recipient.id}: "${message.slice(0, 50)}…"`

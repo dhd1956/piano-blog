@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticate } from '@/lib/auth-middleware'
 import { getDb } from '@/lib/get-db'
+import { sendCollabMessageEmail } from '@/lib/email'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const session = await db.collabSession.findUnique({
       where: { id: sessionId },
       include: {
-        creator: { select: { id: true, displayName: true, username: true } },
-        recipient: { select: { id: true, displayName: true, username: true } },
+        creator: { select: { id: true, displayName: true, username: true, email: true } },
+        recipient: { select: { id: true, displayName: true, username: true, email: true } },
       },
     })
 
@@ -68,6 +69,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         },
       }),
     ])
+
+    if (otherUser.email) {
+      sendCollabMessageEmail({
+        recipientEmail: otherUser.email,
+        recipientName: otherUser.displayName || otherUser.username || 'there',
+        senderName,
+        message: parsed.data.body,
+        sessionId,
+      }).catch((e) => console.error('[reply] email error:', e))
+    }
 
     return NextResponse.json({ success: true, message })
   } catch (error: any) {

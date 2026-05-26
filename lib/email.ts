@@ -501,3 +501,75 @@ export async function sendMagicLinkEmail(email: string, token: string, username?
     text,
   })
 }
+
+/**
+ * Send a collaboration message notification email
+ */
+export async function sendCollabMessageEmail({
+  recipientEmail,
+  recipientName,
+  senderName,
+  message,
+  sessionId,
+}: {
+  recipientEmail: string
+  recipientName: string
+  senderName: string
+  message: string
+  sessionId: number
+}) {
+  const appUrl = await getAppUrl()
+  const messageUrl = `${appUrl}/messages/${sessionId}`
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #7c3aed; font-size: 24px; margin: 0;">🎹 Global Piano Network</h1>
+      </div>
+
+      <div style="background: #f9fafb; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+        <p style="margin: 0 0 8px 0; color: #374151; font-size: 16px;">
+          Hi ${recipientName},
+        </p>
+        <p style="margin: 0 0 16px 0; color: #374151; font-size: 16px;">
+          <strong>${senderName}</strong> sent you a message on Global Piano Network:
+        </p>
+        <blockquote style="margin: 0; padding: 16px; background: #fff; border-left: 4px solid #7c3aed; border-radius: 4px; color: #1f2937; font-size: 15px; font-style: italic;">
+          "${message}"
+        </blockquote>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 24px;">
+        <a href="${messageUrl}"
+           style="display: inline-block; background: #7c3aed; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-size: 15px; font-weight: 600;">
+          Reply on GPN
+        </a>
+      </div>
+
+      <p style="color: #6b7280; font-size: 13px; text-align: center; margin: 0;">
+        You're receiving this because someone messaged you on
+        <a href="${appUrl}" style="color: #7c3aed;">Global Piano Network</a>.
+      </p>
+    </div>
+  `
+
+  const text = `
+Hi ${recipientName},
+
+${senderName} sent you a message on Global Piano Network:
+
+"${message}"
+
+Reply here: ${messageUrl}
+
+---
+Global Piano Network
+  `
+
+  return sendEmail({
+    to: recipientEmail,
+    subject: getEmailSubject(`${senderName} sent you a message on GPN`),
+    html,
+    text,
+  })
+}
