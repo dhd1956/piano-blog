@@ -180,13 +180,13 @@ Add to `data/headerNavLinks.ts`:
 
 ## Status
 
-- [ ] Schema + migration
-- [ ] API: GET/POST /api/groups
-- [ ] API: GET/PUT/DELETE /api/groups/[slug]
-- [ ] API: POST/DELETE /api/groups/[slug]/members
-- [ ] API: POST/DELETE /api/groups/[slug]/venues
-- [ ] UI: /groups listing page
-- [ ] UI: /groups/[slug] detail page
-- [ ] UI: /groups/create form
-- [ ] UI: /admin/groups management page
-- [ ] Navigation link
+- [x] Schema + migration (SQL saved to `prisma/migrations_manual/add_groups.sql`)
+- [x] API: GET/POST /api/groups
+- [x] API: GET/PUT/DELETE /api/groups/[slug]
+- [x] API: POST/DELETE /api/groups/[slug]/members
+- [x] API: POST/DELETE /api/groups/[slug]/venues
+- [x] UI: /groups listing page
+- [x] UI: /groups/[slug] detail page
+- [x] UI: /groups/create form
+- [x] UI: /admin/groups management page
+- [x] Navigation link (Groups in Community dropdown; Groups in Admin dropdown)

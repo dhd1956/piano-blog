@@ -26,6 +26,7 @@ const headerNavLinks: NavGroup[] = [
     title: 'Community',
     items: [
       { href: '/venues', title: 'Venues' },
+      { href: '/groups', title: 'Groups' },
       { href: '/musicians', title: 'Musicians' },
       { href: '/events', title: 'Events' },
       { href: '/messages', title: 'Messages' },
@@ -40,6 +41,7 @@ const headerNavLinks: NavGroup[] = [
     title: 'Admin',
     items: [
       { href: '/admin/users', title: 'Members' },
+      { href: '/admin/groups', title: 'Groups' },
       { href: '/admin/events', title: 'Events' },
       { href: '/admin/pxp-config', title: 'PXP Config' },
       { href: '/curator', title: 'Curator' },

@@ -92,6 +92,9 @@ model Venue {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Virtual venue flag
+  isVirtual    Boolean  @default(false)  // Online-only venue
+
   // Relations
   reviews      VenueReview[]
   verifications VenueVerification[]
@@ -101,6 +104,7 @@ model Venue {
   eventSeries  EventSeries[] // Recurring event series at this venue
   photos       VenuePhoto[] // Community-uploaded venue photos
   curators     VenueCurator[] // Curators assigned to this venue by the blog owner
+  groups       GroupVenue[]   // Groups linked to this venue
 
   // Indexes for performance
   @@index([city, verified, isActive])
@@ -232,6 +236,11 @@ model User {
   collabSessionsAsCreator   CollabSession[] @relation("CollabSessionsAsCreator")
   collabSessionsAsRecipient CollabSession[] @relation("CollabSessionsAsRecipient")
   sentCollabMessages        CollabMessage[] @relation("SentCollabMessages")
+  // Groups relations
+  ownedGroups       Group[]       @relation("GroupOwner")
+  groupMemberships  GroupMember[] @relation("GroupMemberUser")
+  groupMembersAdded GroupMember[] @relation("GroupMemberAddedBy")
+  groupVenuesAdded  GroupVenue[]  @relation("GroupVenueAddedBy")
 
   @@index([walletAddress])
   @@index([username])
@@ -892,5 +901,53 @@ enum UserRole {
   CURATOR     // Edit venues, no verification power
   VALIDATOR   // Vote to verify venues (3 required)
   SCOUT       // Create venues, read all (default role)
+}
+
+// Groups — flexible invite-only communities
+model Group {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  name        String
+  description String?  @db.Text
+  avatar      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ownerId     Int
+  owner       User         @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  venues      GroupVenue[]
+
+  @@index([ownerId])
+  @@index([isActive])
+}
+
+model GroupMember {
+  groupId   Int
+  userId    Int
+  addedAt   DateTime @default(now())
+  addedBy   Int
+
+  group       Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user        User  @relation("GroupMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  addedByUser User  @relation("GroupMemberAddedBy", fields: [addedBy], references: [id])
+
+  @@id([groupId, userId])
+  @@index([userId])
+}
+
+model GroupVenue {
+  groupId   Int
+  venueId   Int
+  addedAt   DateTime @default(now())
+  addedBy   Int
+
+  group       Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  venue       Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  addedByUser User  @relation("GroupVenueAddedBy", fields: [addedBy], references: [id])
+
+  @@id([groupId, venueId])
+  @@index([venueId])
 }
 
