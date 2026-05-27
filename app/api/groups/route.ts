@@ -147,6 +147,19 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('POST /api/groups error:', error)
-    return NextResponse.json({ success: false, error: 'Failed to create group' }, { status: 500 })
+    // Surface Prisma error codes to help diagnose missing migrations
+    const detail = error?.message || ''
+    const isMissingTable =
+      error?.code === 'P2021' || detail.includes('does not exist') || detail.includes('relation')
+    return NextResponse.json(
+      {
+        success: false,
+        error: isMissingTable
+          ? 'Database table missing — please apply the groups migration in Supabase.'
+          : 'Failed to create group',
+        detail,
+      },
+      { status: 500 }
+    )
   }
 }

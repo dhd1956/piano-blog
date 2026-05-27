@@ -91,7 +91,7 @@ function CreateGroupForm() {
       }
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to save group')
+      if (!res.ok) throw new Error(data.error || data.detail || 'Failed to save group')
 
       const targetSlug = data.group?.slug ?? editSlug
       router.push(`/groups/${targetSlug}`)
