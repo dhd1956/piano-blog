@@ -10,6 +10,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 interface Owner {
   id: number
@@ -40,6 +41,7 @@ export default function GroupsPage() {
   const { isAuthenticated } = useAuth()
   const { isCurator, isBlogOwner } = useRole()
   const canCreate = isCurator || isBlogOwner
+  const { isLoading: authLoading } = useRequireAuth()
 
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)

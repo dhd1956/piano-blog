@@ -12,6 +12,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 
 interface UserSummary {
   id: number
@@ -78,6 +79,7 @@ export default function GroupDetailPage() {
   const slug = params.slug as string
   const { user: authUser } = useAuth()
   const { isBlogOwner } = useRole()
+  useRequireAuth()
 
   const [group, setGroup] = useState<Group | null>(null)
   const [loading, setLoading] = useState(true)

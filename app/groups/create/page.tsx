@@ -8,6 +8,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
@@ -27,6 +28,7 @@ function CreateGroupForm() {
   const { isAuthenticated } = useAuth()
   const { isCurator, isBlogOwner } = useRole()
   const canAccess = isCurator || isBlogOwner
+  useRequireAuth()
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
