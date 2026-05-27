@@ -37,13 +37,14 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Missing userIdentifier' }, { status: 400 })
     }
 
-    // Find target user by username, email, or walletAddress
+    // Find target user by displayName, username, email, or walletAddress
     const target = await db.user.findFirst({
       where: {
         OR: [
-          { walletAddress: { equals: userIdentifier, mode: 'insensitive' } },
+          { displayName: { equals: userIdentifier, mode: 'insensitive' } },
           { username: { equals: userIdentifier, mode: 'insensitive' } },
           { email: { equals: userIdentifier, mode: 'insensitive' } },
+          { walletAddress: { equals: userIdentifier, mode: 'insensitive' } },
         ],
       },
       select: {

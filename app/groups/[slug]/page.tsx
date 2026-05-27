@@ -378,7 +378,7 @@ export default function GroupDetailPage() {
               type="text"
               value={memberInput}
               onChange={(e) => setMemberInput(e.target.value)}
-              placeholder="Username, email, or wallet address…"
+              placeholder="Display name or email…"
               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
             <button

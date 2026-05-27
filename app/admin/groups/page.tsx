@@ -471,7 +471,7 @@ export default function AdminGroupsPage() {
                             type="text"
                             value={memberInput}
                             onChange={(e) => setMemberInput(e.target.value)}
-                            placeholder="Username, email, or wallet…"
+                            placeholder="Display name or email…"
                             className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                           />
                           <button
