@@ -94,8 +94,11 @@ export default function AdminGroupsPage() {
   const [memberAdding, setMemberAdding] = useState(false)
   const [memberError, setMemberError] = useState<string | null>(null)
 
+  // All venues for dropdown
+  const [allVenues, setAllVenues] = useState<{ id: number; name: string; city: string }[]>([])
+
   // Link venue in expanded panel
-  const [venueInput, setVenueInput] = useState('')
+  const [selectedVenueId, setSelectedVenueId] = useState('')
   const [venueAdding, setVenueAdding] = useState(false)
   const [venueError, setVenueError] = useState<string | null>(null)
 
@@ -126,6 +129,13 @@ export default function AdminGroupsPage() {
   }, [showInactive])
 
   useEffect(() => {
+    fetch('/api/venues?limit=200&isActive=true')
+      .then((r) => r.json())
+      .then((d) => setAllVenues(d.venues ?? []))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
     if (isBlogOwner) fetchGroups()
   }, [isBlogOwner, fetchGroups])
 
@@ -139,7 +149,7 @@ export default function AdminGroupsPage() {
     setExpandedGroup(null)
     setMemberInput('')
     setMemberError(null)
-    setVenueInput('')
+    setSelectedVenueId('')
     setVenueError(null)
     setExpandLoading(true)
     try {
@@ -212,9 +222,9 @@ export default function AdminGroupsPage() {
   const handleLinkVenue = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!expandedSlug) return
-    const venueId = parseInt(venueInput.trim())
+    const venueId = parseInt(selectedVenueId)
     if (isNaN(venueId)) {
-      setVenueError('Enter a valid venue ID.')
+      setVenueError('Please select a venue.')
       return
     }
     setVenueAdding(true)
@@ -228,7 +238,7 @@ export default function AdminGroupsPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to link venue')
-      setVenueInput('')
+      setSelectedVenueId('')
       const r2 = await fetch(`/api/groups/${expandedSlug}`, { credentials: 'include' })
       const d2 = await r2.json()
       setExpandedGroup(d2.group ?? null)
@@ -513,16 +523,25 @@ export default function AdminGroupsPage() {
                           <p className="text-xs text-gray-400">No venues linked.</p>
                         )}
                         <form onSubmit={handleLinkVenue} className="mt-2 flex gap-2">
-                          <input
-                            type="number"
-                            value={venueInput}
-                            onChange={(e) => setVenueInput(e.target.value)}
-                            placeholder="Venue ID"
-                            className="w-24 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                          />
+                          <select
+                            value={selectedVenueId}
+                            onChange={(e) => setSelectedVenueId(e.target.value)}
+                            className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                          >
+                            <option value="">— Select venue —</option>
+                            {allVenues
+                              .filter(
+                                (v) => !expandedGroup.venues.some((gv) => gv.venueId === v.id)
+                              )
+                              .map((v) => (
+                                <option key={v.id} value={v.id}>
+                                  {v.name} ({v.city})
+                                </option>
+                              ))}
+                          </select>
                           <button
                             type="submit"
-                            disabled={venueAdding || !venueInput.trim()}
+                            disabled={venueAdding || !selectedVenueId}
                             className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-40"
                           >
                             {venueAdding ? '…' : 'Link'}

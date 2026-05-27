@@ -89,7 +89,8 @@ export default function GroupDetailPage() {
   const [memberError, setMemberError] = useState<string | null>(null)
 
   // Manage: add venue
-  const [venueInput, setVenueInput] = useState('')
+  const [allVenues, setAllVenues] = useState<{ id: number; name: string; city: string }[]>([])
+  const [selectedVenueId, setSelectedVenueId] = useState('')
   const [venueAdding, setVenueAdding] = useState(false)
   const [venueError, setVenueError] = useState<string | null>(null)
 
@@ -121,6 +122,15 @@ export default function GroupDetailPage() {
 
   const isOwner = authUser && group ? authUser.id === group.ownerId : false
   const canManage = isOwner || isBlogOwner
+
+  // Load venue list once we know the user can manage
+  useEffect(() => {
+    if (!canManage) return
+    fetch('/api/venues?limit=200&isActive=true')
+      .then((r) => r.json())
+      .then((d) => setAllVenues(d.venues ?? []))
+      .catch(() => {})
+  }, [canManage])
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,9 +173,9 @@ export default function GroupDetailPage() {
 
   const handleLinkVenue = async (e: React.FormEvent) => {
     e.preventDefault()
-    const venueId = parseInt(venueInput.trim())
+    const venueId = parseInt(selectedVenueId)
     if (isNaN(venueId)) {
-      setVenueError('Please enter a valid venue ID.')
+      setVenueError('Please select a venue.')
       return
     }
     setVenueAdding(true)
@@ -179,7 +189,7 @@ export default function GroupDetailPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to link venue')
-      setVenueInput('')
+      setSelectedVenueId('')
       await fetchGroup()
     } catch (err: any) {
       setVenueError(err.message)
@@ -430,19 +440,26 @@ export default function GroupDetailPage() {
         {/* Link venue form */}
         {canManage && (
           <form onSubmit={handleLinkVenue} className="mt-3 flex gap-2">
-            <input
-              type="number"
-              value={venueInput}
-              onChange={(e) => setVenueInput(e.target.value)}
-              placeholder="Venue ID…"
-              className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-            />
+            <select
+              value={selectedVenueId}
+              onChange={(e) => setSelectedVenueId(e.target.value)}
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">— Select a venue —</option>
+              {allVenues
+                .filter((v) => !group.venues.some((gv) => gv.venueId === v.id))
+                .map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} ({v.city})
+                  </option>
+                ))}
+            </select>
             <button
               type="submit"
-              disabled={venueAdding || !venueInput.trim()}
+              disabled={venueAdding || !selectedVenueId}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40"
             >
-              {venueAdding ? 'Linking…' : 'Link Venue'}
+              {venueAdding ? 'Linking…' : 'Link'}
             </button>
           </form>
         )}
