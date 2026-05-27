@@ -126,7 +126,7 @@ export default function GroupDetailPage() {
   // Load venue list once we know the user can manage
   useEffect(() => {
     if (!canManage) return
-    fetch('/api/venues?limit=200&isActive=true')
+    fetch('/api/venues?limit=200&verified=true')
       .then((r) => r.json())
       .then((d) => setAllVenues(d.venues ?? []))
       .catch(() => {})

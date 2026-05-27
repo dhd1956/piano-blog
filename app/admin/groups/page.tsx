@@ -129,7 +129,7 @@ export default function AdminGroupsPage() {
   }, [showInactive])
 
   useEffect(() => {
-    fetch('/api/venues?limit=200&isActive=true')
+    fetch('/api/venues?limit=200&verified=true')
       .then((r) => r.json())
       .then((d) => setAllVenues(d.venues ?? []))
       .catch(() => {})
