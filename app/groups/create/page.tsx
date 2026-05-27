@@ -6,7 +6,7 @@
  * Pass ?edit=<slug> to load existing group for editing.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
@@ -19,7 +19,7 @@ function makeSlugPreview(name: string): string {
     .replace(/^-|-$/g, '')
 }
 
-export default function CreateGroupPage() {
+function CreateGroupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editSlug = searchParams.get('edit')
@@ -214,5 +214,19 @@ export default function CreateGroupPage() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function CreateGroupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-xl px-4 py-16 text-center text-sm text-gray-500">
+          Loading…
+        </div>
+      }
+    >
+      <CreateGroupForm />
+    </Suspense>
   )
 }
