@@ -61,11 +61,22 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
-    // Upsert — idempotent
-    await db.groupMember.upsert({
+    // Check if already a member
+    const existing = await db.groupMember.findUnique({
       where: { groupId_userId: { groupId: group.id, userId: target.id } },
-      create: { groupId: group.id, userId: target.id, addedBy: user.id },
-      update: { addedBy: user.id, addedAt: new Date() },
+    })
+    if (existing) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `${target.displayName || target.username || 'This user'} is already a member of this group.`,
+        },
+        { status: 409 }
+      )
+    }
+
+    await db.groupMember.create({
+      data: { groupId: group.id, userId: target.id, addedBy: user.id },
     })
 
     return NextResponse.json({ success: true, member: target })
