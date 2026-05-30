@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
+import QRCode from 'qrcode'
 import QRCodeGenerator from './QRCodeGenerator'
 import {
   UserProfileQRData,
@@ -201,6 +202,24 @@ export default function UserProfileQRCard({
     }
 
     return color // Return as-is if can't parse
+  }
+
+  // Download bare QR code PNG (no card, no branding)
+  const handleDownloadQROnly = async () => {
+    try {
+      const dataURL = await QRCode.toDataURL(deepLink, {
+        width: 512,
+        margin: 1,
+        errorCorrectionLevel: 'H',
+        color: { dark: '#000000', light: '#FFFFFF' },
+      })
+      const link = document.createElement('a')
+      link.download = `${userData.username || userData.walletAddress.slice(0, 8)}-qr.png`
+      link.href = dataURL
+      link.click()
+    } catch (err) {
+      console.error('Failed to download QR code:', err)
+    }
   }
 
   // Convert to print-friendly data URL
@@ -505,10 +524,17 @@ export default function UserProfileQRCard({
       {/* Export Buttons */}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
         <button
+          onClick={handleDownloadQROnly}
+          className="flex-1 rounded-md bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-700 sm:flex-initial sm:px-6"
+          title="Square PNG of just the QR code — ready to upload to other apps"
+        >
+          ⬛ QR Code only
+        </button>
+        <button
           onClick={() => handleExport('png')}
           className="flex-1 rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 sm:flex-initial sm:px-6"
         >
-          💾 Download PNG
+          💾 Download card PNG
         </button>
         <button
           onClick={() => handleExport('pdf')}

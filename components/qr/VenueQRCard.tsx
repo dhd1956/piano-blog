@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
+import QRCode from 'qrcode'
 import QRCodeGenerator from './QRCodeGenerator'
 import {
   VenueQRData,
@@ -109,6 +110,24 @@ export default function VenueQRCard({
   const qrData = generateQRData()
   const deepLink = generateDeepLink(qrData)
   const dimensions = QR_CARD_SIZES[config.layout]
+
+  // Download bare QR code PNG (no card, no branding)
+  const handleDownloadQROnly = async () => {
+    try {
+      const dataURL = await QRCode.toDataURL(deepLink, {
+        width: 512,
+        margin: 1,
+        errorCorrectionLevel: 'H',
+        color: { dark: '#000000', light: '#FFFFFF' },
+      })
+      const link = document.createElement('a')
+      link.download = `${venueData.slug || `venue-${venueData.id}`}-qr.png`
+      link.href = dataURL
+      link.click()
+    } catch (err) {
+      console.error('Failed to download QR code:', err)
+    }
+  }
 
   // Convert rgb(a) to hex (used in onclone callback)
   const rgbToHex = (color: string): string => {
@@ -435,10 +454,17 @@ export default function VenueQRCard({
       {/* Export Buttons */}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
         <button
+          onClick={handleDownloadQROnly}
+          className="flex-1 rounded-md bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-700 sm:flex-initial sm:px-6"
+          title="Square PNG of just the QR code — ready to upload to other apps"
+        >
+          ⬛ QR Code only
+        </button>
+        <button
           onClick={() => handleExport('png')}
           className="flex-1 rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 sm:flex-initial sm:px-6"
         >
-          💾 Download PNG
+          💾 Download card PNG
         </button>
         <button
           onClick={() => handleExport('pdf')}
