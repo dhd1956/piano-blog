@@ -114,7 +114,7 @@ export default function VenueQRCard({
   // Download bare QR code PNG (no card, no branding)
   const handleDownloadQROnly = async () => {
     try {
-      const dataURL = await QRCode.toDataURL(deepLink, {
+      const dataURL = await QRCode.toDataURL(qrData.url, {
         width: 512,
         margin: 1,
         errorCorrectionLevel: 'H',

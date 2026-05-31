@@ -261,23 +261,8 @@ export type DeepLinkFormat = {
 
 // Helper functions
 export function generateDeepLink(data: VenueQRData | UserProfileQRData): string {
-  if (data.type === 'venue') {
-    const params = new URLSearchParams()
-    if (data.payment?.amount) {
-      params.set('payment', data.payment.amount.toString())
-    }
-    return `globalpiano://venue/${data.data.slug}${params.toString() ? '?' + params.toString() : ''}`
-  } else {
-    // data.type === 'user'
-    const params = new URLSearchParams()
-    if (data.data.username) {
-      params.set('username', data.data.username)
-    }
-    if (data.payment?.amount) {
-      params.set('payment', data.payment.amount.toString())
-    }
-    return `globalpiano://user/${data.data.walletAddress}${params.toString() ? '?' + params.toString() : ''}`
-  }
+  // Always use the HTTPS URL — there is no native app registered for globalpiano://
+  return data.url
 }
 
 export function parseDeepLink(url: string): DeepLinkFormat | null {
