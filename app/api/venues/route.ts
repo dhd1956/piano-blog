@@ -5,10 +5,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { VenueService } from '@/lib/database-simplified'
+import { authenticate } from '@/lib/auth-middleware'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+
+    // When myCurated=true, restrict to venues assigned to the calling curator
+    let curatedByUserId: number | undefined
+    if (searchParams.get('myCurated') === 'true') {
+      const user = await authenticate(request as any)
+      if (user) curatedByUserId = user.id
+    }
 
     // Parse query parameters
     const options = {
@@ -21,6 +29,7 @@ export async function GET(request: NextRequest) {
       orderBy: (searchParams.get('orderBy') as 'name' | 'rating' | 'createdAt') || 'createdAt',
       orderDirection: (searchParams.get('orderDirection') as 'asc' | 'desc') || 'desc',
       includeDeleted: searchParams.get('includeDeleted') === 'true', // For curator/admin views
+      curatedByUserId,
     }
 
     // Get venues from PostgreSQL

@@ -164,6 +164,7 @@ export const VenueService = {
       orderDirection?: 'asc' | 'desc'
       includeRelations?: boolean // New option to control loading relations
       includeDeleted?: boolean // Include soft-deleted venues (for admin/curator)
+      curatedByUserId?: number // Restrict to venues assigned to this curator
     } = {}
   ) {
     const {
@@ -177,6 +178,7 @@ export const VenueService = {
       orderDirection = 'desc',
       includeRelations = false,
       includeDeleted = false,
+      curatedByUserId,
     } = options
 
     const where: any = {}
@@ -190,6 +192,9 @@ export const VenueService = {
     if (city && city !== 'all') where.city = { contains: city, mode: 'insensitive' }
     if (typeof hasPiano === 'boolean') where.hasPiano = hasPiano
     if (typeof verified === 'boolean') where.verified = verified
+    if (curatedByUserId !== undefined) {
+      where.curators = { some: { userId: curatedByUserId } }
+    }
 
     // Full-text search
     if (search) {

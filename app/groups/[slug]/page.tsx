@@ -78,7 +78,7 @@ export default function GroupDetailPage() {
   const router = useRouter()
   const slug = params.slug as string
   const { user: authUser } = useAuth()
-  const { isBlogOwner } = useRole()
+  const { isBlogOwner, isCurator } = useRole()
   useRequireAuth()
 
   const [group, setGroup] = useState<Group | null>(null)
@@ -125,14 +125,18 @@ export default function GroupDetailPage() {
   const isOwner = authUser && group ? authUser.id === group.ownerId : false
   const canManage = isOwner || isBlogOwner
 
-  // Load venue list once we know the user can manage
+  // Load venue list once we know the user can manage.
+  // Curators only see venues they've been assigned to; blog owners see all.
   useEffect(() => {
     if (!canManage) return
-    fetch('/api/venues?limit=200&verified=true')
+    const url = isBlogOwner
+      ? '/api/venues?limit=200&verified=true'
+      : '/api/venues?limit=200&verified=true&myCurated=true'
+    fetch(url, { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => setAllVenues(d.venues ?? []))
       .catch(() => {})
-  }, [canManage])
+  }, [canManage, isBlogOwner])
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
