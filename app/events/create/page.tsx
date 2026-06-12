@@ -21,6 +21,12 @@ interface Venue {
   slug: string
 }
 
+interface Group {
+  id: number
+  slug: string
+  name: string
+}
+
 const EVENT_TYPES = [
   { value: 'JAM_SESSION', label: '🎸 Jam Session' },
   { value: 'GIG', label: '🎤 Gig' },
@@ -67,15 +73,19 @@ export default function CreateEventPage() {
   const [recurrenceConfig, setRecurrenceConfig] = useState<RecurrenceConfig>({ daysOfWeek: [6] })
   const [seriesEndDate, setSeriesEndDate] = useState('')
 
+  const [groupId, setGroupId] = useState<number | null>(null)
+
   // UI state
   const [venues, setVenues] = useState<Venue[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
   const [loadingVenues, setLoadingVenues] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Load verified venues
+  // Load verified venues and owned groups
   useEffect(() => {
     loadVenues()
+    loadGroups()
   }, [])
 
   // Show loading while checking authentication
@@ -102,6 +112,18 @@ export default function CreateEventPage() {
       console.error('Error loading venues:', err)
     } finally {
       setLoadingVenues(false)
+    }
+  }
+
+  const loadGroups = async () => {
+    try {
+      const response = await fetch('/api/groups?owned=true&limit=100', { credentials: 'include' })
+      if (response.ok) {
+        const data = await response.json()
+        setGroups(data.groups || [])
+      }
+    } catch (err) {
+      console.error('Error loading groups:', err)
     }
   }
 
@@ -223,6 +245,7 @@ export default function CreateEventPage() {
           coverImage: coverImage || null,
           externalLink: externalLink || null,
           streamingLink: streamingLink || null,
+          groupId: groupId || null,
         }
 
         const response = await fetch('/api/events', {
@@ -352,6 +375,29 @@ export default function CreateEventPage() {
                 ))}
               </select>
             </div>
+
+            {groups.length > 0 && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Organising Group (optional)
+                </label>
+                <select
+                  value={groupId ?? ''}
+                  onChange={(e) => setGroupId(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full rounded-md border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700"
+                >
+                  <option value="">— None (personal event) —</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Attach this event to one of your groups.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">

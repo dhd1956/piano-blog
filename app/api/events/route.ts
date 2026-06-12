@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const venueName = searchParams.get('venueName')?.trim() || '' // Filter by venue name
     const dateFrom = searchParams.get('dateFrom') // ISO date string — events on/after this date
     const dateTo = searchParams.get('dateTo') // ISO date string — events on/before this date
+    const groupId = searchParams.get('groupId') // Filter by group ID
 
     // Build where clause
     const where: any = {
@@ -69,6 +70,10 @@ export async function GET(request: NextRequest) {
         ...(dateFrom && { gte: new Date(dateFrom) }),
         ...(dateTo && { lte: new Date(dateTo + 'T23:59:59Z') }),
       }
+    }
+
+    if (groupId) {
+      where.groupId = parseInt(groupId)
     }
 
     const db = await getDb()
@@ -127,6 +132,14 @@ export async function GET(request: NextRequest) {
             id: true,
             status: true,
             attendeeCount: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            avatar: true,
           },
         },
       },
@@ -217,6 +230,7 @@ export async function POST(request: NextRequest) {
       tags,
       externalLink,
       streamingLink,
+      groupId: rawGroupId,
     } = body
 
     // Validate required fields
@@ -291,6 +305,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate group if provided
+    const groupId = rawGroupId ? parseInt(rawGroupId) : null
+    if (groupId) {
+      const group = await db.group.findUnique({ where: { id: groupId } })
+      if (!group || !group.isActive) {
+        return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+      }
+    }
+
     // Create event
     const event = await db.event.create({
       data: {
@@ -315,6 +338,7 @@ export async function POST(request: NextRequest) {
         tags: tags || [],
         externalLink: externalLink || null,
         streamingLink: streamingLink || null,
+        groupId: groupId || null,
         status: 'UPCOMING',
       },
       include: {
@@ -336,6 +360,14 @@ export async function POST(request: NextRequest) {
             country: true,
             address: true,
             slug: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            avatar: true,
           },
         },
       },

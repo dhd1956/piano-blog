@@ -47,6 +47,17 @@ interface GroupVenueEntry {
   venue: VenueSummary
 }
 
+interface EventSummary {
+  id: number
+  title: string
+  eventType: string
+  startDate: string
+  endDate: string
+  status: string
+  venue: { id: number; name: string; city: string }
+  organizer: { id: number; displayName: string | null; username: string | null }
+}
+
 interface Group {
   id: number
   slug: string
@@ -85,6 +96,9 @@ export default function GroupDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [events, setEvents] = useState<EventSummary[]>([])
+  const [eventsLoading, setEventsLoading] = useState(false)
+
   // Manage: add member
   const [memberInput, setMemberInput] = useState('')
   const [memberAdding, setMemberAdding] = useState(false)
@@ -121,6 +135,16 @@ export default function GroupDetailPage() {
   useEffect(() => {
     fetchGroup()
   }, [fetchGroup])
+
+  useEffect(() => {
+    if (!group) return
+    setEventsLoading(true)
+    fetch(`/api/events?groupId=${group.id}&status=UPCOMING&limit=10`)
+      .then((r) => r.json())
+      .then((d) => setEvents(d.events ?? []))
+      .catch(() => {})
+      .finally(() => setEventsLoading(false))
+  }, [group])
 
   const isOwner = authUser && group ? authUser.id === group.ownerId : false
   const canManage = isOwner || isBlogOwner
@@ -470,6 +494,63 @@ export default function GroupDetailPage() {
           </form>
         )}
         {venueError && <p className="mt-1 text-xs text-red-500">{venueError}</p>}
+      </section>
+
+      {/* Upcoming Events section */}
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Upcoming Events
+          </h2>
+          {canManage && (
+            <Link
+              href={`/events/create`}
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+            >
+              + Create Event
+            </Link>
+          )}
+        </div>
+
+        {eventsLoading && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading events…</p>
+        )}
+
+        {!eventsLoading && events.length === 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">No upcoming events.</p>
+        )}
+
+        {!eventsLoading && events.length > 0 && (
+          <ul className="space-y-2">
+            {events.map((ev) => (
+              <li key={ev.id}>
+                <Link
+                  href={`/events/${ev.id}`}
+                  className="flex items-start justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                      {ev.title}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {new Date(ev.startDate).toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}{' '}
+                      · {ev.venue.name}, {ev.venue.city}
+                    </p>
+                  </div>
+                  <span className="ml-3 shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                    {ev.eventType.replace('_', ' ')}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   )

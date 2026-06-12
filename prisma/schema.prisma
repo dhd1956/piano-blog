@@ -630,6 +630,10 @@ model Event {
   seriesOccurrence  Int?         // Which occurrence in series (1, 2, 3...)
   isSeriesException Boolean      @default(false)  // True if edited independently
 
+  // Group relation (optional - event organised on behalf of a group)
+  group             Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  groupId           Int?
+
   // Metadata
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -644,6 +648,7 @@ model Event {
   @@index([eventType, status])
   @@index([isPublic, status])
   @@index([seriesId])
+  @@index([groupId])
 }
 
 // EventSeries - Recurring event template that spawns individual Event instances
@@ -918,6 +923,7 @@ model Group {
   owner       User         @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members     GroupMember[]
   venues      GroupVenue[]
+  events      Event[]
 
   @@index([ownerId])
   @@index([isActive])

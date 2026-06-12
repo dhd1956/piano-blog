@@ -54,6 +54,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             status: true,
           },
         },
+        group: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            avatar: true,
+          },
+        },
         rsvps: {
           include: {
             user: {

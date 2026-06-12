@@ -90,6 +90,9 @@ interface Event {
   series: EventSeries | null
   seriesOccurrence: number | null
   isSeriesException: boolean
+  // Group fields
+  groupId: number | null
+  group: { id: number; slug: string; name: string; avatar: string | null } | null
 }
 
 interface EventStats {
@@ -453,6 +456,15 @@ export default function EventDetailPage() {
           <span className="inline-block rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
             Edited
           </span>
+        )}
+        {event.group && (
+          <Link
+            href={`/groups/${event.group.slug}`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60"
+          >
+            <span>👥</span>
+            {event.group.name}
+          </Link>
         )}
         {event.status === 'CANCELLED' && (
           <span className="inline-block rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-800 dark:bg-red-900 dark:text-red-200">

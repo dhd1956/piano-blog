@@ -1,6 +1,6 @@
 /**
  * Groups API
- * GET  /api/groups — list active groups (public)
+ * GET  /api/groups — list active groups (public); ?owned=true returns only groups owned by auth user
  * POST /api/groups — create group (CURATOR or BLOG_OWNER)
  */
 
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || undefined
     const venueId = searchParams.get('venueId') ? parseInt(searchParams.get('venueId')!) : undefined
+    const owned = searchParams.get('owned') === 'true'
     const page = Math.max(parseInt(searchParams.get('page') || '1'), 1)
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
     const skip = (page - 1) * limit
@@ -38,6 +39,14 @@ export async function GET(request: NextRequest) {
 
     if (venueId && !isNaN(venueId)) {
       where.venues = { some: { venueId } }
+    }
+
+    if (owned) {
+      const authUser = await authenticate(request as any)
+      if (!authUser) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      }
+      where.ownerId = authUser.id
     }
 
     const [groups, totalCount] = await Promise.all([
