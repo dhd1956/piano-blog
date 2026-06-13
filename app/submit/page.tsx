@@ -15,6 +15,8 @@ interface VenueFormData {
   website: string
   hasPiano: boolean
   hasJamSession: boolean
+  isVirtual: boolean
+  streamingLink: string
   venueType: number
   description: string
   address: string
@@ -35,6 +37,8 @@ export default function SubmitVenue() {
     website: '',
     hasPiano: true,
     hasJamSession: false,
+    isVirtual: false,
+    streamingLink: '',
     venueType: 0,
     description: '',
     address: '',
@@ -187,7 +191,7 @@ export default function SubmitVenue() {
         errors.province = 'Province / State is required'
       }
     }
-    if (!formData.address || !formData.address.trim()) {
+    if (!formData.isVirtual && (!formData.address || !formData.address.trim())) {
       errors.address = 'Full address is required'
     }
 
@@ -280,9 +284,11 @@ export default function SubmitVenue() {
           website: websiteUrl,
           hasPiano: formData.hasPiano,
           hasJamSession: formData.hasJamSession,
+          isVirtual: formData.isVirtual,
           venueType: formData.venueType,
           description: formData.description,
-          fullAddress: formData.address,
+          fullAddress: formData.isVirtual ? undefined : formData.address,
+          streamingLink: formData.streamingLink || undefined,
           submittedBy: submittedBy,
         }),
       })
@@ -310,6 +316,8 @@ export default function SubmitVenue() {
           website: '',
           hasPiano: true,
           hasJamSession: false,
+          isVirtual: false,
+          streamingLink: '',
           venueType: 0,
           description: '',
           address: '',
@@ -600,58 +608,76 @@ export default function SubmitVenue() {
             </div>
           </div>
 
-          {/* Address */}
-          <div id="address-field">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Full Address *</label>
-            <div className="relative">
+          {/* Address (physical) or Streaming link (virtual) */}
+          {formData.isVirtual ? (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Streaming / Join Link
+              </label>
               <input
-                type="text"
-                value={formData.address}
-                onChange={(e) => {
-                  setFormData({ ...formData, address: e.target.value })
-                  if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: undefined })
-                }}
-                onKeyDown={handleAddressKeyDown}
-                onFocus={() => setShowAddressTooltip(true)}
-                onBlur={() => setTimeout(() => setShowAddressTooltip(false), 200)}
-                className={`w-full rounded-lg border px-3 py-2 pr-12 text-base text-gray-900 focus:ring-2 ${
-                  fieldErrors.address
-                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                    : 'border-gray-300 bg-white focus:ring-blue-500'
-                }`}
-                placeholder="Type address or press Enter to auto-fill"
+                type="url"
+                value={formData.streamingLink}
+                onChange={(e) => setFormData({ ...formData, streamingLink: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                placeholder="https://zoom.us/j/... or https://discord.gg/..."
               />
-              <button
-                type="button"
-                onClick={handleLookupAddress}
-                disabled={isLookingUpAddress || !formData.name || !formData.city}
-                className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xl transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40"
-                title={
-                  !formData.name || !formData.city
-                    ? 'Enter venue name and city first'
-                    : 'Click or press Enter to auto-fill address using AI'
-                }
-              >
-                {isLookingUpAddress ? (
-                  <span className="inline-block animate-spin">⏳</span>
-                ) : (
-                  <>🤖</>
-                )}
-              </button>
-              {showAddressTooltip && formData.name && formData.city && !formData.address && (
-                <div className="absolute top-full left-0 z-10 mt-1 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
-                  Press <kbd className="rounded bg-gray-700 px-1">Enter</kbd> or click 🤖 to
-                  auto-fill
-                </div>
-              )}
+              <p className="mt-1 text-xs text-gray-500">
+                Where people join this virtual venue (Zoom, Discord, YouTube Live, etc.)
+              </p>
             </div>
-            {fieldErrors.address && (
-              <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.address}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-500">
-              💡 Fill in venue name and city above, then press Enter or click 🤖 to auto-fill
-            </p>
-          </div>
+          ) : (
+            <div id="address-field">
+              <label className="mb-2 block text-sm font-medium text-gray-700">Full Address *</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => {
+                    setFormData({ ...formData, address: e.target.value })
+                    if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: undefined })
+                  }}
+                  onKeyDown={handleAddressKeyDown}
+                  onFocus={() => setShowAddressTooltip(true)}
+                  onBlur={() => setTimeout(() => setShowAddressTooltip(false), 200)}
+                  className={`w-full rounded-lg border px-3 py-2 pr-12 text-base text-gray-900 focus:ring-2 ${
+                    fieldErrors.address
+                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                      : 'border-gray-300 bg-white focus:ring-blue-500'
+                  }`}
+                  placeholder="Type address or press Enter to auto-fill"
+                />
+                <button
+                  type="button"
+                  onClick={handleLookupAddress}
+                  disabled={isLookingUpAddress || !formData.name || !formData.city}
+                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xl transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40"
+                  title={
+                    !formData.name || !formData.city
+                      ? 'Enter venue name and city first'
+                      : 'Click or press Enter to auto-fill address using AI'
+                  }
+                >
+                  {isLookingUpAddress ? (
+                    <span className="inline-block animate-spin">⏳</span>
+                  ) : (
+                    <>🤖</>
+                  )}
+                </button>
+                {showAddressTooltip && formData.name && formData.city && !formData.address && (
+                  <div className="absolute top-full left-0 z-10 mt-1 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
+                    Press <kbd className="rounded bg-gray-700 px-1">Enter</kbd> or click 🤖 to
+                    auto-fill
+                  </div>
+                )}
+              </div>
+              {fieldErrors.address && (
+                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.address}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                💡 Fill in venue name and city above, then press Enter or click 🤖 to auto-fill
+              </p>
+            </div>
+          )}
 
           {/* Contact Information */}
           <div className="space-y-4">
@@ -755,6 +781,18 @@ export default function SubmitVenue() {
 
           {/* Piano & Features */}
           <div className="space-y-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.isVirtual}
+                onChange={(e) => setFormData({ ...formData, isVirtual: e.target.checked })}
+                className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label className="text-sm font-medium text-gray-700">
+                🌐 Virtual Venue (online only — no physical address)
+              </label>
+            </div>
+
             <div className="flex items-center">
               <input
                 type="checkbox"
