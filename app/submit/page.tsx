@@ -183,12 +183,14 @@ export default function SubmitVenue() {
     if (!formData.city || !formData.city.trim()) {
       errors.city = 'City is required'
     }
-    if (!formData.country || !formData.country.trim()) {
-      errors.country = 'Country is required'
-    }
-    if (formData.country === 'Canada' || formData.country === 'United States') {
-      if (!formData.province || !formData.province.trim()) {
-        errors.province = 'Province / State is required'
+    if (!formData.isVirtual) {
+      if (!formData.country || !formData.country.trim()) {
+        errors.country = 'Country is required'
+      }
+      if (formData.country === 'Canada' || formData.country === 'United States') {
+        if (!formData.province || !formData.province.trim()) {
+          errors.province = 'Province / State is required'
+        }
       }
     }
     if (!formData.isVirtual && (!formData.address || !formData.address.trim())) {
@@ -438,6 +440,28 @@ export default function SubmitVenue() {
 
         {/* Venue Submission Form */}
         <form onSubmit={handleSubmitVenue} className="space-y-6">
+          {/* Virtual venue toggle — shown first so it reshapes the rest of the form */}
+          <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+            <input
+              type="checkbox"
+              id="isVirtual"
+              checked={formData.isVirtual}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  isVirtual: e.target.checked,
+                  address: '',
+                  province: '',
+                  country: '',
+                })
+              }
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="isVirtual" className="cursor-pointer text-sm font-medium text-blue-900">
+              🌐 This is a virtual venue (online only — no physical address)
+            </label>
+          </div>
+
           {/* Basic Info */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div id="name-field">
@@ -463,7 +487,9 @@ export default function SubmitVenue() {
             </div>
 
             <div id="city-field">
-              <label className="mb-2 block text-sm font-medium text-gray-700">City *</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                {formData.isVirtual ? 'City or Region *' : 'City *'}
+              </label>
               <input
                 type="text"
                 maxLength={32}
@@ -477,7 +503,7 @@ export default function SubmitVenue() {
                     ? 'border-red-500 bg-red-50 focus:ring-red-500'
                     : 'border-gray-300 bg-white focus:ring-blue-500'
                 }`}
-                placeholder="e.g., Toronto"
+                placeholder={formData.isVirtual ? 'e.g., Online, Toronto, Global' : 'e.g., Toronto'}
               />
               {fieldErrors.city && (
                 <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.city}</p>
@@ -485,128 +511,130 @@ export default function SubmitVenue() {
             </div>
           </div>
 
-          {/* Province / State and Country */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Country *</label>
-              <select
-                value={formData.country}
-                onChange={(e) =>
-                  setFormData({ ...formData, country: e.target.value, province: '' })
-                }
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select country…</option>
-                <option value="Canada">Canada</option>
-                <option value="United States">United States</option>
-                <option value="United Kingdom">United Kingdom</option>
-                <option value="Ireland">Ireland</option>
-                <option value="Australia">Australia</option>
-                <option value="Other">Other</option>
-              </select>
-              {fieldErrors.country && (
-                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.country}</p>
-              )}
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                {formData.country === 'United States' ? 'State *' : 'Province *'}
-              </label>
-              {formData.country === 'Canada' && (
+          {/* Province / State and Country — hidden for virtual venues */}
+          {!formData.isVirtual && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Country *</label>
                 <select
-                  value={formData.province}
-                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                  value={formData.country}
+                  onChange={(e) =>
+                    setFormData({ ...formData, country: e.target.value, province: '' })
+                  }
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select province…</option>
-                  <option value="Alberta">Alberta</option>
-                  <option value="British Columbia">British Columbia</option>
-                  <option value="Manitoba">Manitoba</option>
-                  <option value="New Brunswick">New Brunswick</option>
-                  <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
-                  <option value="Northwest Territories">Northwest Territories</option>
-                  <option value="Nova Scotia">Nova Scotia</option>
-                  <option value="Nunavut">Nunavut</option>
-                  <option value="Ontario">Ontario</option>
-                  <option value="Prince Edward Island">Prince Edward Island</option>
-                  <option value="Quebec">Quebec</option>
-                  <option value="Saskatchewan">Saskatchewan</option>
-                  <option value="Yukon">Yukon</option>
+                  <option value="">Select country…</option>
+                  <option value="Canada">Canada</option>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Ireland">Ireland</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Other">Other</option>
                 </select>
-              )}
-              {formData.country === 'United States' && (
-                <select
-                  value={formData.province}
-                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select state…</option>
-                  <option value="Alabama">Alabama</option>
-                  <option value="Alaska">Alaska</option>
-                  <option value="Arizona">Arizona</option>
-                  <option value="Arkansas">Arkansas</option>
-                  <option value="California">California</option>
-                  <option value="Colorado">Colorado</option>
-                  <option value="Connecticut">Connecticut</option>
-                  <option value="Delaware">Delaware</option>
-                  <option value="Florida">Florida</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Hawaii">Hawaii</option>
-                  <option value="Idaho">Idaho</option>
-                  <option value="Illinois">Illinois</option>
-                  <option value="Indiana">Indiana</option>
-                  <option value="Iowa">Iowa</option>
-                  <option value="Kansas">Kansas</option>
-                  <option value="Kentucky">Kentucky</option>
-                  <option value="Louisiana">Louisiana</option>
-                  <option value="Maine">Maine</option>
-                  <option value="Maryland">Maryland</option>
-                  <option value="Massachusetts">Massachusetts</option>
-                  <option value="Michigan">Michigan</option>
-                  <option value="Minnesota">Minnesota</option>
-                  <option value="Mississippi">Mississippi</option>
-                  <option value="Missouri">Missouri</option>
-                  <option value="Montana">Montana</option>
-                  <option value="Nebraska">Nebraska</option>
-                  <option value="Nevada">Nevada</option>
-                  <option value="New Hampshire">New Hampshire</option>
-                  <option value="New Jersey">New Jersey</option>
-                  <option value="New Mexico">New Mexico</option>
-                  <option value="New York">New York</option>
-                  <option value="North Carolina">North Carolina</option>
-                  <option value="North Dakota">North Dakota</option>
-                  <option value="Ohio">Ohio</option>
-                  <option value="Oklahoma">Oklahoma</option>
-                  <option value="Oregon">Oregon</option>
-                  <option value="Pennsylvania">Pennsylvania</option>
-                  <option value="Rhode Island">Rhode Island</option>
-                  <option value="South Carolina">South Carolina</option>
-                  <option value="South Dakota">South Dakota</option>
-                  <option value="Tennessee">Tennessee</option>
-                  <option value="Texas">Texas</option>
-                  <option value="Utah">Utah</option>
-                  <option value="Vermont">Vermont</option>
-                  <option value="Virginia">Virginia</option>
-                  <option value="Washington">Washington</option>
-                  <option value="West Virginia">West Virginia</option>
-                  <option value="Wisconsin">Wisconsin</option>
-                  <option value="Wyoming">Wyoming</option>
-                </select>
-              )}
-              {formData.country !== 'Canada' && formData.country !== 'United States' && (
-                <input
-                  type="text"
-                  value={formData.province}
-                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Province / State / Region"
-                />
-              )}
-              {fieldErrors.province && (
-                <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.province}</p>
-              )}
+                {fieldErrors.country && (
+                  <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.country}</p>
+                )}
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  {formData.country === 'United States' ? 'State *' : 'Province *'}
+                </label>
+                {formData.country === 'Canada' && (
+                  <select
+                    value={formData.province}
+                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select province…</option>
+                    <option value="Alberta">Alberta</option>
+                    <option value="British Columbia">British Columbia</option>
+                    <option value="Manitoba">Manitoba</option>
+                    <option value="New Brunswick">New Brunswick</option>
+                    <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                    <option value="Northwest Territories">Northwest Territories</option>
+                    <option value="Nova Scotia">Nova Scotia</option>
+                    <option value="Nunavut">Nunavut</option>
+                    <option value="Ontario">Ontario</option>
+                    <option value="Prince Edward Island">Prince Edward Island</option>
+                    <option value="Quebec">Quebec</option>
+                    <option value="Saskatchewan">Saskatchewan</option>
+                    <option value="Yukon">Yukon</option>
+                  </select>
+                )}
+                {formData.country === 'United States' && (
+                  <select
+                    value={formData.province}
+                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select state…</option>
+                    <option value="Alabama">Alabama</option>
+                    <option value="Alaska">Alaska</option>
+                    <option value="Arizona">Arizona</option>
+                    <option value="Arkansas">Arkansas</option>
+                    <option value="California">California</option>
+                    <option value="Colorado">Colorado</option>
+                    <option value="Connecticut">Connecticut</option>
+                    <option value="Delaware">Delaware</option>
+                    <option value="Florida">Florida</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Hawaii">Hawaii</option>
+                    <option value="Idaho">Idaho</option>
+                    <option value="Illinois">Illinois</option>
+                    <option value="Indiana">Indiana</option>
+                    <option value="Iowa">Iowa</option>
+                    <option value="Kansas">Kansas</option>
+                    <option value="Kentucky">Kentucky</option>
+                    <option value="Louisiana">Louisiana</option>
+                    <option value="Maine">Maine</option>
+                    <option value="Maryland">Maryland</option>
+                    <option value="Massachusetts">Massachusetts</option>
+                    <option value="Michigan">Michigan</option>
+                    <option value="Minnesota">Minnesota</option>
+                    <option value="Mississippi">Mississippi</option>
+                    <option value="Missouri">Missouri</option>
+                    <option value="Montana">Montana</option>
+                    <option value="Nebraska">Nebraska</option>
+                    <option value="Nevada">Nevada</option>
+                    <option value="New Hampshire">New Hampshire</option>
+                    <option value="New Jersey">New Jersey</option>
+                    <option value="New Mexico">New Mexico</option>
+                    <option value="New York">New York</option>
+                    <option value="North Carolina">North Carolina</option>
+                    <option value="North Dakota">North Dakota</option>
+                    <option value="Ohio">Ohio</option>
+                    <option value="Oklahoma">Oklahoma</option>
+                    <option value="Oregon">Oregon</option>
+                    <option value="Pennsylvania">Pennsylvania</option>
+                    <option value="Rhode Island">Rhode Island</option>
+                    <option value="South Carolina">South Carolina</option>
+                    <option value="South Dakota">South Dakota</option>
+                    <option value="Tennessee">Tennessee</option>
+                    <option value="Texas">Texas</option>
+                    <option value="Utah">Utah</option>
+                    <option value="Vermont">Vermont</option>
+                    <option value="Virginia">Virginia</option>
+                    <option value="Washington">Washington</option>
+                    <option value="West Virginia">West Virginia</option>
+                    <option value="Wisconsin">Wisconsin</option>
+                    <option value="Wyoming">Wyoming</option>
+                  </select>
+                )}
+                {formData.country !== 'Canada' && formData.country !== 'United States' && (
+                  <input
+                    type="text"
+                    value={formData.province}
+                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 focus:ring-2 focus:ring-blue-500"
+                    placeholder="Province / State / Region"
+                  />
+                )}
+                {fieldErrors.province && (
+                  <p className="mt-1 text-sm font-medium text-red-600">⚠️ {fieldErrors.province}</p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Address (physical) or Streaming link (virtual) */}
           {formData.isVirtual ? (
@@ -781,18 +809,6 @@ export default function SubmitVenue() {
 
           {/* Piano & Features */}
           <div className="space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.isVirtual}
-                onChange={(e) => setFormData({ ...formData, isVirtual: e.target.checked })}
-                className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <label className="text-sm font-medium text-gray-700">
-                🌐 Virtual Venue (online only — no physical address)
-              </label>
-            </div>
-
             <div className="flex items-center">
               <input
                 type="checkbox"
