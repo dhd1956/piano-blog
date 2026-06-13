@@ -9,6 +9,7 @@ interface Venue {
   city: string
   contactInfo: string
   hasPiano: boolean
+  isVirtual: boolean
   verified: boolean
   submittedBy: string
   description?: string
@@ -222,11 +223,16 @@ export default function VenueList() {
                   </div>
 
                   <div className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                    📍 {venue.city}
+                    {venue.isVirtual ? '🌐 Virtual Venue' : `📍 ${venue.city}`}
                   </div>
 
                   {/* Features */}
-                  <div className="mb-4 flex gap-2">
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {venue.isVirtual && (
+                      <span className="rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                        🌐 Online Only
+                      </span>
+                    )}
                     {venue.hasPiano && (
                       <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                         🎹 Piano Available
@@ -255,7 +261,7 @@ export default function VenueList() {
                     >
                       View Details
                     </a>
-                    {venue.verified && (
+                    {venue.verified && !venue.isVirtual && (
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                           [venue.name, venue.address, venue.city].filter(Boolean).join(', ')

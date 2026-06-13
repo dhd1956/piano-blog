@@ -158,6 +158,8 @@ export default function VenueDetailsPage() {
           fullAddress: venueData.fullAddress || venueData.address || '',
           hasPiano: venueData.hasPiano,
           hasJamSession: venueData.hasJamSession || false,
+          isVirtual: venueData.isVirtual || false,
+          streamingLink: venueData.streamingLink || null,
           verified: venueData.verified,
           venueType: venueData.venueType || 0,
           contactType: venueData.contactType || 'email',
@@ -204,6 +206,7 @@ export default function VenueDetailsPage() {
             contactType: venueData.contactType,
             phone: venueData.phone || '',
             website: venueData.website || '',
+            streamingLink: venueData.streamingLink || '',
             socialMedia: venueData.socialLinks || {
               facebook: venueData.facebook,
               instagram: venueData.instagram,

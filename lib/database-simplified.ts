@@ -305,9 +305,11 @@ export const VenueService = {
     submittedBy: string
     hasPiano?: boolean
     hasJamSession?: boolean
+    isVirtual?: boolean
     venueType?: number
     description?: string
     address?: string
+    streamingLink?: string
     phone?: string
     website?: string
     amenities?: string[]

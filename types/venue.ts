@@ -34,6 +34,8 @@ export interface Venue {
   fullAddress: string
   hasPiano: boolean
   hasJamSession: boolean
+  isVirtual?: boolean
+  streamingLink?: string | null
   verified: boolean
   venueType: number
   contactType: string
@@ -64,6 +66,7 @@ export interface VenueMetadata {
     contactType?: string
     phone?: string
     website?: string
+    streamingLink?: string
     socialMedia?: {
       facebook?: string
       instagram?: string

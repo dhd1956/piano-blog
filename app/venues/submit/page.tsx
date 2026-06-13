@@ -20,8 +20,10 @@ export default function SubmitVenue() {
     contactType: 'email',
     hasPiano: false,
     hasJamSession: false,
+    isVirtual: false,
     description: '',
     address: '',
+    streamingLink: '',
     phone: '',
     website: '',
     amenities: [] as string[],
@@ -170,8 +172,10 @@ export default function SubmitVenue() {
           contactType: 'email',
           hasPiano: false,
           hasJamSession: false,
+          isVirtual: false,
           description: '',
           address: '',
+          streamingLink: '',
           phone: '',
           website: '',
           amenities: [],
@@ -352,6 +356,18 @@ export default function SubmitVenue() {
               <label className="flex items-center">
                 <input
                   type="checkbox"
+                  checked={formData.isVirtual}
+                  onChange={(e) => handleInputChange('isVirtual', e.target.checked)}
+                  className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-gray-700">
+                  🌐 Virtual Venue (online only, no physical address)
+                </span>
+              </label>
+
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
                   checked={formData.hasPiano}
                   onChange={(e) => handleInputChange('hasPiano', e.target.checked)}
                   className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500"
@@ -383,60 +399,78 @@ export default function SubmitVenue() {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {formData.isVirtual ? (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Address</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  onKeyDown={handleAddressKeyDown}
-                  onFocus={() => setShowAddressTooltip(true)}
-                  onBlur={() => setTimeout(() => setShowAddressTooltip(false), 200)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Type address or press Enter to auto-fill"
-                />
-                <button
-                  type="button"
-                  onClick={handleLookupAddress}
-                  disabled={isLookingUpAddress || !formData.name || !formData.city}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xl transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40"
-                  title={
-                    !formData.name || !formData.city
-                      ? 'Enter venue name and city first'
-                      : 'Click or press Enter to auto-fill address using AI'
-                  }
-                >
-                  {isLookingUpAddress ? (
-                    <span className="inline-block animate-spin">⏳</span>
-                  ) : (
-                    <>🤖</>
-                  )}
-                </button>
-                {showAddressTooltip && formData.name && formData.city && !formData.address && (
-                  <div className="absolute top-full left-0 z-10 mt-1 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
-                    Press <kbd className="rounded bg-gray-700 px-1">Enter</kbd> or click 🤖 to
-                    auto-fill
-                  </div>
-                )}
-              </div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Streaming / Join Link
+              </label>
+              <input
+                type="url"
+                value={formData.streamingLink}
+                onChange={(e) => handleInputChange('streamingLink', e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                placeholder="https://zoom.us/j/... or https://discord.gg/..."
+              />
               <p className="mt-1 text-xs text-gray-500">
-                💡 Fill in venue name and city, then press Enter or click 🤖 to auto-fill
+                Where people join this virtual venue (Zoom, Discord, YouTube Live, etc.)
               </p>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Address</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    onKeyDown={handleAddressKeyDown}
+                    onFocus={() => setShowAddressTooltip(true)}
+                    onBlur={() => setTimeout(() => setShowAddressTooltip(false), 200)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                    placeholder="Type address or press Enter to auto-fill"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleLookupAddress}
+                    disabled={isLookingUpAddress || !formData.name || !formData.city}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xl transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40"
+                    title={
+                      !formData.name || !formData.city
+                        ? 'Enter venue name and city first'
+                        : 'Click or press Enter to auto-fill address using AI'
+                    }
+                  >
+                    {isLookingUpAddress ? (
+                      <span className="inline-block animate-spin">⏳</span>
+                    ) : (
+                      <>🤖</>
+                    )}
+                  </button>
+                  {showAddressTooltip && formData.name && formData.city && !formData.address && (
+                    <div className="absolute top-full left-0 z-10 mt-1 rounded-md bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
+                      Press <kbd className="rounded bg-gray-700 px-1">Enter</kbd> or click 🤖 to
+                      auto-fill
+                    </div>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  💡 Fill in venue name and city, then press Enter or click 🤖 to auto-fill
+                </p>
+              </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Phone</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                placeholder="(416) 555-0123"
-              />
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  placeholder="(416) 555-0123"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Website</label>

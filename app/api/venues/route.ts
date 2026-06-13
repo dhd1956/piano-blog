@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Validate required fields
-    const requiredFields = ['name', 'city', 'country', 'submittedBy']
+    const requiredFields = ['name', 'city', 'submittedBy']
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -108,9 +108,11 @@ export async function POST(request: NextRequest) {
       submittedBy: body.submittedBy.toLowerCase(),
       hasPiano: body.hasPiano || false,
       hasJamSession: body.hasJamSession || false,
+      isVirtual: body.isVirtual || false,
       venueType: body.venueType ?? 0,
       description: body.description,
-      address: body.address || body.fullAddress, // Support both field names
+      address: body.isVirtual ? undefined : body.address || body.fullAddress || undefined,
+      streamingLink: body.streamingLink || undefined,
       phone: body.phone,
       website: body.website,
       amenities: body.amenities || [],

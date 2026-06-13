@@ -353,8 +353,11 @@ function ContactInformation({
   venue: Venue
   extendedData?: VenueMetadata
 }) {
+  const isVirtual = venue.isVirtual || false
+  const streamingLink = venue.streamingLink || extendedData?.venueDetails?.streamingLink || null
+
   // Get contact information from different sources
-  const address = venue.fullAddress || extendedData?.venueDetails?.fullAddress
+  const address = isVirtual ? null : venue.fullAddress || extendedData?.venueDetails?.fullAddress
 
   // Helper function to detect if a string looks like a phone number
   const looksLikePhone = (str: string | null): boolean => {
@@ -401,7 +404,8 @@ function ContactInformation({
       : null
 
   // If no contact information at all, don't render the section
-  if (!address && !email && !phone && !website && !otherContact) return null
+  if (!isVirtual && !address && !email && !phone && !website && !otherContact && !streamingLink)
+    return null
 
   return (
     <div>
@@ -409,7 +413,36 @@ function ContactInformation({
         Contact Information
       </h3>
       <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-        {/* Address */}
+        {/* Virtual venue indicator */}
+        {isVirtual && (
+          <InfoRow
+            label="Venue Type"
+            value={
+              <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-sm font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                🌐 Virtual / Online Only
+              </span>
+            }
+          />
+        )}
+
+        {/* Streaming link for virtual venues */}
+        {streamingLink && (
+          <InfoRow
+            label="Join Link"
+            value={
+              <a
+                href={streamingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {streamingLink}
+              </a>
+            }
+          />
+        )}
+
+        {/* Address (physical venues only) */}
         {address && (
           <InfoRow
             label="Address"
