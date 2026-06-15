@@ -241,6 +241,9 @@ model User {
   groupMemberships  GroupMember[] @relation("GroupMemberUser")
   groupMembersAdded GroupMember[] @relation("GroupMemberAddedBy")
   groupVenuesAdded  GroupVenue[]  @relation("GroupVenueAddedBy")
+  // Notes relations
+  notesAuthored     Note[]        @relation("NoteAuthor")
+  notesOnProfile    Note[]        @relation("NoteOnProfile")
 
   @@index([walletAddress])
   @@index([username])
@@ -641,6 +644,7 @@ model Event {
   // Relations
   rsvps           EventRSVP[]
   youtubeVideos   YouTubeVideo[] // Performance videos from this event
+  notes           Note[]
 
   @@index([organizerId])
   @@index([venueId])
@@ -924,6 +928,7 @@ model Group {
   members     GroupMember[]
   venues      GroupVenue[]
   events      Event[]
+  notes       Note[]
 
   @@index([ownerId])
   @@index([isActive])
@@ -955,5 +960,45 @@ model GroupVenue {
 
   @@id([groupId, venueId])
   @@index([venueId])
+}
+
+// Notes — rich-text notes attached to groups, events, or user profiles
+model Note {
+  id              Int      @id @default(autoincrement())
+  authorId        Int
+  author          User     @relation("NoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Exactly one of these is set
+  groupId         Int?
+  group           Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  eventId         Int?
+  event           Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profileUserId   Int?     // the user whose profile this note is pinned to
+  profileUser     User?    @relation("NoteOnProfile", fields: [profileUserId], references: [id], onDelete: Cascade)
+
+  // Content
+  title           String?
+  body            String   @db.Text
+
+  // Self-reported metrics
+  practiceMinutes Int?
+  qualityRating   Int?     // 1–5
+
+  // YouTube links for recordings
+  youtubeUrls     String[]
+
+  // Visibility: isPrivate = true means only the author can read/update/delete
+  isPrivate       Boolean  @default(false)
+
+  // PXP tracking
+  pxpAwarded      Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([eventId])
+  @@index([profileUserId])
+  @@index([authorId])
 }
 

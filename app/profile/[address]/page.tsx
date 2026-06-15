@@ -14,6 +14,7 @@ import YouTubeVideoGallery from '@/components/content/YouTubeVideoGallery'
 import YouTubeChannelVerification from '@/components/content/YouTubeChannelVerification'
 import TipButton from '@/components/tips/TipButton'
 import CollabRequestButton from '@/components/profile/CollabRequestButton'
+import NoteList from '@/components/notes/NoteList'
 
 interface UserProfile {
   id: number
@@ -775,6 +776,17 @@ export default function ProfilePage() {
           </p>
         </div>
       )}
+
+      {/* Notes section */}
+      <div className="mb-8">
+        <NoteList
+          profileUserId={profile.id}
+          isOwnProfile={isOwnProfile}
+          canCreate={isAuthenticated}
+          currentUserId={currentUser?.id}
+          label="Notes"
+        />
+      </div>
 
       {/* QR Code Modal */}
       {showQRModal && (

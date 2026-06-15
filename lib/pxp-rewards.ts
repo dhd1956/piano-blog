@@ -429,6 +429,45 @@ export async function awardEventPerform(
 }
 
 /**
+ * Award PXP for logging a practice session note (practiceMinutes > 0)
+ */
+export async function awardPracticeSession(
+  userId: number,
+  walletAddress: string,
+  noteId: number
+): Promise<{
+  success: boolean
+  pxpAwarded: number
+}> {
+  try {
+    const pxpAmount = await getPXPConfig('note_practice_session')
+    if (pxpAmount === 0) {
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const transfer = await sendPXPReward(
+      walletAddress,
+      pxpAmount,
+      `Practice session note ${noteId}`
+    )
+    if (!transfer.success) {
+      console.error(`[awardPracticeSession] On-chain transfer failed: ${transfer.error}`)
+      return { success: false, pxpAwarded: 0 }
+    }
+
+    const result = await awardPXP(userId, pxpAmount, `Practice session note ${noteId}`)
+
+    return {
+      success: result.success,
+      pxpAwarded: pxpAmount,
+    }
+  } catch (error) {
+    console.error('Error awarding practice session PXP:', error)
+    return { success: false, pxpAwarded: 0 }
+  }
+}
+
+/**
  * Award PXP for writing a venue review
  */
 export async function awardVenueReview(

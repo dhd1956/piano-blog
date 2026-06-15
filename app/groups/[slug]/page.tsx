@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/hooks/useRole'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
+import NoteList from '@/components/notes/NoteList'
 
 interface UserSummary {
   id: number
@@ -494,6 +495,18 @@ export default function GroupDetailPage() {
           </form>
         )}
         {venueError && <p className="mt-1 text-xs text-red-500">{venueError}</p>}
+      </section>
+
+      {/* Notes section */}
+      <section className="mt-8">
+        <NoteList
+          groupId={group.id}
+          canCreate={
+            !!(authUser && (isOwner || group.members.some((m) => m.userId === authUser.id)))
+          }
+          currentUserId={authUser?.id}
+          label="Practice Notes & Updates"
+        />
       </section>
 
       {/* Upcoming Events section */}

@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { tzLabel } from '@/lib/timezone-label'
+import NoteList from '@/components/notes/NoteList'
 
 const EventQRCard = lazy(() => import('@/components/qr/EventQRCard'))
 const YouTubeVideoGallery = lazy(() => import('@/components/content/YouTubeVideoGallery'))
@@ -942,6 +943,16 @@ export default function EventDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Community Notes */}
+      {event && (
+        <NoteList
+          eventId={event.id}
+          canCreate={isAuthenticated}
+          currentUserId={currentUserAuth?.id}
+          label="Community Notes"
+        />
       )}
 
       {/* Performance Videos Section */}
