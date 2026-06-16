@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import VenueDetailsView from '@/components/VenueDetailsView'
 import VenueEditForm from '@/components/VenueEditForm'
 import VenueQRCard from '@/components/qr/VenueQRCard'
@@ -18,42 +18,13 @@ interface PermissionCheck {
   canUpdateCurator: boolean
 }
 
-// Simple permission checking functions for simplified architecture
-function formatAddress(address: string | null): string {
-  if (!address) return 'Not connected'
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
-
-function getClientPermissions(walletAddress: string) {
-  const blogOwnerAddress = process.env.NEXT_PUBLIC_BLOG_OWNER_ADDRESS
-  const isBlogOwner =
-    blogOwnerAddress && walletAddress?.toLowerCase() === blogOwnerAddress.toLowerCase()
-
-  return {
-    isBlogOwner: Boolean(isBlogOwner),
-  }
-}
-
-async function checkVenuePermissions(
-  walletAddress: string,
-  venueId: number
-): Promise<PermissionCheck> {
-  const clientPerms = getClientPermissions(walletAddress)
-
-  return {
-    isBlogOwner: clientPerms.isBlogOwner,
-    isVenueCurator: false, // Simplified: no curator system yet
-    canEdit: clientPerms.isBlogOwner, // Only blog owner can edit
-    canUpdateCurator: clientPerms.isBlogOwner,
-  }
-}
-
 export default function VenueDetailsPage() {
   // Require authentication to access this page
   const { isLoading: authLoading } = useRequireAuth()
 
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const venueId = params.id ? parseInt(params.id as string, 10) : null
   const { user, isAuthenticated } = useAuth()
   const walletAddress = user?.walletAddress || null
@@ -105,12 +76,15 @@ export default function VenueDetailsPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
-  const [permissions, setPermissions] = useState<PermissionCheck>({
-    isBlogOwner: false,
-    isVenueCurator: false,
-    canEdit: false,
-    canUpdateCurator: false,
-  })
+
+  const isAssignedCurator = curators.some((c) => c.user.id === user?.id)
+  const canEdit = isBlogOwner || isAssignedCurator
+  const permissions: PermissionCheck = {
+    isBlogOwner,
+    isVenueCurator: isAssignedCurator,
+    canEdit,
+    canUpdateCurator: isBlogOwner,
+  }
 
   // Load venue data
   const loadVenueData = async (signal?: AbortSignal) => {
@@ -401,21 +375,12 @@ export default function VenueDetailsPage() {
     }
   }, [venueId])
 
-  // Update permissions when auth state changes
+  // Auto-open edit mode when linked with ?edit=1, once permission is known
   useEffect(() => {
-    if (!venueId) return
-    if (isConnected && walletAddress) {
-      checkVenuePermissions(walletAddress, venueId).then(setPermissions)
-    } else {
-      const clientPerms = getClientPermissions(walletAddress || '')
-      setPermissions({
-        isBlogOwner: clientPerms.isBlogOwner,
-        isVenueCurator: false,
-        canEdit: clientPerms.isBlogOwner,
-        canUpdateCurator: clientPerms.isBlogOwner,
-      })
+    if (searchParams.get('edit') === '1' && canEdit) {
+      setIsEditing(true)
     }
-  }, [isConnected, walletAddress, venueId])
+  }, [searchParams, canEdit])
 
   // Show loading while checking authentication
   if (authLoading) {

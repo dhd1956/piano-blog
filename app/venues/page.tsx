@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
 
 interface Venue {
   id: number
@@ -26,11 +27,15 @@ interface Venue {
 }
 
 export default function VenueList() {
+  const { user, isAuthenticated } = useAuth()
+  const isBlogOwner = user?.role === 'BLOG_OWNER'
+
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'verified' | 'pianos' | 'jams'>('all')
   const [cityFilter, setCityFilter] = useState<string>('all')
   const [error, setError] = useState<string>('')
+  const [curatedVenueIds, setCuratedVenueIds] = useState<Set<number>>(new Set())
 
   // Load venues from PostgreSQL API
   const loadVenues = async () => {
@@ -84,6 +89,33 @@ export default function VenueList() {
   useEffect(() => {
     loadVenues()
   }, [])
+
+  // Curators (non-blog-owner) need to know which specific venues they're assigned to edit
+  useEffect(() => {
+    if (!isAuthenticated || isBlogOwner || user?.role !== 'CURATOR') {
+      setCuratedVenueIds(new Set())
+      return
+    }
+
+    const abortController = new AbortController()
+    fetch('/api/venues?myCurated=true', {
+      credentials: 'include',
+      signal: abortController.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.venues) {
+          setCuratedVenueIds(new Set(data.venues.map((v: Venue) => v.id)))
+        }
+      })
+      .catch((err) => {
+        if (err?.name !== 'AbortError') console.error('Error loading curated venues:', err)
+      })
+
+    return () => abortController.abort()
+  }, [isAuthenticated, isBlogOwner, user?.role])
+
+  const canEditVenue = (venue: Venue) => isBlogOwner || curatedVenueIds.has(venue.id)
 
   if (loading) {
     return (
@@ -254,13 +286,23 @@ export default function VenueList() {
 
                 {/* Actions */}
                 <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
-                  <div className="flex items-center justify-between">
-                    <a
-                      href={`/venueDetails/${venue.id}`}
-                      className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium underline"
-                    >
-                      View Details
-                    </a>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <a
+                        href={`/venueDetails/${venue.id}`}
+                        className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium underline"
+                      >
+                        View Details
+                      </a>
+                      {canEditVenue(venue) && (
+                        <a
+                          href={`/venueDetails/${venue.id}?edit=1`}
+                          className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium underline"
+                        >
+                          ✏️ Edit
+                        </a>
+                      )}
+                    </div>
                     {venue.verified && !venue.isVirtual && (
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
