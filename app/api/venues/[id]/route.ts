@@ -120,10 +120,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Basic fields
     if (body.name !== undefined) updateData.name = body.name
     if (body.description !== undefined) updateData.description = body.description
-    if (body.fullAddress !== undefined) updateData.address = body.fullAddress // Map fullAddress -> address
+    if (body.fullAddress !== undefined)
+      updateData.address = body.fullAddress // Map fullAddress -> address
+    else if (body.address !== undefined) updateData.address = body.address
     if (body.contactInfo !== undefined) updateData.contactInfo = body.contactInfo
     if (body.website !== undefined) updateData.website = body.website
     if (body.phone !== undefined) updateData.phone = body.phone
+    if (body.hasPiano !== undefined) updateData.hasPiano = body.hasPiano
 
     // Piano-specific fields
     if (body.pianoType !== undefined) updateData.pianoType = body.pianoType
@@ -144,6 +147,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.publicTransportNear !== undefined)
       updateData.publicTransportNear = body.publicTransportNear
     if (body.specialNotes !== undefined) updateData.specialNotes = body.specialNotes
+    if (body.accessibility !== undefined) updateData.accessibility = body.accessibility
+    if (body.ambiance !== undefined) updateData.ambiance = body.ambiance
 
     // Curator fields
     if (body.curatorNotes !== undefined) updateData.curatorNotes = body.curatorNotes
