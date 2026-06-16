@@ -158,6 +158,7 @@ export default function CuratorDashboard() {
           city: venue.city,
           contactInfo: venue.contactInfo,
           hasPiano: venue.hasPiano,
+          isVirtual: venue.isVirtual,
           verified: venue.verified,
           submittedBy: venue.submittedBy,
           description: venue.description,
