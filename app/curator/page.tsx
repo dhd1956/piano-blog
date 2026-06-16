@@ -16,6 +16,7 @@ interface Venue {
   country?: string
   contactInfo: string
   hasPiano: boolean
+  isVirtual?: boolean
   verified: boolean
   submittedBy: string
   description?: string
@@ -55,6 +56,7 @@ export default function CuratorDashboard() {
     name: '',
     contactInfo: '',
     hasPiano: false,
+    isVirtual: false,
     description: '',
     address: '',
     updateNotes: '',
@@ -334,6 +336,7 @@ export default function CuratorDashboard() {
           name: editForm.name,
           contactInfo: editForm.contactInfo,
           hasPiano: editForm.hasPiano,
+          isVirtual: editForm.isVirtual,
           description: editForm.description,
           address: editForm.address,
           operatingHours: editForm.operatingHours,
@@ -442,6 +445,7 @@ export default function CuratorDashboard() {
       name: venue.name,
       contactInfo: venue.contactInfo,
       hasPiano: venue.hasPiano,
+      isVirtual: venue.isVirtual || false,
       description: venue.description || '',
       address: venue.address || '',
       updateNotes: '',
@@ -773,29 +777,48 @@ export default function CuratorDashboard() {
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Address</label>
-                      <div className="flex gap-2">
+                      <label className="mb-1 block text-sm font-medium">Venue Location</label>
+                      <div className="flex items-center gap-2">
                         <input
-                          type="text"
-                          value={editForm.address}
-                          onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                          className="flex-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                          placeholder="Street address"
+                          type="checkbox"
+                          checked={editForm.isVirtual}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, isVirtual: e.target.checked })
+                          }
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                         />
-                        <button
-                          type="button"
-                          onClick={handleAddressLookup}
-                          disabled={isLookingUpAddress}
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
-                          title="Auto-fill address using OpenStreetMap"
-                        >
-                          {isLookingUpAddress ? '⏳' : '🤖'}
-                        </button>
+                        <span className="text-sm text-gray-700">
+                          🌐 This is a virtual/online-only venue (no physical address)
+                        </span>
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        💡 Click 🤖 to auto-fill address using venue name and city
-                      </p>
                     </div>
+
+                    {!editForm.isVirtual && (
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Address</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={editForm.address}
+                            onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                            className="flex-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                            placeholder="Street address"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddressLookup}
+                            disabled={isLookingUpAddress}
+                            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+                            title="Auto-fill address using OpenStreetMap"
+                          >
+                            {isLookingUpAddress ? '⏳' : '🤖'}
+                          </button>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          💡 Click 🤖 to auto-fill address using venue name and city
+                        </p>
+                      </div>
+                    )}
 
                     {/* Operational Details Section */}
                     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">

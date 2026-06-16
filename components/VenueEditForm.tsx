@@ -39,6 +39,7 @@ export default function VenueEditForm({
     website: extendedData?.venueDetails?.website || '',
     hasPiano: venue.hasPiano,
     hasJamSession: venue.hasJamSession,
+    isVirtual: venue.isVirtual || false,
     pianoType: extendedData?.musicalInfo?.pianoType || '',
     pianoCondition: extendedData?.musicalInfo?.pianoCondition || '',
     pianoBrand: extendedData?.musicalInfo?.pianoBrand || '',
@@ -79,6 +80,7 @@ export default function VenueEditForm({
       website: extendedData?.venueDetails?.website || '',
       hasPiano: venue.hasPiano,
       hasJamSession: venue.hasJamSession,
+      isVirtual: venue.isVirtual || false,
       pianoType: extendedData?.musicalInfo?.pianoType || '',
       pianoCondition: extendedData?.musicalInfo?.pianoCondition || '',
       pianoBrand: extendedData?.musicalInfo?.pianoBrand || '',
@@ -358,30 +360,45 @@ export default function VenueEditForm({
           </FormField>
         </div>
 
+        {/* Virtual Venue Toggle */}
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={formData.isVirtual || false}
+            onChange={(e) => handleInputChange('isVirtual', e.target.checked)}
+            className="mr-3 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+          />
+          <span className="text-gray-700 dark:text-gray-300">
+            🌐 This is a virtual/online-only venue (no physical address)
+          </span>
+        </label>
+
         {/* Address */}
-        <FormField label="Full Address" required error={errors.fullAddress}>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={formData.fullAddress}
-              onChange={(e) => handleInputChange('fullAddress', e.target.value)}
-              className="focus:ring-primary-500 focus:border-primary-500 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-              placeholder="456 Queen Street West, Toronto, ON M5V 2A8"
-            />
-            <button
-              type="button"
-              onClick={handleAddressLookup}
-              disabled={isLookingUpAddress}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
-              title="Auto-fill address using OpenStreetMap"
-            >
-              {isLookingUpAddress ? '⏳' : '🤖'}
-            </button>
-          </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            💡 Click 🤖 to auto-fill address using venue name and city
-          </p>
-        </FormField>
+        {!formData.isVirtual && (
+          <FormField label="Full Address" required error={errors.fullAddress}>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formData.fullAddress}
+                onChange={(e) => handleInputChange('fullAddress', e.target.value)}
+                className="focus:ring-primary-500 focus:border-primary-500 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:ring-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                placeholder="456 Queen Street West, Toronto, ON M5V 2A8"
+              />
+              <button
+                type="button"
+                onClick={handleAddressLookup}
+                disabled={isLookingUpAddress}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+                title="Auto-fill address using OpenStreetMap"
+              >
+                {isLookingUpAddress ? '⏳' : '🤖'}
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              💡 Click 🤖 to auto-fill address using venue name and city
+            </p>
+          </FormField>
+        )}
 
         {/* Venue Type */}
         <FormField label="Venue Type">

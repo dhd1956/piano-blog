@@ -266,6 +266,7 @@ export default function VenueDetailsPage() {
           name: updateData.name,
           description: updateData.description,
           fullAddress: updateData.fullAddress,
+          isVirtual: updateData.isVirtual,
           contactInfo: updateData.contactInfo,
           website: updateData.website,
           pianoType: updateData.pianoType,

@@ -166,6 +166,7 @@ export interface VenueSubmissionForm {
   // Features
   hasPiano: boolean
   hasJamSession: boolean
+  isVirtual?: boolean
 
   // Extended information
   website?: string

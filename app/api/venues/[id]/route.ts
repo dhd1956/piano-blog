@@ -127,6 +127,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.website !== undefined) updateData.website = body.website
     if (body.phone !== undefined) updateData.phone = body.phone
     if (body.hasPiano !== undefined) updateData.hasPiano = body.hasPiano
+    if (body.isVirtual !== undefined) {
+      updateData.isVirtual = body.isVirtual
+      // A virtual venue has no physical address
+      if (body.isVirtual) updateData.address = null
+    }
 
     // Piano-specific fields
     if (body.pianoType !== undefined) updateData.pianoType = body.pianoType
