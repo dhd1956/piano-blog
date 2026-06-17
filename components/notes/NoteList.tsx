@@ -77,6 +77,10 @@ export default function NoteList({
     setTotalCount((c) => Math.max(0, c - 1))
   }
 
+  const handleEdited = (updated: NoteData) => {
+    setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)))
+  }
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
       {/* Header */}
@@ -175,6 +179,7 @@ export default function NoteList({
                   note={note}
                   currentUserId={currentUserId}
                   onDelete={handleDeleted}
+                  onEdit={handleEdited}
                 />
               ))}
             </div>

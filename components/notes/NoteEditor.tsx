@@ -5,10 +5,21 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 interface NoteEditorProps {
+  // Create mode — supply attachment context
   groupId?: number
   eventId?: number
   profileUserId?: number
   isOwnProfile?: boolean
+
+  // Edit mode — supply noteId + initial values (omit attachment props)
+  noteId?: number
+  initialTitle?: string
+  initialBody?: string
+  initialPracticeMinutes?: number | null
+  initialQualityRating?: number | null
+  initialYoutubeUrls?: string[]
+  initialIsPrivate?: boolean
+
   onSaved: (note: any) => void
   onCancel: () => void
 }
@@ -18,16 +29,27 @@ export default function NoteEditor({
   eventId,
   profileUserId,
   isOwnProfile,
+  noteId,
+  initialTitle = '',
+  initialBody = '',
+  initialPracticeMinutes,
+  initialQualityRating,
+  initialYoutubeUrls = [],
+  initialIsPrivate = false,
   onSaved,
   onCancel,
 }: NoteEditorProps) {
-  const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
-  const [practiceMinutes, setPracticeMinutes] = useState('')
-  const [qualityRating, setQualityRating] = useState<number | null>(null)
-  const [youtubeUrls, setYoutubeUrls] = useState<string[]>([])
+  const isEditMode = noteId != null
+
+  const [title, setTitle] = useState(initialTitle)
+  const [body, setBody] = useState(initialBody)
+  const [practiceMinutes, setPracticeMinutes] = useState(
+    initialPracticeMinutes != null ? String(initialPracticeMinutes) : ''
+  )
+  const [qualityRating, setQualityRating] = useState<number | null>(initialQualityRating ?? null)
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(initialYoutubeUrls)
   const [newUrl, setNewUrl] = useState('')
-  const [isPrivate, setIsPrivate] = useState(false)
+  const [isPrivate, setIsPrivate] = useState(initialIsPrivate)
   const [preview, setPreview] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,19 +84,31 @@ export default function NoteEditor({
         youtubeUrls,
         isPrivate,
       }
-      if (groupId != null) payload.groupId = groupId
-      else if (eventId != null) payload.eventId = eventId
-      else if (profileUserId != null) payload.profileUserId = profileUserId
 
-      const res = await fetch('/api/notes', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      let res: Response
+      if (isEditMode) {
+        res = await fetch(`/api/notes/${noteId}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      } else {
+        if (groupId != null) payload.groupId = groupId
+        else if (eventId != null) payload.eventId = eventId
+        else if (profileUserId != null) payload.profileUserId = profileUserId
+
+        res = await fetch('/api/notes', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      }
+
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to save note')
-      if (data.pxpAwarded > 0) setPxpEarned(data.pxpAwarded)
+      if (!isEditMode && data.pxpAwarded > 0) setPxpEarned(data.pxpAwarded)
       onSaved(data.note)
     } catch (err: any) {
       setError(err.message)
@@ -83,8 +117,7 @@ export default function NoteEditor({
     }
   }
 
-  // Only show private toggle when writing a note on someone else's profile
-  const showPrivateToggle = profileUserId != null && !isOwnProfile
+  const showPrivateToggle = !isEditMode && profileUserId != null && !isOwnProfile
 
   return (
     <form
@@ -233,7 +266,6 @@ export default function NoteEditor({
         )}
       </div>
 
-      {/* Private toggle (only for notes on other users' profiles) */}
       {showPrivateToggle && (
         <div className="mt-3 flex items-center gap-2">
           <input
@@ -251,7 +283,6 @@ export default function NoteEditor({
 
       {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
 
-      {/* Actions */}
       <div className="mt-4 flex justify-end gap-2">
         <button
           type="button"
@@ -265,7 +296,7 @@ export default function NoteEditor({
           disabled={saving || !body.trim()}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40"
         >
-          {saving ? 'Saving…' : 'Save Note'}
+          {saving ? 'Saving…' : isEditMode ? 'Save Changes' : 'Save Note'}
         </button>
       </div>
     </form>

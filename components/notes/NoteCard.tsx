@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Link from 'next/link'
 import Image from 'next/image'
+import NoteEditor from './NoteEditor'
 
 interface NoteAuthor {
   id: number
@@ -32,6 +34,7 @@ export interface NoteData {
 interface NoteCardProps {
   note: NoteData
   onDelete?: (id: number) => void
+  onEdit?: (note: NoteData) => void
   currentUserId?: number
 }
 
@@ -52,9 +55,10 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-export default function NoteCard({ note, onDelete, currentUserId }: NoteCardProps) {
+export default function NoteCard({ note, onDelete, onEdit, currentUserId }: NoteCardProps) {
   const isOwn = currentUserId === note.author.id
   const href = authorHref(note.author)
+  const [isEditing, setIsEditing] = useState(false)
 
   const handleDelete = async () => {
     if (!confirm('Delete this note?')) return
@@ -63,6 +67,25 @@ export default function NoteCard({ note, onDelete, currentUserId }: NoteCardProp
       credentials: 'include',
     })
     if (res.ok) onDelete?.(note.id)
+  }
+
+  if (isEditing) {
+    return (
+      <NoteEditor
+        noteId={note.id}
+        initialTitle={note.title ?? ''}
+        initialBody={note.body}
+        initialPracticeMinutes={note.practiceMinutes}
+        initialQualityRating={note.qualityRating}
+        initialYoutubeUrls={note.youtubeUrls}
+        initialIsPrivate={note.isPrivate}
+        onSaved={(updated) => {
+          setIsEditing(false)
+          onEdit?.(updated)
+        }}
+        onCancel={() => setIsEditing(false)}
+      />
+    )
   }
 
   return (
@@ -108,13 +131,25 @@ export default function NoteCard({ note, onDelete, currentUserId }: NoteCardProp
             </span>
           )}
         </div>
-        {isOwn && onDelete && (
-          <button
-            onClick={handleDelete}
-            className="text-xs text-red-400 hover:underline dark:text-red-400"
-          >
-            Delete
-          </button>
+        {isOwn && (
+          <div className="flex items-center gap-3">
+            {onEdit && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-xs text-blue-500 hover:underline dark:text-blue-400"
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="text-xs text-red-400 hover:underline dark:text-red-400"
+              >
+                Delete
+              </button>
+            )}
+          </div>
         )}
       </div>
 
