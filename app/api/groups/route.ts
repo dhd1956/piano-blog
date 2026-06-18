@@ -49,6 +49,15 @@ export async function GET(request: NextRequest) {
       where.ownerId = authUser.id
     }
 
+    const member = searchParams.get('member') === 'true'
+    if (member) {
+      const authUser = await authenticate(request as any)
+      if (!authUser) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      }
+      where.OR = [{ ownerId: authUser.id }, { members: { some: { userId: authUser.id } } }]
+    }
+
     const [groups, totalCount] = await Promise.all([
       db.group.findMany({
         where,

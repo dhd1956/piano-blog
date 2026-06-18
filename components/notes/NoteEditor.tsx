@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -43,6 +43,8 @@ export default function NoteEditor({
 
   const [title, setTitle] = useState(initialTitle)
   const [body, setBody] = useState(initialBody)
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(groupId ?? null)
+  const [availableGroups, setAvailableGroups] = useState<{ id: number; name: string }[]>([])
   const [practiceMinutes, setPracticeMinutes] = useState(
     initialPracticeMinutes != null ? String(initialPracticeMinutes) : ''
   )
@@ -54,6 +56,17 @@ export default function NoteEditor({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pxpEarned, setPxpEarned] = useState<number | null>(null)
+
+  // When creating a note on an event, fetch user's groups so they can optionally link one
+  useEffect(() => {
+    if (isEditMode || !eventId) return
+    fetch('/api/groups?member=true&limit=50', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.groups?.length > 0) setAvailableGroups(data.groups)
+      })
+      .catch(() => {})
+  }, [isEditMode, eventId])
 
   const handleAddUrl = () => {
     const trimmed = newUrl.trim()
@@ -94,9 +107,14 @@ export default function NoteEditor({
           body: JSON.stringify(payload),
         })
       } else {
-        if (groupId != null) payload.groupId = groupId
-        else if (eventId != null) payload.eventId = eventId
-        else if (profileUserId != null) payload.profileUserId = profileUserId
+        if (eventId != null) {
+          payload.eventId = eventId
+          if (selectedGroupId != null) payload.groupId = selectedGroupId
+        } else if (groupId != null) {
+          payload.groupId = groupId
+        } else if (profileUserId != null) {
+          payload.profileUserId = profileUserId
+        }
 
         res = await fetch('/api/notes', {
           method: 'POST',
@@ -265,6 +283,27 @@ export default function NoteEditor({
           </ul>
         )}
       </div>
+
+      {/* Group association — shown when creating a note on an event page */}
+      {!isEditMode && eventId != null && availableGroups.length > 0 && (
+        <div className="mt-3">
+          <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+            Associate with a group (optional)
+          </label>
+          <select
+            value={selectedGroupId ?? ''}
+            onChange={(e) => setSelectedGroupId(e.target.value ? parseInt(e.target.value) : null)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+          >
+            <option value="">No group</option>
+            {availableGroups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {showPrivateToggle && (
         <div className="mt-3 flex items-center gap-2">

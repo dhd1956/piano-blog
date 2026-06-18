@@ -121,11 +121,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Note body is required' }, { status: 400 })
     }
 
-    // Exactly one attachment
-    const attachments = [groupId, eventId, profileUserId].filter((v) => v != null)
-    if (attachments.length !== 1) {
+    // At least one attachment required; profileUserId cannot be combined with group/event
+    const hasGroup = groupId != null
+    const hasEvent = eventId != null
+    const hasProfile = profileUserId != null
+    if (!hasGroup && !hasEvent && !hasProfile) {
       return NextResponse.json(
-        { success: false, error: 'Provide exactly one of: groupId, eventId, profileUserId' },
+        { success: false, error: 'Provide at least one of: groupId, eventId, profileUserId' },
+        { status: 400 }
+      )
+    }
+    if (hasProfile && (hasGroup || hasEvent)) {
+      return NextResponse.json(
+        { success: false, error: 'profileUserId cannot be combined with groupId or eventId' },
         { status: 400 }
       )
     }
