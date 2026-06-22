@@ -84,13 +84,19 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- RLS (consistent with project convention)
 ALTER TABLE "Group" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Allow all access via service role" ON "Group"
-    FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  CREATE POLICY "Allow all access via service role" ON "Group"
+      FOR ALL USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 ALTER TABLE "GroupMember" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Allow all access via service role" ON "GroupMember"
-    FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  CREATE POLICY "Allow all access via service role" ON "GroupMember"
+      FOR ALL USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 ALTER TABLE "GroupVenue" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Allow all access via service role" ON "GroupVenue"
-    FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  CREATE POLICY "Allow all access via service role" ON "GroupVenue"
+      FOR ALL USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
